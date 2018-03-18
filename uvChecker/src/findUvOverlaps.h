@@ -32,9 +32,7 @@ public:
     MStatus check(const std::set<UvEdge>& edges);
     MStatus checkEdgesAndCreateEvent(UvEdge& edgeA, UvEdge& edgeB, std::deque<Event>& eventQueue);
     MStatus initializeObject(const MDagPath& dagPath, const int objectId);
-    void makeCombinations(size_t N, std::vector<std::vector<int>>& vec);
 
-    bool isShellOverlapped(UvShell& shellA, UvShell& shellB);
     bool doBegin(Event& currentEvent, std::deque<Event>& eventQueue, std::vector<UvEdge>& statusQueue);
     bool doEnd(Event& currentEvent, std::deque<Event>& eventQueue, std::vector<UvEdge>& statusQueue);
     bool doCross(Event& currentEvent, std::deque<Event>& eventQueue, std::vector<UvEdge>& statusQueue);

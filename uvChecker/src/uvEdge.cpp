@@ -1,4 +1,5 @@
 #include "uvEdge.h"
+#include "uvUtils.h"
 #include <float.h>
 #include <iostream>
 #include <math.h>
@@ -59,7 +60,7 @@ bool UvEdge::isIntersected(UvEdge& otherEdge, bool& isParallel, float& u, float&
         isConnected = false;
     }
 
-    float area1 = getTriangleArea(
+    float area1 = UvUtils::getTriangleArea(
         this->begin.u,
         this->begin.v,
         otherEdge.begin.u,
@@ -67,7 +68,7 @@ bool UvEdge::isIntersected(UvEdge& otherEdge, bool& isParallel, float& u, float&
         this->end.u,
         this->end.v);
 
-    float area2 = getTriangleArea(
+    float area2 = UvUtils::getTriangleArea(
         this->begin.u,
         this->begin.v,
         otherEdge.end.u,
@@ -79,7 +80,7 @@ bool UvEdge::isIntersected(UvEdge& otherEdge, bool& isParallel, float& u, float&
 		return false;
 	}
 
-    float area3 = getTriangleArea(
+    float area3 = UvUtils::getTriangleArea(
         otherEdge.begin.u,
         otherEdge.begin.v,
         this->begin.u,
@@ -87,7 +88,7 @@ bool UvEdge::isIntersected(UvEdge& otherEdge, bool& isParallel, float& u, float&
         otherEdge.end.u,
         otherEdge.end.v);
 
-    float area4 = getTriangleArea(
+    float area4 = UvUtils::getTriangleArea(
         otherEdge.begin.u,
         otherEdge.begin.v,
         this->end.u,
@@ -189,11 +190,6 @@ bool UvEdge::isIntersected(UvEdge& otherEdge, bool& isParallel, float& u, float&
         return true;
     } else
         return false;
-}
-
-float UvEdge::getTriangleArea(float& Ax, float& Ay, float& Bx, float& By, float& Cx, float& Cy)
-{
-    return ((Ax * (By - Cy)) + (Bx * (Cy - Ay)) + (Cx * (Ay - By))) * 0.5F;
 }
 
 void UvEdge::setCrossingPointX(float Y)

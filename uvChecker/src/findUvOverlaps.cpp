@@ -1,6 +1,7 @@
 #include "findUvOverlaps.h"
 #include "testCase.h"
 #include "uvPoint.h"
+#include "uvUtils.h"
 
 #include <maya/MArgDatabase.h>
 #include <maya/MArgList.h>
@@ -130,13 +131,23 @@ MStatus FindUvOverlaps2::redoIt()
 
         // Get combinations of shell indices eg. (0, 1), (0, 2), (1, 2),,,
         std::vector<std::vector<int>> shellCombinations;
-        makeCombinations(uvShellArrayMaster.size(), shellCombinations);
+        UvUtils::makeCombinations(uvShellArrayMaster.size(), shellCombinations);
 
         for (size_t i = 0; i < shellCombinations.size(); i++) {
             UvShell& shellA = uvShellArrayMaster[shellCombinations[i][0]];
             UvShell& shellB = uvShellArrayMaster[shellCombinations[i][1]];
 
-            if (isShellOverlapped(shellA, shellB)) {
+            bool isOverlapped = UvUtils::isBoundingBoxOverlapped(
+                    shellA.uMin,
+                    shellA.uMax,
+                    shellA.vMin,
+                    shellA.vMax,
+                    shellB.uMin,
+                    shellB.uMax,
+                    shellB.vMin,
+                    shellB.vMax);
+
+            if (isOverlapped) {
                 // Check boundingbox check for two shells
                 // If those two shells are overlapped, combine them into one single shell
                 // and add to shellArray
@@ -348,23 +359,6 @@ MStatus FindUvOverlaps2::initializeObject(const MDagPath& dagPath, const int obj
     return MS::kSuccess;
 }
 
-bool FindUvOverlaps2::isShellOverlapped(UvShell& shellA, UvShell& shellB)
-{
-    if (shellA.uMax < shellB.uMin)
-        return false;
-
-    if (shellA.uMin > shellB.uMax)
-        return false;
-
-    if (shellA.vMax < shellB.vMin)
-        return false;
-
-    if (shellA.vMin > shellB.vMax)
-        return false;
-
-    return true;
-}
-
 MStatus FindUvOverlaps2::check(const std::set<UvEdge>& edges)
 {
     std::deque<Event> eventQueue;
@@ -556,24 +550,6 @@ MStatus FindUvOverlaps2::checkEdgesAndCreateEvent(UvEdge& edgeA, UvEdge& edgeB, 
         }
     }
     return MS::kSuccess;
-}
-
-/* https://stackoverflow.com/questions/12991758/creating-all-possible-k-combinations-of-n-items-in-c */
-void FindUvOverlaps2::makeCombinations(size_t N, std::vector<std::vector<int>>& vec)
-{
-    std::string bitmask(2, 1); // K leading 1's
-    bitmask.resize(N, 0); // N-K trailing 0's
-
-    // print integers and permute bitmask
-    do {
-        std::vector<int> sb;
-        for (size_t i = 0; i < N; ++i) {
-            if (bitmask[i]) {
-                sb.push_back(i);
-            }
-        }
-        vec.push_back(sb);
-    } while (std::prev_permutation(bitmask.begin(), bitmask.end()));
 }
 
 MStatus FindUvOverlaps2::undoIt()

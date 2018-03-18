@@ -28,12 +28,6 @@ public:
     void setCrossingPointX(float Y);
 
     bool isIntersected(UvEdge& otherEdge, bool& isParallel, float& u, float& v);
-    float getTriangleArea(float& x1,
-        float& y1,
-        float& x2,
-        float& y2,
-        float& x3,
-        float& y3);
     float crossingPointX;
 
 private:
