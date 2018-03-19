@@ -6,12 +6,12 @@
 MStatus initializePlugin(MObject mObj)
 {
     MFnPlugin ovPlugin(mObj, "Michitaka Inoue", "0.1.0", "Any");
-    ovPlugin.registerCommand("findUvOverlaps_old", FindUvOverlaps::creator, FindUvOverlaps::newSyntax);
+    ovPlugin.registerCommand("findUvOverlaps_old", FindUvOverlaps_Old::creator, FindUvOverlaps_Old::newSyntax);
 
-    MFnPlugin ov2Plugin(mObj, "Michitaka Inoue", "0.1.0", "Any");
-    ovPlugin.registerCommand("findUvOverlaps", FindUvOverlaps2::creator, FindUvOverlaps2::newSyntax);
+    MFnPlugin ov2Plugin(mObj, "Michitaka Inoue", "1.0.0", "Any");
+    ovPlugin.registerCommand("findUvOverlaps", FindUvOverlaps::creator, FindUvOverlaps::newSyntax);
 
-    MFnPlugin fnPlugin(mObj, "Michitaka Inoue", "0.0.1", "Any");
+    MFnPlugin fnPlugin(mObj, "Michitaka Inoue", "1.0.0", "Any");
     fnPlugin.registerCommand("checkUV", UvChecker::creator, UvChecker::newSyntax);
 
     return MS::kSuccess;

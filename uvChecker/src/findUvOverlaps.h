@@ -18,10 +18,10 @@
 #include <unordered_set>
 #include <vector>
 
-class FindUvOverlaps2 : public MPxCommand {
+class FindUvOverlaps : public MPxCommand {
 public:
-    FindUvOverlaps2();
-    virtual ~FindUvOverlaps2();
+    FindUvOverlaps();
+    virtual ~FindUvOverlaps();
     MStatus doIt(const MArgList& argList);
     MStatus undoIt();
     MStatus redoIt();

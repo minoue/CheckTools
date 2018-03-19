@@ -14,15 +14,15 @@
 #include <iterator>
 #include <string>
 
-FindUvOverlaps2::FindUvOverlaps2()
+FindUvOverlaps::FindUvOverlaps()
 {
 }
 
-FindUvOverlaps2::~FindUvOverlaps2()
+FindUvOverlaps::~FindUvOverlaps()
 {
 }
 
-MSyntax FindUvOverlaps2::newSyntax()
+MSyntax FindUvOverlaps::newSyntax()
 {
     MSyntax syntax;
     syntax.addArg(MSyntax::kString);
@@ -31,7 +31,7 @@ MSyntax FindUvOverlaps2::newSyntax()
     return syntax;
 }
 
-MStatus FindUvOverlaps2::doIt(const MArgList& args)
+MStatus FindUvOverlaps::doIt(const MArgList& args)
 {
     MStatus status;
 
@@ -56,7 +56,7 @@ MStatus FindUvOverlaps2::doIt(const MArgList& args)
     return redoIt();
 }
 
-MStatus FindUvOverlaps2::redoIt()
+MStatus FindUvOverlaps::redoIt()
 {
     MStatus status;
 
@@ -194,7 +194,7 @@ MStatus FindUvOverlaps2::redoIt()
     return MS::kSuccess;
 }
 
-MStatus FindUvOverlaps2::initializeObject(const MDagPath& dagPath, const int objectId)
+MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int objectId)
 {
 
     MStatus status;
@@ -359,7 +359,7 @@ MStatus FindUvOverlaps2::initializeObject(const MDagPath& dagPath, const int obj
     return MS::kSuccess;
 }
 
-MStatus FindUvOverlaps2::check(const std::set<UvEdge>& edges)
+MStatus FindUvOverlaps::check(const std::set<UvEdge>& edges)
 {
     std::deque<Event> eventQueue;
 
@@ -401,7 +401,7 @@ MStatus FindUvOverlaps2::check(const std::set<UvEdge>& edges)
     return MS::kSuccess;
 }
 
-bool FindUvOverlaps2::doBegin(Event& currentEvent, std::deque<Event>& eventQueue, std::vector<UvEdge>& statusQueue)
+bool FindUvOverlaps::doBegin(Event& currentEvent, std::deque<Event>& eventQueue, std::vector<UvEdge>& statusQueue)
 {
     UvEdge& edge = currentEvent.edge;
     statusQueue.push_back(edge);
@@ -448,7 +448,7 @@ bool FindUvOverlaps2::doBegin(Event& currentEvent, std::deque<Event>& eventQueue
     return true;
 }
 
-bool FindUvOverlaps2::doEnd(Event& currentEvent, std::deque<Event>& eventQueue, std::vector<UvEdge>& statusQueue)
+bool FindUvOverlaps::doEnd(Event& currentEvent, std::deque<Event>& eventQueue, std::vector<UvEdge>& statusQueue)
 {
     UvEdge& edge = currentEvent.edge;
     std::vector<UvEdge>::iterator iter_for_removal = std::find(statusQueue.begin(), statusQueue.end(), edge);
@@ -487,7 +487,7 @@ bool FindUvOverlaps2::doEnd(Event& currentEvent, std::deque<Event>& eventQueue, 
     return true;
 }
 
-bool FindUvOverlaps2::doCross(Event& currentEvent, std::deque<Event>& eventQueue, std::vector<UvEdge>& statusQueue)
+bool FindUvOverlaps::doCross(Event& currentEvent, std::deque<Event>& eventQueue, std::vector<UvEdge>& statusQueue)
 {
     if (statusQueue.size() <= 2) {
         return false;
@@ -533,7 +533,7 @@ bool FindUvOverlaps2::doCross(Event& currentEvent, std::deque<Event>& eventQueue
     return false;
 }
 
-MStatus FindUvOverlaps2::checkEdgesAndCreateEvent(UvEdge& edgeA, UvEdge& edgeB, std::deque<Event>& eventQueue)
+MStatus FindUvOverlaps::checkEdgesAndCreateEvent(UvEdge& edgeA, UvEdge& edgeB, std::deque<Event>& eventQueue)
 {
     bool isParallel = false;
     if (edgeA.isIntersected(edgeB, isParallel, intersect_u, intersect_v)) {
@@ -552,17 +552,17 @@ MStatus FindUvOverlaps2::checkEdgesAndCreateEvent(UvEdge& edgeA, UvEdge& edgeB, 
     return MS::kSuccess;
 }
 
-MStatus FindUvOverlaps2::undoIt()
+MStatus FindUvOverlaps::undoIt()
 {
     return MS::kSuccess;
 }
 
-bool FindUvOverlaps2::isUndoable() const
+bool FindUvOverlaps::isUndoable() const
 {
     return false;
 }
 
-void* FindUvOverlaps2::creator()
+void* FindUvOverlaps::creator()
 {
-    return new FindUvOverlaps2;
+    return new FindUvOverlaps;
 }
