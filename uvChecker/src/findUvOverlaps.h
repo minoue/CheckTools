@@ -46,10 +46,6 @@ private:
     // Container to store all UV shells to be tested
     std::vector<UvShell> uvShellArrayMaster;
 
-    // u and v values of crossing point of two edges
-    float intersect_u;
-    float intersect_v;
-
     // Countainer for UVs of final result
     MStringArray resultStringArray;
 };

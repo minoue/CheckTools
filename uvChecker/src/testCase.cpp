@@ -39,12 +39,10 @@ void TestCase::checkEdgeIntersection() {
     e4.begin = p7;
     e4.end = p8;
 
-    float u;
-    float v;
     bool isParallel = false;
 
-    bool result1 = e1.isIntersected(e2, isParallel, u, v);
-    bool result2 = e3.isIntersected(e4, isParallel, u, v);
+    bool result1 = e1.isIntersected(e2, isParallel);
+    bool result2 = e3.isIntersected(e4, isParallel);
     MString resultStr;
     resultStr.set(result1);
     MGlobal::displayInfo(resultStr);

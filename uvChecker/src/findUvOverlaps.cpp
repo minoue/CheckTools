@@ -138,14 +138,14 @@ MStatus FindUvOverlaps::redoIt()
             UvShell& shellB = uvShellArrayMaster[shellCombinations[i][1]];
 
             bool isOverlapped = UvUtils::isBoundingBoxOverlapped(
-                    shellA.uMin,
-                    shellA.uMax,
-                    shellA.vMin,
-                    shellA.vMax,
-                    shellB.uMin,
-                    shellB.uMax,
-                    shellB.vMin,
-                    shellB.vMax);
+                shellA.uMin,
+                shellA.uMax,
+                shellA.vMin,
+                shellA.vMax,
+                shellB.uMin,
+                shellB.uMax,
+                shellB.vMin,
+                shellB.vMax);
 
             if (isOverlapped) {
                 // Check boundingbox check for two shells
@@ -536,7 +536,10 @@ bool FindUvOverlaps::doCross(Event& currentEvent, std::deque<Event>& eventQueue,
 MStatus FindUvOverlaps::checkEdgesAndCreateEvent(UvEdge& edgeA, UvEdge& edgeB, std::deque<Event>& eventQueue)
 {
     bool isParallel = false;
-    if (edgeA.isIntersected(edgeB, isParallel, intersect_u, intersect_v)) {
+    if (edgeA.isIntersected(edgeB, isParallel)) {
+
+        float uv[2];
+        UvUtils::getEdgeIntersectionPoint(edgeA.begin.u, edgeA.begin.v, edgeA.end.u, edgeA.end.v, edgeB.begin.u, edgeB.begin.v, edgeB.end.u, edgeB.end.v, uv);
 
         resultStringArray.append(edgeA.begin.path);
         resultStringArray.append(edgeA.end.path);
@@ -544,7 +547,7 @@ MStatus FindUvOverlaps::checkEdgesAndCreateEvent(UvEdge& edgeA, UvEdge& edgeB, s
         resultStringArray.append(edgeB.end.path);
 
         if (isParallel == false) {
-            Event crossEvent("intersect", intersect_u, intersect_v, edgeA, edgeB);
+            Event crossEvent("intersect", uv[0], uv[1], edgeA, edgeB);
             eventQueue.push_back(crossEvent);
             std::sort(eventQueue.begin(), eventQueue.end());
         }
