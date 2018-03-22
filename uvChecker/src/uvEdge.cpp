@@ -50,7 +50,7 @@ bool UvEdge::operator<=(const UvEdge& rhs) const
 bool UvEdge::isIntersected(UvEdge& otherEdge, bool& isParallel)
 {
 
-    // Check edge index if they have shared UV index
+    // Check edge index if they have share UV indices
     bool isConnected;
     if (this->beginIndex == otherEdge.beginIndex || this->beginIndex == otherEdge.endIndex) {
         isConnected = true;
@@ -76,29 +76,15 @@ bool UvEdge::isIntersected(UvEdge& otherEdge, bool& isParallel)
         this->end.u,
         this->end.v);
 
-    if ((area1 == 0 && area2 == 0) && isConnected == true) {
-        return false;
-    }
-
-    float area3 = UvUtils::getTriangleArea(
-        otherEdge.begin.u,
-        otherEdge.begin.v,
-        this->begin.u,
-        this->begin.v,
-        otherEdge.end.u,
-        otherEdge.end.v);
-
-    float area4 = UvUtils::getTriangleArea(
-        otherEdge.begin.u,
-        otherEdge.begin.v,
-        this->end.u,
-        this->end.v,
-        otherEdge.end.u,
-        otherEdge.end.v);
-
+    //    if ((area1 == 0 && area2 == 0) && isConnected == true) {
+    //        return false;
     if (area1 == 0.0 && area2 == 0.0) {
         // if area of the two triangles are 0, two lines are parallel on a same
         // line
+
+        if (isConnected)
+            return false;
+
         float u_min;
         float u_max;
         float v_min;
@@ -146,6 +132,22 @@ bool UvEdge::isIntersected(UvEdge& otherEdge, bool& isParallel)
         }
     }
 
+    float area3 = UvUtils::getTriangleArea(
+        otherEdge.begin.u,
+        otherEdge.begin.v,
+        this->begin.u,
+        this->begin.v,
+        otherEdge.end.u,
+        otherEdge.end.v);
+
+    float area4 = UvUtils::getTriangleArea(
+        otherEdge.begin.u,
+        otherEdge.begin.v,
+        this->end.u,
+        this->end.v,
+        otherEdge.end.u,
+        otherEdge.end.v);
+
     float ccw1;
     float ccw2;
     // If two edges are connected, at least 2 area of 4 triangles should be 0,
@@ -164,18 +166,17 @@ bool UvEdge::isIntersected(UvEdge& otherEdge, bool& isParallel)
         return false;
 }
 
-void UvEdge::setCrossingPointX(float Y)
+void UvEdge::setCrossingPointX(const float Y)
 {
-    float& x1 = this->begin.u;
-    float& y1 = this->begin.v;
-    float& x2 = this->end.u;
-    float& y2 = this->end.v;
+    float x1 = this->begin.u;
+    float y1 = this->begin.v;
+    float x2 = this->end.u;
+    float y2 = this->end.v;
 
     if (y2 == y1) {
         this->crossingPointX = this->begin.u;
     } else {
-        float X = ((Y - y1) * (x2 - x1)) / (y2 - y1) + x1;
-        this->crossingPointX = X;
+        this->crossingPointX = ((Y - y1) * (x2 - x1)) / (y2 - y1) + x1;
     }
 }
 

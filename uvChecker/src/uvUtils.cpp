@@ -9,20 +9,20 @@
 #include "uvUtils.h"
 #include <string>
 
-float UvUtils::getTriangleArea(float& Ax, float& Ay, float& Bx, float& By, float& Cx, float& Cy)
+float UvUtils::getTriangleArea(const float Ax, const float Ay, const float Bx, const float By, const float Cx, const float Cy)
 {
     return ((Ax * (By - Cy)) + (Bx * (Cy - Ay)) + (Cx * (Ay - By))) * 0.5F;
 }
 
 bool UvUtils::isBoundingBoxOverlapped(
-    float& BA_uMin,
-    float& BA_uMax,
-    float& BA_vMin,
-    float& BA_vMax,
-    float& BB_uMin,
-    float& BB_uMax,
-    float& BB_vMin,
-    float& BB_vMax)
+    const float BA_uMin,
+    const float BA_uMax,
+    const float BA_vMin,
+    const float BA_vMax,
+    const float BB_uMin,
+    const float BB_uMax,
+    const float BB_vMin,
+    const float BB_vMax)
 {
     if (BA_uMax < BB_uMin)
         return false;
@@ -57,8 +57,7 @@ void UvUtils::makeCombinations(size_t N, std::vector<std::vector<int>>& vec)
     } while (std::prev_permutation(bitmask.begin(), bitmask.end()));
 }
 
-void UvUtils::getEdgeIntersectionPoint(float& Ax, float& Ay, float& Bx, float& By, float& Cx, float& Cy,
-    float& Dx, float& Dy, float uv[2])
+void UvUtils::getEdgeIntersectionPoint(const float Ax, const float Ay, const float Bx, const float By, const float Cx, const float Cy, const float Dx, const float Dy, float uv[2])
 {
     // if two non-connected edges intersect, get intersection point values
 

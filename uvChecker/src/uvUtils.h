@@ -14,22 +14,30 @@
 
 class UvUtils {
 public:
-    static float getTriangleArea(float& Ax, float& Ay, float& Bx, float& By, float& Cx, float& Cy);
+    static float getTriangleArea(const float Ax,
+        const float Ay,
+        const float Bx,
+        const float By,
+        const float Cx,
+        const float Cy);
     static bool isBoundingBoxOverlapped(
-        float& BA_uMin,
-        float& BA_uMax,
-        float& BA_vMin,
-        float& BA_vMax,
-        float& BB_uMin,
-        float& BB_uMax,
-        float& BB_vMin,
-        float& BB_vMax);
+        const float BA_uMin,
+        const float BA_uMax,
+        const float BA_vMin,
+        const float BA_vMax,
+        const float BB_uMin,
+        const float BB_uMax,
+        const float BB_vMin,
+        const float BB_vMax);
     static void makeCombinations(size_t N, std::vector<std::vector<int>>& vec);
-    static void getEdgeIntersectionPoint(
-        float& Ax, float& Ay,
-        float& Bx, float& By,
-        float& Cx, float& Cy,
-        float& Dx, float& Dy,
+    static void getEdgeIntersectionPoint(const float Ax,
+        const float Ay,
+        const float Bx,
+        const float By,
+        const float Cx,
+        const float Cy,
+        const float Dx,
+        const float Dy,
         float uv[2]);
 
 private:
