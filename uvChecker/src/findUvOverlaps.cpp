@@ -10,7 +10,6 @@
 #include <maya/MThreadUtils.h>
 #include <maya/MTimer.h>
 
-#include <algorithm>
 #include <iterator>
 #include <string>
 
