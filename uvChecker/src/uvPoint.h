@@ -1,7 +1,7 @@
 #ifndef __UVPOINT__
 #define __UVPOINT__
 
-#include <maya/MString.h>
+#include <string>
 
 class UvPoint {
 public:
@@ -27,7 +27,7 @@ public:
     bool operator<(const UvPoint& rhs) const;
     bool operator<=(const UvPoint& rhs) const;
 
-    MString path;
+    std::string path;
 
 private:
 };

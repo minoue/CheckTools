@@ -29,16 +29,31 @@ public:
     static void* creator();
     static MSyntax newSyntax();
 
-    MStatus check(const std::set<UvEdge>& edges);
-    MStatus checkEdgesAndCreateEvent(UvEdge& edgeA, UvEdge& edgeB, std::deque<Event>& eventQueue);
+    MStatus check(const std::set<UvEdge>& edges, int threadNumber);
+
+    MStatus checkEdgesAndCreateEvent(UvEdge& edgeA,
+        UvEdge& edgeB,
+        std::deque<Event>& eventQueue,
+        int threadNumber);
+
     MStatus initializeObject(const MDagPath& dagPath, const int objectId);
 
-    bool doBegin(Event& currentEvent, std::deque<Event>& eventQueue, std::vector<UvEdge>& statusQueue);
-    bool doEnd(Event& currentEvent, std::deque<Event>& eventQueue, std::vector<UvEdge>& statusQueue);
-    bool doCross(Event& currentEvent, std::deque<Event>& eventQueue, std::vector<UvEdge>& statusQueue);
+    bool doBegin(Event& currentEvent,
+        std::deque<Event>& eventQueue,
+        std::vector<UvEdge>& statusQueue,
+        int threadNumber);
+    bool doEnd(Event& currentEvent,
+        std::deque<Event>& eventQueue,
+        std::vector<UvEdge>& statusQueue,
+        int threadNumber);
+    bool doCross(Event& currentEvent,
+        std::deque<Event>& eventQueue,
+        std::vector<UvEdge>& statusQueue,
+        int threadNumber);
 
 private:
     bool verbose;
+    bool multiThread;
     MDagPath dagPath;
     MString uvSet;
     MSelectionList mSel;
@@ -46,8 +61,11 @@ private:
     // Container to store all UV shells to be tested
     std::vector<UvShell> uvShellArrayMaster;
 
-    // Countainer for UVs of final result
+    // Countainer for UVs of final result to be returned 
     MStringArray resultStringArray;
+
+    // temp result container for each thread
+    std::vector<std::vector<std::string>> tempResultVector;
 };
 
 #endif /* defined(__FINDUVOVERLAPS2_H__) */
