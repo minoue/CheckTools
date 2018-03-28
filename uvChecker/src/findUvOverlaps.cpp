@@ -347,8 +347,6 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
 
             // Create edge index from two point index
             // eg. obj1 (1), p1(0), p2(25) will make edge index of 1025
-            std::string uvIdSmallStr;
-            std::string uvIdBigStr;
 
             MString idA;
             MString idB;
