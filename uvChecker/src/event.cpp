@@ -4,24 +4,23 @@ Event::Event()
 {
 }
 
-Event::Event(std::string status, UvPoint point, UvEdge& edge, int index)
+Event::Event(std::string status, const UvEdge* edgePtr, UvPoint eventPoint, int index)
 {
     this->status = status;
-    this->point = point;
-    this->edge = edge;
+    this->edgePtr = edgePtr;
+    this->point = eventPoint;
     this->index = index;
-
     this->u = point.u;
     this->v = point.v;
 }
 
-Event::Event(std::string status, float u, float v, UvEdge& edge, UvEdge& otherEdge)
+Event::Event(std::string status, float u, float v, UvEdge* edgePtr, UvEdge* otherEdgePtr)
 {
     this->status = status;
     this->u = u;
     this->v = v;
-    this->edge = edge;
-    this->otherEdge = otherEdge;
+    this->edgePtr = edgePtr;
+    this->otherEdgePtr = otherEdgePtr;
 }
 
 Event::~Event()

@@ -7,9 +7,8 @@
 
 class Event {
 public:
-    Event();
-    Event(std::string status, UvPoint point, UvEdge& edge, int index);
-    Event(std::string status, float u, float v, UvEdge& edge, UvEdge& otherEdge);
+    Event(std::string status, const UvEdge* edgePtr, UvPoint eventPoint, int index);
+    Event(std::string status, float u, float v, UvEdge* edgePtr, UvEdge* otherEdgePtr);
     ~Event();
 
     std::string status;
@@ -17,6 +16,8 @@ public:
     UvEdge edge;
     UvEdge otherEdge;
     int index;
+    const UvEdge* edgePtr;
+    const UvEdge* otherEdgePtr;
 
     float u;
     float v;
@@ -33,6 +34,7 @@ public:
     bool operator<=(const Event& rhs) const;
 
 private:
+    Event();
 };
 
 #endif /* defined(__UVEVENT_H__) */
