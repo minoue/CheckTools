@@ -9,6 +9,7 @@ public:
     UvPoint(float u, float v);
     UvPoint(float u, float v, int index);
     UvPoint(float u, float v, int index, int shellIndex);
+    UvPoint(float u, float v, int index, int shellIndex, std::string path);
     ~UvPoint();
 
     float u;
@@ -27,7 +28,7 @@ public:
     bool operator<(const UvPoint& rhs) const;
     bool operator<=(const UvPoint& rhs) const;
 
-    std::string path;
+    std::string path; // Fullpath to this point
 
 private:
 };

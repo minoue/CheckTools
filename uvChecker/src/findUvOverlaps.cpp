@@ -346,36 +346,34 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
             int currentShellIndex = uvShellIds[uvIdA];
 
             // Create edge index from two point index
-            // eg. obj1 (1), p1(0), p2(25) will make edge index of 1025
+            // eg. obj1 (1), p1(0), p2(25) makes edge index of 1025
 
-            MString idA;
-            MString idB;
-            MString objId;
+            std::string uvIdA_str;
+            std::string uvIdB_str;
+            
             if (uvIdA < uvIdB) {
-                idA.set(uvIdA);
-                idB.set(uvIdB);
+                uvIdA_str = std::to_string(uvIdA);
+                uvIdB_str = std::to_string(uvIdB);
             } else {
-                idA.set(uvIdB);
-                idB.set(uvIdA);
+                uvIdA_str = std::to_string(uvIdB);
+                uvIdB_str = std::to_string(uvIdA);
             }
-            objId.set(objectId);
-            // MString edgeIndexStr = idA + idB;
-            unsigned int edgeIndex = (objId + idA + idB).asUnsigned();
+            std::string objId_str = std::to_string(objectId);
+            
+            long edgeIndex = std::stoul((objId_str + uvIdA_str + uvIdB_str));
 
             // Get UV values and create edge objects
             float u_current, v_current;
             float u_next, v_next;
             fnMesh.getPolygonUV(faceId, curLocalIndex, u_current, v_current, uvSetPtr);
             fnMesh.getPolygonUV(faceId, nextLocalIndex, u_next, v_next, uvSetPtr);
-            UvPoint p1(u_current, v_current, uvIdA, currentShellIndex);
-            UvPoint p2(u_next, v_next, uvIdB, currentShellIndex);
-
-            MString temppath1 = dagPath.fullPathName() + ".map[" + idA + "]";
-            MString temppath2 = dagPath.fullPathName() + ".map[" + idB + "]";
-            p1.path = temppath1.asChar();
-            p2.path = temppath2.asChar();
-            //            p1.path = dagPath.fullPathName() + ".map[" + idA + "]";
-            //            p2.path = dagPath.fullPathName() + ".map[" + idB + "]";
+            
+            std::string dagPathStr = dagPath.fullPathName().asChar();
+            std::string path_to_p1 = dagPathStr + ".map[" + uvIdA_str + "]";
+            std::string path_to_p2 = dagPathStr + ".map[" + uvIdB_str + "]";
+            
+            UvPoint p1(u_current, v_current, uvIdA, currentShellIndex, path_to_p1);
+            UvPoint p2(u_next, v_next, uvIdB, currentShellIndex, path_to_p2);
 
             UvPoint beginPt;
             UvPoint endPt;

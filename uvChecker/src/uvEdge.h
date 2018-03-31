@@ -11,7 +11,7 @@ public:
 
     UvPoint begin;
     UvPoint end;
-    unsigned int index;
+    unsigned long index;
     int beginIndex;
     int endIndex;
 

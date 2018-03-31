@@ -25,6 +25,15 @@ UvPoint::UvPoint(float u, float v, int index, int shellIndex)
     this->shellIndex = shellIndex;
 }
 
+UvPoint::UvPoint(float u, float v, int index, int shellIndex, std::string path)
+{
+    this->u = u;
+    this->v = v;
+    this->index = index;
+    this->shellIndex = shellIndex;
+    this->path = path;
+}
+
 UvPoint::~UvPoint()
 {
 }
