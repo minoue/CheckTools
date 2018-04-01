@@ -117,6 +117,8 @@ MStatus FindUvOverlaps::redoIt()
     if (uvShellArrayMaster.size() == 1) {
         // if there is only one uv shell, just send it to checker command.
         // don't need to check uv bounding box overlaps check.
+        tempResultVector.resize(1);
+        tempResultVector[0].reserve(1000);
         status = check(uvShellArrayMaster[0].edgeSet, 0);
         std::cout << uvShellArrayMaster[0].edgeSet.size() << std::endl;
         if (status != MS::kSuccess) {
