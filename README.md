@@ -78,10 +78,8 @@ print r
 
 * Single object selected or object path specified as command argment
 
-    <img src="https://www.dropbox.com/s/fkbew67qy4dymza/uvOverlaps_single.gif?dl=1" alt="Image" style="width: 300px;"/>
-
-    <img src="https://github.com/minoue/CheckTools/blob/media/media/uvOverlaps_single.png" alt="Image" style="width: 300px;"/>
+    <img src="https://github.com/minoue/CheckTools/blob/media/media/uvOverlaps_single.gif" alt="Image" style="width: 300px;"/>
 
 * Multiple object selected
 
-    <img src="https://www.dropbox.com/s/ktomitkqsfs6eb3/uvOverlaps_multiple.gif?dl=1" alt="Drawing" style="width: 300px;"/>
+    <img src="https://github.com/minoue/CheckTools/blob/media/media/uvOverlaps_multipleObj.gif" alt="Image" style="width: 300px;"/>
