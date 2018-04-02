@@ -64,8 +64,22 @@ Plugin command to find overlapped UVs with other shells or itself.
 |:---------|----------:|:--------------:|:-------:|:----------:|
 |uvSet|set|string||C|
 |verbose|v|bool|False|C|
+|multithread|mt|bool|False|C|
+* Multithread flag makes the command faster only when checking multiple UV shells
+properties
 
 #### Example
 ```python
 from maya import cmds
+r = cmds.findUvOverlaps("|pSphere1")
+print r
+[u'|pPlane1|pPlaneShape1.map[38]', u'|pPlane1|pPlaneShape1.map[39]', ....]
 ```
+
+* Single object selected or object path specified as command argment
+
+    <img src="https://www.dropbox.com/s/fkbew67qy4dymza/uvOverlaps_single.gif?dl=1" alt="Drawing" style="width: 300px;"/>
+
+* Multiple object selected
+
+    <img src="https://www.dropbox.com/s/ktomitkqsfs6eb3/uvOverlaps_multiple.gif?dl=1" alt="Drawing" style="width: 300px;"/>
