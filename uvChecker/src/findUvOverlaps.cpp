@@ -354,13 +354,13 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
             std::string uvIdB_str;
             
             if (uvIdA < uvIdB) {
-                uvIdA_str = std::to_string(uvIdA);
-                uvIdB_str = std::to_string(uvIdB);
+                uvIdA_str = std::to_string((long long)uvIdA);
+                uvIdB_str = std::to_string((long long)uvIdB);
             } else {
-                uvIdA_str = std::to_string(uvIdB);
-                uvIdB_str = std::to_string(uvIdA);
+                uvIdA_str = std::to_string((long long)uvIdB);
+                uvIdB_str = std::to_string((long long)uvIdA);
             }
-            std::string objId_str = std::to_string(objectId);
+            std::string objId_str = std::to_string((long long)objectId);
             
             long edgeIndex = std::stoul((objId_str + uvIdA_str + uvIdB_str));
 
@@ -426,7 +426,7 @@ MStatus FindUvOverlaps::check(const std::set<UvEdge>& edges, int threadNumber)
         if (eventQueue.empty()) {
             break;
         }
-        Event& firstEvent = eventQueue.front();
+        Event firstEvent = eventQueue.front();
         eventQueue.pop_front();
 
         if (firstEvent.status == "begin") {
