@@ -7,6 +7,7 @@
 #include <maya/MGlobal.h>
 #include <maya/MIntArray.h>
 #include <maya/MTimer.h>
+#include <maya/MFloatArray.h>
 
 #include <algorithm>
 #include <iostream>
@@ -276,8 +277,11 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
 
     MIntArray uvShellIds;
     unsigned int nbUvShells;
-
+    MFloatArray uArray;
+    MFloatArray vArray;
+    
     fnMesh.getUvShellsIds(uvShellIds, nbUvShells, uvSetPtr);
+    fnMesh.getUVs(uArray, vArray, uvSetPtr);
 
     // if no UVs are detected on this mesh
     if (nbUvShells == 0) {
@@ -365,10 +369,10 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
             long edgeIndex = std::stoul((objId_str + uvIdA_str + uvIdB_str));
 
             // Get UV values and create edge objects
-            float u_current, v_current;
-            float u_next, v_next;
-            fnMesh.getPolygonUV(faceId, curLocalIndex, u_current, v_current, uvSetPtr);
-            fnMesh.getPolygonUV(faceId, nextLocalIndex, u_next, v_next, uvSetPtr);
+            float u_current = uArray[uvIdA];
+            float v_current = vArray[uvIdA];
+            float u_next = uArray[uvIdB];
+            float v_next = vArray[uvIdB];
             
             std::string dagPathStr = dagPath.fullPathName().asChar();
             std::string path_to_p1 = dagPathStr + ".map[" + uvIdA_str + "]";
