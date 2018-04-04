@@ -3,15 +3,17 @@
 #include "uvChecker.h"
 #include <maya/MFnPlugin.h>
 
+static const char* const VERSION = "1.0.0";
+
 MStatus initializePlugin(MObject mObj)
 {
-    MFnPlugin ovPlugin(mObj, "Michitaka Inoue", "0.1.0", "Any");
+    MFnPlugin ovPlugin(mObj, "Michitaka Inoue", VERSION, "Any");
     ovPlugin.registerCommand("findUvOverlaps_old", FindUvOverlaps_Old::creator, FindUvOverlaps_Old::newSyntax);
 
-    MFnPlugin ov2Plugin(mObj, "Michitaka Inoue", "1.0.0", "Any");
+    MFnPlugin ov2Plugin(mObj, "Michitaka Inoue", VERSION, "Any");
     ovPlugin.registerCommand("findUvOverlaps", FindUvOverlaps::creator, FindUvOverlaps::newSyntax);
 
-    MFnPlugin fnPlugin(mObj, "Michitaka Inoue", "1.0.0", "Any");
+    MFnPlugin fnPlugin(mObj, "Michitaka Inoue", VERSION, "Any");
     fnPlugin.registerCommand("checkUV", UvChecker::creator, UvChecker::newSyntax);
 
     return MS::kSuccess;
