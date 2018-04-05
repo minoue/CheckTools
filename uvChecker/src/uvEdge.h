@@ -2,20 +2,19 @@
 #define __UVEDGE__
 
 #include "uvPoint.h"
-#include <tuple>
 
 class UvEdge {
 public:
     UvEdge();
-    UvEdge(UvPoint beginPt, UvPoint endPt, std::tuple<int, int, int> indexTuple);
+    UvEdge(UvPoint beginPt, UvPoint endPt, std::string strId);
     ~UvEdge();
 
     UvPoint begin;
     UvPoint end;
-    unsigned long index;
-    std::tuple<int, int, int> indexTuple;
+    int index;
     int beginIndex;
     int endIndex;
+    std::string stringID;
 
     bool operator==(const UvEdge& rhs) const;
     inline bool operator!=(const UvEdge& rhs) const

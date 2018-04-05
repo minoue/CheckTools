@@ -120,8 +120,7 @@ MStatus FindUvOverlaps::redoIt()
         // don't need to check uv bounding box overlaps check.
         tempResultVector.resize(1);
         tempResultVector[0].reserve(1000);
-        status = check(uvShellArrayMaster[0].edgeSet, 0);
-        std::cout << uvShellArrayMaster[0].edgeSet.size() << std::endl;
+        status = check(uvShellArrayMaster[0].unordered_edgeSet, 0);
         if (status != MS::kSuccess) {
             MGlobal::displayInfo("Error found in shell");
         }
@@ -130,7 +129,7 @@ MStatus FindUvOverlaps::redoIt()
         // make one combined shell and send it to checker command
 
         // Countainer for both overlapped shells and indivisual shells for checker
-        std::vector<std::set<UvEdge>> shellArray;
+        std::vector<std::unordered_set<UvEdge, hash_edge>> shellArray;
 
         // Array like [0, 1, 3, 4 ...... nbUvShells]
         std::set<int> shellIndices;
@@ -160,9 +159,9 @@ MStatus FindUvOverlaps::redoIt()
                 // Check boundingbox check for two shells
                 // If those two shells are overlapped, combine them into one single shell
                 // and add to shellArray
-                std::set<UvEdge> combinedEdges;
-                combinedEdges.insert(shellA.edgeSet.begin(), shellA.edgeSet.end());
-                combinedEdges.insert(shellB.edgeSet.begin(), shellB.edgeSet.end());
+                std::unordered_set<UvEdge, hash_edge> combinedEdges;
+                combinedEdges.insert(shellA.unordered_edgeSet.begin(), shellA.unordered_edgeSet.end());
+                combinedEdges.insert(shellB.unordered_edgeSet.begin(), shellB.unordered_edgeSet.end());
                 shellArray.push_back(combinedEdges);
 
                 // Remove from shellIndices as these shells don't have to be checked
@@ -175,7 +174,7 @@ MStatus FindUvOverlaps::redoIt()
         std::set<int>::iterator shIter;
         for (shIter = shellIndices.begin(); shIter != shellIndices.end(); ++shIter) {
             int index = *shIter;
-            std::set<UvEdge>& tempSet = uvShellArrayMaster[index].edgeSet;
+            std::unordered_set<UvEdge, hash_edge>& tempSet = uvShellArrayMaster[index].unordered_edgeSet;
             shellArray.push_back(tempSet);
         }
 
@@ -348,15 +347,13 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
 
             int currentShellIndex = uvShellIds[uvIdA];
 
-            // Create edge index from two point index
-            // eg. obj1 (1), p1(0), p2(25) makes edge index of (1, 0, 25)
-
-            std::tuple<int, int, int> t;
-            
+            // Create edge index from two point index and objectID
+            // eg. obj1 (1), p1(0), p2(25) makes edge index of 1025
+            std::string stringId;
             if (uvIdA < uvIdB) {
-                t = std::make_tuple(objectId, uvIdA, uvIdB);
+                stringId = std::to_string(objectId) + std::to_string(uvIdA) + std::to_string(uvIdB);
             } else {
-                t = std::make_tuple(objectId, uvIdB, uvIdA);
+                stringId = std::to_string(objectId) + std::to_string(uvIdB) + std::to_string(uvIdA);
             }
 
             // Get UV values and create edge objects
@@ -384,8 +381,8 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
             }
 
             // Create edge objects and insert them to shell edge set
-            UvEdge edge(beginPt, endPt, t);
-            uvShellArrayTemp[currentShellIndex].edgeSet.insert(edge);
+            UvEdge edge(beginPt, endPt, stringId);
+            uvShellArrayTemp[currentShellIndex].unordered_edgeSet.insert(edge);
         }
     }
     timer.endTimer();
@@ -400,12 +397,12 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
     return MS::kSuccess;
 }
 
-MStatus FindUvOverlaps::check(const std::set<UvEdge>& edges, int threadNumber)
+MStatus FindUvOverlaps::check(const std::unordered_set<UvEdge, hash_edge>& edges, int threadNumber)
 {
     std::deque<Event> eventQueue;
 
     int eventIndex = 0;
-    for (std::set<UvEdge>::iterator iter = edges.begin(), end = edges.end(); iter != end; ++iter) {
+    for (std::unordered_set<UvEdge, hash_edge>::iterator iter = edges.begin(), end = edges.end(); iter != end; ++iter) {
         
         Event ev1("begin", &(*iter), iter->begin, eventIndex);
         eventIndex += 1;

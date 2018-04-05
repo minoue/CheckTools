@@ -29,7 +29,7 @@ public:
     static void* creator();
     static MSyntax newSyntax();
 
-    MStatus check(const std::set<UvEdge>& edges, int threadNumber);
+    MStatus check(const std::unordered_set<UvEdge, hash_edge>& edges, int threadNumber);
 
     MStatus checkEdgesAndCreateEvent(UvEdge& edgeA,
         UvEdge& edgeB,

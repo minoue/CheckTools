@@ -9,13 +9,13 @@ UvEdge::UvEdge()
 {
 }
 
-UvEdge::UvEdge(UvPoint beginPt, UvPoint endPt, std::tuple<int, int, int> indexTuple)
+UvEdge::UvEdge(UvPoint beginPt, UvPoint endPt, std::string strId)
 {
     this->begin = beginPt;
     this->end = endPt;
-    this->indexTuple = indexTuple;
     this->beginIndex = beginPt.index;
     this->endIndex = endPt.index;
+    this->stringID = strId;
 }
 
 UvEdge::~UvEdge()
@@ -24,27 +24,27 @@ UvEdge::~UvEdge()
 
 bool UvEdge::operator==(const UvEdge& rhs) const
 {
-    return this->indexTuple == rhs.indexTuple;
+    return this->stringID == rhs.stringID;
 }
 
 bool UvEdge::operator>(const UvEdge& rhs) const
 {
-    return this->indexTuple > rhs.indexTuple;
+    return this->stringID > rhs.stringID;
 }
 
 bool UvEdge::operator>=(const UvEdge& rhs) const
 {
-    return this->indexTuple >= rhs.indexTuple;
+    return this->stringID >= rhs.stringID;
 }
 
 bool UvEdge::operator<(const UvEdge& rhs) const
 {
-    return this->indexTuple < rhs.indexTuple;
+    return this->stringID < rhs.stringID;
 }
 
 bool UvEdge::operator<=(const UvEdge& rhs) const
 {
-    return this->indexTuple <= rhs.indexTuple;
+    return this->stringID <= rhs.stringID;
 }
 
 bool UvEdge::isIntersected(UvEdge& otherEdge, bool& isParallel)
