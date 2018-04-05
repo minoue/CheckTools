@@ -2,16 +2,18 @@
 #define __UVEDGE__
 
 #include "uvPoint.h"
+#include <tuple>
 
 class UvEdge {
 public:
     UvEdge();
-    UvEdge(UvPoint beginPt, UvPoint endPt, unsigned int index);
+    UvEdge(UvPoint beginPt, UvPoint endPt, std::tuple<int, int, int> indexTuple);
     ~UvEdge();
 
     UvPoint begin;
     UvPoint end;
     unsigned long index;
+    std::tuple<int, int, int> indexTuple;
     int beginIndex;
     int endIndex;
 
