@@ -315,12 +315,32 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
         shell.uMin = *std::min_element(shell.uVector.begin(), shell.uVector.end());
         shell.vMin = *std::min_element(shell.vVector.begin(), shell.vVector.end());
     }
-
+    
+    int numPolygons = fnMesh.numPolygons();
+    
+    std::vector<std::vector<int> > uvIdVector;
+    uvIdVector.resize(numPolygons);
+    MIntArray uvCounts;
+    MIntArray uvIds;
+    int uvCounter = 0;
+    fnMesh.getAssignedUVs(uvCounts, uvIds);
+    for (int i=0; i<uvCounts.length(); i++) {
+        int numFaceUVs = uvCounts[i];
+        for (int u=0; u<numFaceUVs; u++) {
+            uvIdVector[i].push_back(uvIds[uvCounter]);
+            uvCounter++;
+        }
+    }
+    
     timer.beginTimer();
     // Loop all polygon faces and create edge objects
-    int numPolygons = fnMesh.numPolygons();
     for (int faceId = 0; faceId < numPolygons; faceId++) {
-        int numPolygonVertices = fnMesh.polygonVertexCount(faceId);
+        int numPolygonVertices = uvCounts[faceId];
+
+        if (numPolygonVertices == 0)
+            // if current polygon doesn't have mapped UVs, go to next polygon
+            continue;
+        
         for (int localVtx = 0; localVtx < numPolygonVertices; localVtx++) {
             int curLocalIndex;
             int nextLocalIndex;
@@ -333,18 +353,8 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
             }
 
             // UV indices by local order
-            int uvIdA;
-            int uvIdB;
-
-            // Check if current polygon face has mapped UVs, if not break this loop and go to next face
-            MStatus statusA = fnMesh.getPolygonUVid(faceId, curLocalIndex, uvIdA, uvSetPtr);
-            MStatus statusB = fnMesh.getPolygonUVid(faceId, nextLocalIndex, uvIdB, uvSetPtr);
-            if (statusA != MS::kSuccess || statusB != MS::kSuccess) {
-                if (verbose)
-                    MGlobal::displayWarning("Non mapped faces are found");
-                break;
-            }
-
+            int uvIdA = uvIdVector[faceId][curLocalIndex];
+            int uvIdB = uvIdVector[faceId][nextLocalIndex];
             int currentShellIndex = uvShellIds[uvIdA];
 
             // Create edge index from two point index and objectID
@@ -369,20 +379,14 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
             UvPoint p1(u_current, v_current, uvIdA, currentShellIndex, path_to_p1);
             UvPoint p2(u_next, v_next, uvIdB, currentShellIndex, path_to_p2);
 
-            UvPoint beginPt;
-            UvPoint endPt;
-
-            if (p1 > p2) {
-                beginPt = p2;
-                endPt = p1;
-            } else {
-                beginPt = p1;
-                endPt = p2;
-            }
-
             // Create edge objects and insert them to shell edge set
-            UvEdge edge(beginPt, endPt, stringId);
-            uvShellArrayTemp[currentShellIndex].unordered_edgeSet.insert(edge);
+            if (p1 > p2) {
+                UvEdge edge(p2, p1, stringId);
+                uvShellArrayTemp[currentShellIndex].unordered_edgeSet.insert(edge);
+            } else {
+                UvEdge edge(p1, p2, stringId);
+                uvShellArrayTemp[currentShellIndex].unordered_edgeSet.insert(edge);
+            }
         }
     }
     timer.endTimer();
