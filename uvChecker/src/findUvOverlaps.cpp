@@ -181,7 +181,7 @@ MStatus FindUvOverlaps::redoIt()
         if (multiThread) {
             // Multithread
 
-            int threadCount = shellArray.size();
+            int threadCount = int(shellArray.size());
 
             tempResultVector.resize(threadCount);
             for (int i = 0; i < threadCount; i++) {
@@ -324,7 +324,7 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
     MIntArray uvIds;
     int uvCounter = 0;
     fnMesh.getAssignedUVs(uvCounts, uvIds);
-    for (int i=0; i<uvCounts.length(); i++) {
+    for (unsigned int i=0; i<uvCounts.length(); i++) {
         int numFaceUVs = uvCounts[i];
         for (int u=0; u<numFaceUVs; u++) {
             uvIdVector[i].push_back(uvIds[uvCounter]);
