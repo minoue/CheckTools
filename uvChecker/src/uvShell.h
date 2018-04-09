@@ -17,6 +17,7 @@ struct hash_edge {
 class UvShell {
 public:
     UvShell();
+    UvShell(int shellIndex);
     ~UvShell();
 
     int shellIndex;

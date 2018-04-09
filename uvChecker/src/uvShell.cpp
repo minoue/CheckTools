@@ -4,6 +4,11 @@ UvShell::UvShell()
 {
 }
 
+UvShell::UvShell(int shellIndex)
+{
+    this->shellIndex = shellIndex;
+}
+
 UvShell::~UvShell()
 {
 }

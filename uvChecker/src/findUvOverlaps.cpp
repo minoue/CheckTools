@@ -292,8 +292,9 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
     // Setup uv shell objects
     uvShellArrayTemp.resize(nbUvShells);
     for (unsigned int i = 0; i < nbUvShells; i++) {
-        UvShell shell;
-        shell.shellIndex = i;
+        UvShell shell(i);
+        shell.uVector.reserve(uArray.length());
+        shell.vVector.reserve(uArray.length());
         uvShellArrayTemp[i] = shell;
     }
 
@@ -318,12 +319,13 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
     
     int numPolygons = fnMesh.numPolygons();
     
+    // Create 2d vector of 2d vecotr, which contains Uv indices of each polygon face.
     std::vector<std::vector<int> > uvIdVector;
     uvIdVector.resize(numPolygons);
     MIntArray uvCounts;
     MIntArray uvIds;
     int uvCounter = 0;
-    fnMesh.getAssignedUVs(uvCounts, uvIds);
+    fnMesh.getAssignedUVs(uvCounts, uvIds, uvSetPtr);
     for (unsigned int i=0; i<uvCounts.length(); i++) {
         int numFaceUVs = uvCounts[i];
         for (int u=0; u<numFaceUVs; u++) {
@@ -332,7 +334,7 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
         }
     }
     
-    timer.beginTimer();
+    // timer.beginTimer();
     // Loop all polygon faces and create edge objects
     for (int faceId = 0; faceId < numPolygons; faceId++) {
         int numPolygonVertices = uvCounts[faceId];
@@ -365,19 +367,13 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
             } else {
                 stringId = std::to_string(objectId) + std::to_string(uvIdB) + std::to_string(uvIdA);
             }
-
-            // Get UV values and create edge objects
-            float u_current = uArray[uvIdA];
-            float v_current = vArray[uvIdA];
-            float u_next = uArray[uvIdB];
-            float v_next = vArray[uvIdB];
             
             std::string dagPathStr = dagPath.fullPathName().asChar();
             std::string path_to_p1 = dagPathStr + ".map[" + std::to_string(uvIdA) + "]";
             std::string path_to_p2 = dagPathStr + ".map[" + std::to_string(uvIdB) + "]";
             
-            UvPoint p1(u_current, v_current, uvIdA, currentShellIndex, path_to_p1);
-            UvPoint p2(u_next, v_next, uvIdB, currentShellIndex, path_to_p2);
+            UvPoint p1(uArray[uvIdA], vArray[uvIdA], uvIdA, currentShellIndex, path_to_p1);
+            UvPoint p2(uArray[uvIdB], vArray[uvIdB], uvIdB, currentShellIndex, path_to_p2);
 
             // Create edge objects and insert them to shell edge set
             if (p1 > p2) {
@@ -389,9 +385,9 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
             }
         }
     }
-    timer.endTimer();
-    double t = timer.elapsedTime();
-    std::cout << "time : " << t << std::endl;
+    // timer.endTimer();
+    // double t = timer.elapsedTime();
+    // std::cout << "time : " << t << std::endl;
 
     // Switch back to the initial uv set
     fnMesh.setCurrentUVSetName(currentUvSet);
@@ -435,7 +431,8 @@ MStatus FindUvOverlaps::check(const std::unordered_set<UvEdge, hash_edge>& edges
         } else if (firstEvent.status == "intersect") {
             doCross(firstEvent, eventQueue, statusQueue, threadNumber);
         } else {
-            MGlobal::displayError("Unknow exception");
+            if (verbose)
+                MGlobal::displayError("Unknow exception");
             return MS::kFailure;
         }
     }
@@ -495,7 +492,8 @@ bool FindUvOverlaps::doEnd(Event& currentEvent, std::deque<Event>& eventQueue, s
     const UvEdge& edge = *(currentEvent.edgePtr);
     std::vector<UvEdge>::iterator iter_for_removal = std::find(statusQueue.begin(), statusQueue.end(), edge);
     if (iter_for_removal == statusQueue.end()) {
-        MGlobal::displayInfo("error1");
+        if (verbose)
+            MGlobal::displayInfo("Failed to find the edge to be removed at the end event.");
         // if iter not found
         // return MS::kFailure;
         return false;
