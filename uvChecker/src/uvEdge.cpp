@@ -166,20 +166,6 @@ bool UvEdge::isIntersected(UvEdge& otherEdge, bool& isParallel)
         return false;
 }
 
-void UvEdge::setCrossingPointX(const float Y)
-{
-    float x1 = this->begin.u;
-    float y1 = this->begin.v;
-    float x2 = this->end.u;
-    float y2 = this->end.v;
-
-    if (y2 == y1) {
-        this->crossingPointX = this->begin.u;
-    } else {
-        this->crossingPointX = ((Y - y1) * (x2 - x1)) / (y2 - y1) + x1;
-    }
-}
-
 bool UvEdgeComparator::operator()(const UvEdge& rhs1, const UvEdge& rhs2) const
 {
     if (rhs1.crossingPointX == rhs2.crossingPointX) {

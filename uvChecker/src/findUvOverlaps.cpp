@@ -453,8 +453,16 @@ bool FindUvOverlaps::doBegin(Event& currentEvent, std::deque<Event>& eventQueue,
 
     // Update x values of intersection to the sweepline for all edges
     // in the statusQueue
+    float Y = currentEvent.v;
     for (size_t i = 0; i < numStatus; i++) {
-        statusQueue[i].setCrossingPointX(currentEvent.v);
+        // statusQueue[i].setCrossingPointX(currentEvent.v);
+        UvEdge& edge = statusQueue[i];
+        if (edge.end.v == edge.begin.v) {
+            edge.crossingPointX = edge.begin.u;
+        } else {
+            float X = ((Y - edge.begin.u) * (edge.end.u - edge.begin.u)) / (edge.end.v - edge.begin.v) + edge.begin.u;
+            edge.crossingPointX = X;
+        }
     }
     std::sort(statusQueue.begin(), statusQueue.end(), UvEdgeComparator());
 
