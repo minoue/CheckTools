@@ -26,6 +26,8 @@ public:
     bool operator<(const UvEdge& rhs) const;
     bool operator<=(const UvEdge& rhs) const;
 
+    void setCrossingPointX(const float Y);
+
     bool isIntersected(UvEdge& otherEdge, bool& isParallel);
     float crossingPointX;
 
