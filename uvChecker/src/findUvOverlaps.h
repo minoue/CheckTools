@@ -13,8 +13,6 @@
 #include "uvEdge.h"
 #include "uvShell.h"
 
-#include <deque>
-#include <set>
 #include <unordered_set>
 #include <vector>
 
@@ -30,24 +28,19 @@ public:
     static MSyntax newSyntax();
 
     MStatus check(const std::unordered_set<UvEdge, hash_edge>& edges, int threadNumber);
-
-    MStatus checkEdgesAndCreateEvent(UvEdge& edgeA,
-        UvEdge& edgeB,
-        std::deque<Event>& eventQueue,
-        int threadNumber);
-
+    MStatus checkEdgesAndCreateEvent(UvEdge& edgeA, UvEdge& edgeB, std::vector<Event>& eventQueue, int threadNumber);
     MStatus initializeObject(const MDagPath& dagPath, const int objectId);
 
     bool doBegin(Event& currentEvent,
-        std::deque<Event>& eventQueue,
+        std::vector<Event>& eventQueue,
         std::vector<UvEdge>& statusQueue,
         int threadNumber);
     bool doEnd(Event& currentEvent,
-        std::deque<Event>& eventQueue,
+        std::vector<Event>& eventQueue,
         std::vector<UvEdge>& statusQueue,
         int threadNumber);
     bool doCross(Event& currentEvent,
-        std::deque<Event>& eventQueue,
+        std::vector<Event>& eventQueue,
         std::vector<UvEdge>& statusQueue,
         int threadNumber);
 

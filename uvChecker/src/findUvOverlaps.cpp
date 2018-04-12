@@ -399,7 +399,9 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
 
 MStatus FindUvOverlaps::check(const std::unordered_set<UvEdge, hash_edge>& edges, int threadNumber)
 {
-    std::deque<Event> eventQueue;
+    // Container for all events. Items need to be always sorted.
+    std::vector<Event> eventQueue;
+    eventQueue.reserve(edges.size() * 2);
 
     int eventIndex = 0;
     for (std::unordered_set<UvEdge, hash_edge>::iterator iter = edges.begin(), end = edges.end(); iter != end; ++iter) {
@@ -412,8 +414,11 @@ MStatus FindUvOverlaps::check(const std::unordered_set<UvEdge, hash_edge>& edges
         eventQueue.push_back(ev1);
         eventQueue.push_back(ev2);
     }
-    std::sort(eventQueue.begin(), eventQueue.end());
+    
+    // Sort items in reversed order to get and remove the first item using back() and pop_back()
+    std::sort(eventQueue.rbegin(), eventQueue.rend());
 
+    // Container for active edges to be tested intersections
     std::vector<UvEdge> statusQueue;
     statusQueue.reserve(edges.size());
 
@@ -421,8 +426,8 @@ MStatus FindUvOverlaps::check(const std::unordered_set<UvEdge, hash_edge>& edges
         if (eventQueue.empty()) {
             break;
         }
-        Event firstEvent = eventQueue.front();
-        eventQueue.pop_front();
+        Event firstEvent = eventQueue.back();
+        eventQueue.pop_back();
 
         if (firstEvent.status == "begin") {
             doBegin(firstEvent, eventQueue, statusQueue, threadNumber);
@@ -440,7 +445,7 @@ MStatus FindUvOverlaps::check(const std::unordered_set<UvEdge, hash_edge>& edges
     return MS::kSuccess;
 }
 
-bool FindUvOverlaps::doBegin(Event& currentEvent, std::deque<Event>& eventQueue, std::vector<UvEdge>& statusQueue, int threadNumber)
+bool FindUvOverlaps::doBegin(Event& currentEvent, std::vector<Event>& eventQueue, std::vector<UvEdge>& statusQueue, int threadNumber)
 {
     const UvEdge& edge = *(currentEvent.edgePtr);
     statusQueue.push_back(edge);
@@ -495,7 +500,7 @@ bool FindUvOverlaps::doBegin(Event& currentEvent, std::deque<Event>& eventQueue,
     return true;
 }
 
-bool FindUvOverlaps::doEnd(Event& currentEvent, std::deque<Event>& eventQueue, std::vector<UvEdge>& statusQueue, int threadNumber)
+bool FindUvOverlaps::doEnd(Event& currentEvent, std::vector<Event>& eventQueue, std::vector<UvEdge>& statusQueue, int threadNumber)
 {
     const UvEdge& edge = *(currentEvent.edgePtr);
     std::vector<UvEdge>::iterator iter_for_removal = std::find(statusQueue.begin(), statusQueue.end(), edge);
@@ -535,7 +540,7 @@ bool FindUvOverlaps::doEnd(Event& currentEvent, std::deque<Event>& eventQueue, s
     return true;
 }
 
-bool FindUvOverlaps::doCross(Event& currentEvent, std::deque<Event>& eventQueue, std::vector<UvEdge>& statusQueue, int threadNumber)
+bool FindUvOverlaps::doCross(Event& currentEvent, std::vector<Event>& eventQueue, std::vector<UvEdge>& statusQueue, int threadNumber)
 {
     if (statusQueue.size() <= 2) {
         return false;
@@ -581,7 +586,7 @@ bool FindUvOverlaps::doCross(Event& currentEvent, std::deque<Event>& eventQueue,
     return false;
 }
 
-MStatus FindUvOverlaps::checkEdgesAndCreateEvent(UvEdge& edgeA, UvEdge& edgeB, std::deque<Event>& eventQueue, int threadNumber)
+MStatus FindUvOverlaps::checkEdgesAndCreateEvent(UvEdge& edgeA, UvEdge& edgeB, std::vector<Event>& eventQueue, int threadNumber)
 {
     bool isParallel = false;
     if (edgeA.isIntersected(edgeB, isParallel)) {
@@ -597,7 +602,7 @@ MStatus FindUvOverlaps::checkEdgesAndCreateEvent(UvEdge& edgeA, UvEdge& edgeB, s
         if (isParallel == false) {
             Event crossEvent("intersect", uv[0], uv[1], &edgeA, &edgeB);
             eventQueue.push_back(crossEvent);
-            std::sort(eventQueue.begin(), eventQueue.end());
+            std::sort(eventQueue.rbegin(), eventQueue.rend());
         }
     }
     return MS::kSuccess;
