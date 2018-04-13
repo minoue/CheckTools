@@ -5,9 +5,7 @@
 #include <maya/MArgDatabase.h>
 #include <maya/MArgList.h>
 #include <maya/MGlobal.h>
-#include <maya/MIntArray.h>
 #include <maya/MTimer.h>
-#include <maya/MFloatArray.h>
 
 #include <algorithm>
 #include <iostream>
@@ -244,6 +242,8 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
     MTimer timer;
 
     MFnMesh fnMesh(dagPath);
+    
+    objectData objData;
 
     std::vector<UvShell> uvShellArrayTemp;
 
@@ -282,6 +282,11 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
     
     fnMesh.getUvShellsIds(uvShellIds, nbUvShells, uvSetPtr);
     fnMesh.getUVs(uArray, vArray, uvSetPtr);
+    std::vector<int> uvShellIdsVector;
+    uvShellIdsVector.resize(uvShellIds.length());
+    for (int i=0; i<uvShellIds.length(); i++) {
+        uvShellIdsVector.push_back(uvShellIds[i]);
+    }
 
     // if no UVs are detected on this mesh
     if (nbUvShells == 0) {
@@ -334,57 +339,23 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
         }
     }
     
+    objData.uvCounts = &uvCounts;
+    objData.objectId = objectId;
+    objData.uvIdVector = &uvIdVector;
+    objData.uArray = &uArray;
+    objData.vArray = &vArray;
+    objData.uvShellIds = &uvShellIds;
+    
     // timer.beginTimer();
     // Loop all polygon faces and create edge objects
+    
     for (int faceId = 0; faceId < numPolygons; faceId++) {
-        int numPolygonVertices = uvCounts[faceId];
-
-        if (numPolygonVertices == 0)
-            // if current polygon doesn't have mapped UVs, go to next polygon
-            continue;
         
-        for (int localVtx = 0; localVtx < numPolygonVertices; localVtx++) {
-            int curLocalIndex;
-            int nextLocalIndex;
-            if (localVtx == numPolygonVertices - 1) {
-                curLocalIndex = localVtx;
-                nextLocalIndex = 0;
-            } else {
-                curLocalIndex = localVtx;
-                nextLocalIndex = localVtx + 1;
-            }
-
-            // UV indices by local order
-            int uvIdA = uvIdVector[faceId][curLocalIndex];
-            int uvIdB = uvIdVector[faceId][nextLocalIndex];
-            int currentShellIndex = uvShellIds[uvIdA];
-
-            // Create edge index from two point index and objectID
-            // eg. obj1 (1), p1(0), p2(25) makes edge index of 1025
-            std::string stringId;
-            if (uvIdA < uvIdB) {
-                stringId = std::to_string(objectId) + std::to_string(uvIdA) + std::to_string(uvIdB);
-            } else {
-                stringId = std::to_string(objectId) + std::to_string(uvIdB) + std::to_string(uvIdA);
-            }
-            
-            std::string dagPathStr = dagPath.fullPathName().asChar();
-            std::string path_to_p1 = dagPathStr + ".map[" + std::to_string(uvIdA) + "]";
-            std::string path_to_p2 = dagPathStr + ".map[" + std::to_string(uvIdB) + "]";
-            
-            UvPoint p1(uArray[uvIdA], vArray[uvIdA], uvIdA, currentShellIndex, path_to_p1);
-            UvPoint p2(uArray[uvIdB], vArray[uvIdB], uvIdB, currentShellIndex, path_to_p2);
-
-            // Create edge objects and insert them to shell edge set
-            if (p1 > p2) {
-                UvEdge edge(p2, p1, stringId);
-                uvShellArrayTemp[currentShellIndex].unordered_edgeSet.insert(edge);
-            } else {
-                UvEdge edge(p1, p2, stringId);
-                uvShellArrayTemp[currentShellIndex].unordered_edgeSet.insert(edge);
-            }
-        }
+        objData.faceId = faceId;
+        initializeFace(objData, uvShellArrayTemp);
+        
     }
+    
     // timer.endTimer();
     // double t = timer.elapsedTime();
     // std::cout << "time : " << t << std::endl;
@@ -394,6 +365,66 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
 
     std::copy(uvShellArrayTemp.begin(), uvShellArrayTemp.end(), std::back_inserter(uvShellArrayMaster));
 
+    return MS::kSuccess;
+}
+
+MStatus FindUvOverlaps::initializeFace(objectData data, std::vector<UvShell>& result)
+{
+    MIntArray& uvCounts = *data.uvCounts;
+    MIntArray& uvShellIds = *data.uvShellIds;
+    MFloatArray& uArray = *data.uArray;
+    MFloatArray& vArray = *data.vArray;
+    std::vector<std::vector<int>>& uvIdVector = *(data.uvIdVector);
+    int numPolygonUVs = uvCounts[data.faceId];
+    int faceId = data.faceId;
+    int objectId = data.objectId;
+    
+    if (numPolygonUVs == 0)
+        // if current polygon doesn't have mapped UVs, go to next polygon
+        return MS::kSuccess;
+    
+    for (int localVtx = 0; localVtx < numPolygonUVs; localVtx++) {
+        int curLocalIndex;
+        int nextLocalIndex;
+        if (localVtx == numPolygonUVs - 1) {
+            curLocalIndex = localVtx;
+            nextLocalIndex = 0;
+        } else {
+            curLocalIndex = localVtx;
+            nextLocalIndex = localVtx + 1;
+        }
+        
+        // UV indices by local order
+        int uvIdA = uvIdVector[faceId][curLocalIndex];
+        int uvIdB = uvIdVector[faceId][nextLocalIndex];
+        int currentShellIndex = uvShellIds[uvIdA];
+        
+        // Create edge index from two point index and objectID
+        // eg. obj1 (1), p1(0), p2(25) makes edge index of 1025
+        std::string stringId;
+        if (uvIdA < uvIdB) {
+            stringId = std::to_string(objectId) + std::to_string(uvIdA) + std::to_string(uvIdB);
+        } else {
+            stringId = std::to_string(objectId) + std::to_string(uvIdB) + std::to_string(uvIdA);
+        }
+        
+        std::string dagPathStr = dagPath.fullPathName().asChar();
+        std::string path_to_p1 = dagPathStr + ".map[" + std::to_string(uvIdA) + "]";
+        std::string path_to_p2 = dagPathStr + ".map[" + std::to_string(uvIdB) + "]";
+        
+        UvPoint p1(uArray[uvIdA], vArray[uvIdA], uvIdA, currentShellIndex, path_to_p1);
+        UvPoint p2(uArray[uvIdB], vArray[uvIdB], uvIdB, currentShellIndex, path_to_p2);
+
+        // Create edge objects and insert them to shell edge set
+        if (p1 > p2) {
+            UvEdge edge(p2, p1, stringId);
+            result[currentShellIndex].unordered_edgeSet.insert(edge);
+        } else {
+            UvEdge edge(p1, p2, stringId);
+            result[currentShellIndex].unordered_edgeSet.insert(edge);
+        }
+    }
+    
     return MS::kSuccess;
 }
 

@@ -8,6 +8,8 @@
 #include <maya/MString.h>
 #include <maya/MStringArray.h>
 #include <maya/MSyntax.h>
+#include <maya/MIntArray.h>
+#include <maya/MFloatArray.h>
 
 #include "event.h"
 #include "uvEdge.h"
@@ -15,6 +17,17 @@
 
 #include <unordered_set>
 #include <vector>
+
+
+struct objectData {
+    int faceId;
+    int objectId;
+    MIntArray* uvCounts;
+    MIntArray* uvShellIds;
+    std::vector<std::vector<int>>* uvIdVector;
+    MFloatArray* uArray;
+    MFloatArray* vArray;
+};
 
 class FindUvOverlaps : public MPxCommand {
 public:
@@ -30,6 +43,7 @@ public:
     MStatus check(const std::unordered_set<UvEdge, hash_edge>& edges, int threadNumber);
     MStatus checkEdgesAndCreateEvent(UvEdge& edgeA, UvEdge& edgeB, std::vector<Event>& eventQueue, int threadNumber);
     MStatus initializeObject(const MDagPath& dagPath, const int objectId);
+    MStatus initializeFace(objectData data, std::vector<UvShell>& result);
 
     bool doBegin(Event& currentEvent,
         std::vector<Event>& eventQueue,
