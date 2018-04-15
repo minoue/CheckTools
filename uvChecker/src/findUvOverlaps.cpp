@@ -98,6 +98,7 @@ MStatus FindUvOverlaps::redoIt()
         }
         objectId++;
     }
+
     timer.endTimer();
     if (verbose) {
         timeStr.set(timer.elapsedTime());
@@ -130,6 +131,8 @@ MStatus FindUvOverlaps::redoIt()
         std::vector<std::unordered_set<UvEdge, hash_edge>> shellArray;
 
         // Array like [0, 1, 3, 4 ...... nbUvShells]
+        // UV shells with those indices will be independent shells that don't overlap
+        // with any other shells in bouding box check.
         std::set<int> shellIndices;
         for (unsigned int i = 0; i < uvShellArrayMaster.size(); i++) {
             shellIndices.insert(i);
@@ -169,6 +172,7 @@ MStatus FindUvOverlaps::redoIt()
             }
         }
 
+        // Extract single shells and re-insert them to shellArray to be checked
         std::set<int>::iterator shIter;
         for (shIter = shellIndices.begin(); shIter != shellIndices.end(); ++shIter) {
             int index = *shIter;
@@ -177,10 +181,10 @@ MStatus FindUvOverlaps::redoIt()
         }
 
         if (multiThread) {
-            // Multithread
-
+            // Check each shell in multithreas
+            //
             int threadCount = int(shellArray.size());
-
+            
             tempResultVector.resize(threadCount);
             for (int i = 0; i < threadCount; i++) {
                 tempResultVector[i].reserve(shellArray[i].size());
@@ -203,7 +207,7 @@ MStatus FindUvOverlaps::redoIt()
             delete[] threadArray;
 
         } else {
-            // Single thread
+            // Check each shell in single thread
             tempResultVector.resize(1);
             tempResultVector[0].reserve(1000);
             for (size_t s = 0; s < shellArray.size(); s++) {
@@ -215,6 +219,8 @@ MStatus FindUvOverlaps::redoIt()
         }
     }
 
+    // Re-insert all results from temporary vector to Maya's MStringArray
+    // for setResult command
     for (size_t i = 0; i < tempResultVector.size(); i++) {
         std::vector<std::string> pathArray = tempResultVector[i];
         for (size_t s = 0; s < pathArray.size(); s++) {
@@ -230,6 +236,7 @@ MStatus FindUvOverlaps::redoIt()
     }
     timer.clear();
 
+    // Return final result
     MPxCommand::setResult(resultStringArray);
 
     return MS::kSuccess;
@@ -239,7 +246,6 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
 {
 
     MStatus status;
-    MTimer timer;
 
     MFnMesh fnMesh(dagPath);
 
@@ -283,11 +289,6 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
 
     fnMesh.getUvShellsIds(uvShellIds, nbUvShells, uvSetPtr);
     fnMesh.getUVs(uArray, vArray, uvSetPtr);
-    std::vector<int> uvShellIdsVector;
-    uvShellIdsVector.resize(uvShellIds.length());
-    for (int i = 0; i < uvShellIds.length(); i++) {
-        uvShellIdsVector.push_back(uvShellIds[i]);
-    }
 
     // if no UVs are detected on this mesh
     if (nbUvShells == 0) {
@@ -340,6 +341,7 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
         }
     }
 
+    // Setup shared thread data
     objData.uvCounts = &uvCounts;
     objData.objectId = objectId;
     objData.uvIdVector = &uvIdVector;
@@ -356,6 +358,8 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
 
     std::thread threadArray[numThreads];
 
+    // Temporary container to store all edge objects. Edges in this container
+    // will be re-inserted to a set later to remove duplicates
     std::vector<std::vector<UvEdge>> edgeVectorTemp;
     edgeVectorTemp.resize(numThreads);
     for (int tn = 0; tn < numThreads; tn++) {
@@ -367,6 +371,7 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
         if (i == numThreads - 1)
             rangeEnd += amari;
 
+        // Setup thread-specific data
         objData.threadIndex = i;
         objData.begin = rangeBegin;
         objData.end = rangeEnd;
@@ -415,6 +420,8 @@ MStatus FindUvOverlaps::initializeFaces(objectData data, std::vector<std::vector
             return MS::kSuccess;
 
         for (int localVtx = 0; localVtx < numPolygonUVs; localVtx++) {
+            // Get a combination of local indices.
+            // eg. if a face is quad, then (0, 1), (1, 2), (2, 3), (3, 0)
             int curLocalIndex;
             int nextLocalIndex;
             if (localVtx == numPolygonUVs - 1) {
@@ -466,6 +473,7 @@ MStatus FindUvOverlaps::check(const std::unordered_set<UvEdge, hash_edge>& edges
     std::vector<Event> eventQueue;
     eventQueue.reserve(edges.size() * 2);
 
+    // Create event objects from edge set
     int eventIndex = 0;
     for (std::unordered_set<UvEdge, hash_edge>::iterator iter = edges.begin(), end = edges.end(); iter != end; ++iter) {
 
@@ -646,7 +654,7 @@ MStatus FindUvOverlaps::checkEdgesAndCreateEvent(UvEdge& edgeA, UvEdge& edgeB, s
     bool isParallel = false;
     if (edgeA.isIntersected(edgeB, isParallel)) {
 
-        float uv[2];
+        float uv[2]; // countainer for uv inters point
         UvUtils::getEdgeIntersectionPoint(edgeA.begin.u, edgeA.begin.v, edgeA.end.u, edgeA.end.v, edgeB.begin.u, edgeB.begin.v, edgeB.end.u, edgeB.end.v, uv);
 
         tempResultVector[threadNumber].push_back(edgeA.begin.path);
