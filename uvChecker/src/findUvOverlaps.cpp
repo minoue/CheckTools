@@ -222,7 +222,7 @@ MStatus FindUvOverlaps::redoIt()
     // Re-insert all results from temporary vector to Maya's MStringArray
     // for setResult command
     for (size_t i = 0; i < tempResultVector.size(); i++) {
-        std::vector<std::string> pathArray = tempResultVector[i];
+        std::vector<std::string>& pathArray = tempResultVector[i];
         for (size_t s = 0; s < pathArray.size(); s++) {
             MString v = pathArray[s].c_str();
             resultStringArray.append(v);
