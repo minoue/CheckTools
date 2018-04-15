@@ -47,6 +47,16 @@ bool UvEdge::operator<=(const UvEdge& rhs) const
     return this->stringID <= rhs.stringID;
 }
 
+void UvEdge::init(UvPoint beginPt, UvPoint endPt, std::string strId, int shellIndex)
+{
+    this->begin = beginPt;
+    this->end = endPt;
+    this->beginIndex = beginPt.index;
+    this->endIndex = endPt.index;
+    this->stringID = strId;
+    this->shellIndex = shellIndex;
+}
+
 bool UvEdge::isIntersected(UvEdge& otherEdge, bool& isParallel)
 {
 
