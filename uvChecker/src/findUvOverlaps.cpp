@@ -349,7 +349,7 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
     objData.vArray = &vArray;
     objData.uvShellIds = &uvShellIds;
 
-    const int numThreads = 4;
+    const int numThreads = 8;
     int threadRange = numPolygons / numThreads;
     int amari = numPolygons % numThreads;
 
@@ -376,18 +376,24 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
         objData.begin = rangeBegin;
         objData.end = rangeEnd;
 
-        threadArray[i] = std::thread(&FindUvOverlaps::initializeFaces, this, objData, std::ref(edgeVectorTemp));
+        if (multiThread) {
+            threadArray[i] = std::thread(&FindUvOverlaps::initializeFaces, this, objData, std::ref(edgeVectorTemp));
+        } else {
+            initializeFaces(objData, edgeVectorTemp);
+        }
 
         rangeBegin += threadRange;
         rangeEnd += threadRange;
     }
 
-    for (int i = 0; i < numThreads; i++) {
-        threadArray[i].join();
+    if (multiThread) {
+        for (int i = 0; i < numThreads; i++) {
+            threadArray[i].join();
+        }
     }
 
     // Flatten temp edge vector to unordered_set
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < numThreads; i++) {
         for (int s = 0; s < edgeVectorTemp[i].size(); s++) {
             UvEdge& edge = edgeVectorTemp[i][s];
             uvShellArrayTemp[edge.shellIndex].unordered_edgeSet.insert(edge);
