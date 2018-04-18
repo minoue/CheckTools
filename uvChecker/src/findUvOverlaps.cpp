@@ -394,7 +394,7 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
 
     // Flatten temp edge vector to unordered_set
     for (int i = 0; i < numThreads; i++) {
-        for (int s = 0; s < edgeVectorTemp[i].size(); s++) {
+        for (size_t s = 0; s < edgeVectorTemp[i].size(); s++) {
             UvEdge& edge = edgeVectorTemp[i][s];
             uvShellArrayTemp[edge.shellIndex].unordered_edgeSet.insert(edge);
         }
@@ -481,7 +481,7 @@ MStatus FindUvOverlaps::check(const std::unordered_set<UvEdge, hash_edge>& edges
 
     // Create event objects from edge set
     int eventIndex = 0;
-    for (std::unordered_set<UvEdge, hash_edge>::iterator iter = edges.begin(), end = edges.end(); iter != end; ++iter) {
+    for (std::unordered_set<UvEdge, hash_edge>::const_iterator iter = edges.begin(), end = edges.end(); iter != end; ++iter) {
 
         Event ev1("begin", &(*iter), iter->begin, eventIndex);
         eventIndex += 1;
