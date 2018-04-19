@@ -447,14 +447,14 @@ MStatus FindUvOverlaps::initializeFaces(objectData data, std::vector<std::vector
             // eg. obj1 (1), p1(0), p2(25) makes edge index of 1025
             std::string stringId;
             if (uvIdA < uvIdB) {
-                stringId = std::to_string(objectId) + std::to_string(uvIdA) + std::to_string(uvIdB);
+                stringId = std::to_string((long long)objectId) + std::to_string((long long)uvIdA) + std::to_string((long long)uvIdB);
             } else {
-                stringId = std::to_string(objectId) + std::to_string(uvIdB) + std::to_string(uvIdA);
+                stringId = std::to_string((long long)objectId) + std::to_string((long long)uvIdB) + std::to_string((long long)uvIdA);
             }
 
             std::string dagPathStr = dagPath.fullPathName().asChar();
-            std::string path_to_p1 = dagPathStr + ".map[" + std::to_string(uvIdA) + "]";
-            std::string path_to_p2 = dagPathStr + ".map[" + std::to_string(uvIdB) + "]";
+            std::string path_to_p1 = dagPathStr + ".map[" + std::to_string((long long)uvIdA) + "]";
+            std::string path_to_p2 = dagPathStr + ".map[" + std::to_string((long long)uvIdB) + "]";
 
             UvPoint p1(uArray[uvIdA], vArray[uvIdA], uvIdA, currentShellIndex, path_to_p1);
             UvPoint p2(uArray[uvIdB], vArray[uvIdB], uvIdB, currentShellIndex, path_to_p2);
