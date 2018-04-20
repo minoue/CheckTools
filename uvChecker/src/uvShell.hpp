@@ -1,8 +1,8 @@
 #ifndef __UVSHELL__
 #define __UVSHELL__
 
-#include "uvEdge.h"
-#include "uvPoint.h"
+#include "uvEdge.hpp"
+#include "uvPoint.hpp"
 #include <set>
 #include <unordered_set>
 #include <vector>

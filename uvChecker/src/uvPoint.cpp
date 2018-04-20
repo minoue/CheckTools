@@ -1,4 +1,4 @@
-#include "uvPoint.h"
+#include "uvPoint.hpp"
 
 UvPoint::UvPoint()
 {

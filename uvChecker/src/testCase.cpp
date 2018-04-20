@@ -1,6 +1,6 @@
-#include "testCase.h"
-#include "uvPoint.h"
-#include "uvEdge.h"
+#include "testCase.hpp"
+#include "uvPoint.hpp"
+#include "uvEdge.hpp"
 
 #include <maya/MString.h>
 #include <maya/MGlobal.h>

@@ -11,9 +11,9 @@
 #include <maya/MStringArray.h>
 #include <maya/MSyntax.h>
 
-#include "event.h"
-#include "uvEdge.h"
-#include "uvShell.h"
+#include "event.hpp"
+#include "uvEdge.hpp"
+#include "uvShell.hpp"
 
 #include <mutex>
 #include <unordered_set>

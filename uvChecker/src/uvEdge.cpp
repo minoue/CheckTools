@@ -1,5 +1,5 @@
-#include "uvEdge.h"
-#include "uvUtils.h"
+#include "uvEdge.hpp"
+#include "uvUtils.hpp"
 #include <float.h>
 #include <iostream>
 #include <math.h>

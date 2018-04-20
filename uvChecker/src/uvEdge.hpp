@@ -1,7 +1,7 @@
 #ifndef __UVEDGE__
 #define __UVEDGE__
 
-#include "uvPoint.h"
+#include "uvPoint.hpp"
 
 class UvEdge {
 public:

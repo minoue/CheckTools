@@ -1,8 +1,8 @@
 #ifndef __FINDUVOVERLAPS_H__
 #define __FINDUVOVERLAPS_H__
 
-#include "uvPoint.h"
-#include "uvShell.h"
+#include "uvPoint.hpp"
+#include "uvShell.hpp"
 #include <maya/MDagPath.h>
 #include <maya/MFloatArray.h>
 #include <maya/MFnMesh.h>

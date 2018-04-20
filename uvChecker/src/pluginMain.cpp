@@ -1,9 +1,8 @@
-#include "findUvOverlaps_old.h"
-#include "findUvOverlaps.h"
-#include "uvChecker.h"
+#include "findUvOverlaps.hpp"
+#include "uvChecker.hpp"
 #include <maya/MFnPlugin.h>
 
-static const char* const VERSION = "1.1.2";
+static const char* const VERSION = "1.1.3";
 
 MStatus initializePlugin(MObject mObj)
 {
