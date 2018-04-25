@@ -15,10 +15,6 @@
 #include "uvEdge.hpp"
 #include "uvShell.hpp"
 
-#include <mutex>
-#include <unordered_set>
-#include <vector>
-
 struct objectData {
     int objectId;
     MIntArray* uvCounts;

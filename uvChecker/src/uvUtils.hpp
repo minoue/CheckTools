@@ -9,7 +9,6 @@
 #ifndef uvUtils_hpp
 #define uvUtils_hpp
 
-#include <stdio.h>
 #include <vector>
 
 class UvUtils {
