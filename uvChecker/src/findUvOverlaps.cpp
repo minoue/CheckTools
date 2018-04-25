@@ -535,15 +535,13 @@ bool FindUvOverlaps::doBegin(Event& currentEvent, std::vector<Event>& eventQueue
     }
     std::sort(statusQueue.begin(), statusQueue.end(), UvEdgeComparator());
 
+    // StatusQueue was sorted so you have to find the edge added to the queue above and find its index
     std::vector<UvEdge>::iterator foundIter = std::find(statusQueue.begin(), statusQueue.end(), edge);
     if (foundIter == statusQueue.end()) {
-        // not found
+        // If the edge was not found in the queue, skin this function and go to next event
         return false;
     }
     size_t index = std::distance(statusQueue.begin(), foundIter);
-    if (index == numStatus) {
-        // invalid
-    }
 
     UvEdge& currentEdge = statusQueue[index];
 
@@ -567,22 +565,16 @@ bool FindUvOverlaps::doBegin(Event& currentEvent, std::vector<Event>& eventQueue
 bool FindUvOverlaps::doEnd(Event& currentEvent, std::vector<Event>& eventQueue, std::vector<UvEdge>& statusQueue, int threadNumber)
 {
     const UvEdge& edge = *(currentEvent.edgePtr);
+    
     std::vector<UvEdge>::iterator iter_for_removal = std::find(statusQueue.begin(), statusQueue.end(), edge);
     if (iter_for_removal == statusQueue.end()) {
         if (verbose)
             MGlobal::displayInfo("Failed to find the edge to be removed at the end event.");
         // if iter not found
-        // return MS::kFailure;
         return false;
     }
 
     size_t removeIndex = std::distance(statusQueue.begin(), iter_for_removal);
-    if (removeIndex == statusQueue.size()) {
-        MGlobal::displayInfo("error2");
-        // invalid
-        return MS::kFailure;
-        return false;
-    }
 
     if (statusQueue.size() <= 2) {
         // if num items are less than 2 in the countainer, do nothing
