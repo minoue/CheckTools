@@ -101,8 +101,7 @@ MStatus FindUvOverlaps::redoIt()
 
     timer.endTimer();
     if (verbose) {
-        timeStr.set(timer.elapsedTime());
-        MGlobal::displayInfo("Initialization completed : " + timeStr + " seconds.");
+        UvUtils::displayTime("Initialization completed", timer.elapsedTime());
     }
     timer.clear();
 
@@ -231,8 +230,7 @@ MStatus FindUvOverlaps::redoIt()
 
     timer.endTimer();
     if (verbose) {
-        timeStr.set(timer.elapsedTime());
-        MGlobal::displayInfo("check completed : " + timeStr + " seconds.");
+        UvUtils::displayTime("Check completed", timer.elapsedTime());
     }
     timer.clear();
 

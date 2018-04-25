@@ -9,6 +9,8 @@
 #include "uvUtils.hpp"
 #include <string>
 #include <algorithm>
+#include <maya/MString.h>
+#include <maya/MGlobal.h>
 
 float UvUtils::getTriangleArea(const float Ax, const float Ay, const float Bx, const float By, const float Cx, const float Cy)
 {
@@ -90,4 +92,12 @@ void UvUtils::getEdgeIntersectionPoint(const float Ax, const float Ay, const flo
 
     uv[0] = u;
     uv[1] = v;
+}
+
+void UvUtils::displayTime(std::string message, double time)
+{
+    MString timeStr;
+    MString ms = message.c_str();
+    timeStr.set(time);
+    MGlobal::displayInfo(ms + " : " + timeStr + " seconds.");
 }
