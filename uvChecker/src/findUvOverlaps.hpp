@@ -10,6 +10,7 @@
 #include <maya/MString.h>
 #include <maya/MStringArray.h>
 #include <maya/MSyntax.h>
+#include <maya/MTimer.h>
 
 #include "event.hpp"
 #include "uvEdge.hpp"
@@ -65,6 +66,7 @@ private:
     MSelectionList mSel;
     std::mutex mtx;
     int numEdges;
+    MTimer timer;
 
     // Container to store all UV shells to be tested
     std::vector<UvShell> uvShellArrayMaster;

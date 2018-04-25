@@ -5,7 +5,6 @@
 #include <maya/MArgDatabase.h>
 #include <maya/MArgList.h>
 #include <maya/MGlobal.h>
-#include <maya/MTimer.h>
 
 #include <algorithm>
 #include <iostream>
@@ -64,9 +63,6 @@ MStatus FindUvOverlaps::doIt(const MArgList& args)
 MStatus FindUvOverlaps::redoIt()
 {
     MStatus status;
-
-    MString timeStr;
-    MTimer timer;
 
     // INITILIZATION PROCESS
     //
@@ -473,6 +469,7 @@ MStatus FindUvOverlaps::initializeFaces(objectData data, std::vector<std::vector
 
 MStatus FindUvOverlaps::check(const std::unordered_set<UvEdge, hash_edge>& edges, int threadNumber)
 {
+    MTimer testTimer;
     // Container for all events. Items need to be always sorted.
     std::vector<Event> eventQueue;
     eventQueue.reserve(edges.size() * 2);
