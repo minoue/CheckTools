@@ -478,9 +478,9 @@ MStatus FindUvOverlaps::check(const std::unordered_set<UvEdge, hash_edge>& edges
     int eventIndex = 0;
     for (std::unordered_set<UvEdge, hash_edge>::const_iterator iter = edges.begin(), end = edges.end(); iter != end; ++iter) {
 
-        Event ev1("begin", &(*iter), iter->begin, eventIndex);
+        Event ev1(0, &(*iter), iter->begin, eventIndex);
         eventIndex += 1;
-        Event ev2("end", &(*iter), iter->end, eventIndex);
+        Event ev2(1, &(*iter), iter->end, eventIndex);
         eventIndex += 1;
 
         eventQueue.push_back(ev1);
@@ -500,20 +500,24 @@ MStatus FindUvOverlaps::check(const std::unordered_set<UvEdge, hash_edge>& edges
         }
         Event firstEvent = eventQueue.back();
         eventQueue.pop_back();
-
-        if (firstEvent.status == "begin") {
-            doBegin(firstEvent, eventQueue, statusQueue, threadNumber);
-        } else if (firstEvent.status == "end") {
-            doEnd(firstEvent, eventQueue, statusQueue, threadNumber);
-        } else if (firstEvent.status == "intersect") {
-            doCross(firstEvent, eventQueue, statusQueue, threadNumber);
-        } else {
-            if (verbose)
-                MGlobal::displayError("Unknow exception");
-            return MS::kFailure;
+        
+        switch(firstEvent.eventType) {
+            case Event::BEGIN:
+                doBegin(firstEvent, eventQueue, statusQueue, threadNumber);
+                break;
+            case Event::END:
+                doEnd(firstEvent, eventQueue, statusQueue, threadNumber);
+                break;
+            case Event::CROSS:
+                doCross(firstEvent, eventQueue, statusQueue, threadNumber);
+                break;
+            default:
+                if (verbose)
+                    MGlobal::displayError("Unknow exception");
+                return MS::kFailure;
+                break;
         }
     }
-
     return MS::kSuccess;
 }
 
@@ -656,7 +660,7 @@ MStatus FindUvOverlaps::checkEdgesAndCreateEvent(UvEdge& edgeA, UvEdge& edgeB, s
         tempResultVector[threadNumber].push_back(edgeB.end.path);
 
         if (isParallel == false) {
-            Event crossEvent("intersect", uv[0], uv[1], &edgeA, &edgeB);
+            Event crossEvent(2, uv[0], uv[1], &edgeA, &edgeB);
             eventQueue.push_back(crossEvent);
             std::sort(eventQueue.rbegin(), eventQueue.rend());
         }

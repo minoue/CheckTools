@@ -2,7 +2,7 @@
 #include "uvChecker.hpp"
 #include <maya/MFnPlugin.h>
 
-static const char* const VERSION = "1.1.3";
+static const char* const VERSION = "1.1.9";
 
 MStatus initializePlugin(MObject mObj)
 {

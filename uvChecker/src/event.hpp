@@ -7,11 +7,11 @@
 
 class Event {
 public:
-    Event(std::string status, const UvEdge* edgePtr, UvPoint eventPoint, int index);
-    Event(std::string status, float u, float v, UvEdge* edgePtr, UvEdge* otherEdgePtr);
+    Event(int eventType, const UvEdge* edgePtr, UvPoint eventPoint, int index);
+    Event(int eventType, float u, float v, UvEdge* edgePtr, UvEdge* otherEdgePtr);
     ~Event();
 
-    std::string status;
+    int eventType;
     UvPoint point;
     UvEdge edge;
     UvEdge otherEdge;
@@ -32,6 +32,12 @@ public:
     bool operator>=(const Event& rhs) const;
     bool operator<(const Event& rhs) const;
     bool operator<=(const Event& rhs) const;
+
+    enum EVENT_TYPE {
+        BEGIN,
+        END,
+        CROSS
+    };
 
 private:
     Event();
