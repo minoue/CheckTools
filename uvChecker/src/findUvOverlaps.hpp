@@ -64,7 +64,6 @@ private:
     MDagPath dagPath;
     MString uvSet;
     MSelectionList mSel;
-    std::mutex mtx;
     int numEdges;
     MTimer timer;
 

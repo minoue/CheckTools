@@ -13,8 +13,6 @@ public:
 
     int eventType;
     UvPoint point;
-    UvEdge edge;
-    UvEdge otherEdge;
     int index;
     const UvEdge* edgePtr;
     const UvEdge* otherEdgePtr;

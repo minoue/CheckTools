@@ -6,9 +6,6 @@
 class UvPoint {
 public:
     UvPoint();
-    UvPoint(float u, float v);
-    UvPoint(float u, float v, int index);
-    UvPoint(float u, float v, int index, int shellIndex);
     UvPoint(float u, float v, int index, int shellIndex, std::string path);
     ~UvPoint();
 
