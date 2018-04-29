@@ -53,7 +53,7 @@ void UvUtils::makeCombinations(size_t N, std::vector<std::vector<int>>& vec)
         std::vector<int> sb;
         for (size_t i = 0; i < N; ++i) {
             if (bitmask[i]) {
-                sb.push_back(i);
+                sb.push_back((int)i);
             }
         }
         vec.push_back(sb);
