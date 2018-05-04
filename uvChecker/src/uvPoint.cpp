@@ -11,6 +11,7 @@ UvPoint::UvPoint(float u, float v, int index, int shellIndex, std::string path)
     this->index = index;
     this->shellIndex = shellIndex;
     this->path = path;
+    this->vu = std::make_pair(v, u);
 }
 
 UvPoint::~UvPoint()
@@ -24,40 +25,20 @@ bool UvPoint::operator==(const UvPoint& rhs) const
 
 bool UvPoint::operator>(const UvPoint& rhs) const
 {
-    if (this->u == rhs.u && this->v == rhs.v)
-        return false;
-    else if (this->v == rhs.v)
-        return this->u > rhs.u;
-    else
-        return this->v > rhs.v;
+    return vu > rhs.vu;
 }
 
 bool UvPoint::operator>=(const UvPoint& rhs) const
 {
-    if (this->u == rhs.u && this->v == rhs.v)
-        return true;
-    else if (this->v == rhs.v)
-        return this->u > rhs.u;
-    else
-        return this->v > rhs.v;
+    return vu >= rhs.vu;
 }
 
 bool UvPoint::operator<(const UvPoint& rhs) const
 {
-    if (this->u == rhs.u && this->v == rhs.v)
-        return false;
-    else if (this->v == rhs.v)
-        return this->u < rhs.u;
-    else
-        return this->v < rhs.v;
+    return vu < rhs.vu;
 }
 
 bool UvPoint::operator<=(const UvPoint& rhs) const
 {
-    if (this->u == rhs.u && this->v == rhs.v)
-        return true;
-    else if (this->v == rhs.v)
-        return this->u < rhs.u;
-    else
-        return this->v < rhs.v;
+    return vu <= rhs.vu;
 }
