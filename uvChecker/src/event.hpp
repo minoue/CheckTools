@@ -3,7 +3,7 @@
 
 #include "uvEdge.hpp"
 #include "uvPoint.hpp"
-#include <string>
+#include <utility>
 
 class Event {
 public:
@@ -16,9 +16,8 @@ public:
     int index;
     const UvEdge* edgePtr;
     const UvEdge* otherEdgePtr;
-
-    float u;
-    float v;
+    std::pair<float, float> vu; // A pair for event comparison. v value the first as it needs to be compared by v first.
+    float u, v;
 
     bool operator==(const Event& rhs) const;
     inline bool operator!=(const Event& rhs) const

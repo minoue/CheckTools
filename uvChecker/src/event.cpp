@@ -12,6 +12,7 @@ Event::Event(int eventType, const UvEdge* edgePtr, UvPoint eventPoint, int index
     this->index = index;
     this->u = point.u;
     this->v = point.v;
+    this->vu = std::make_pair(point.v, point.u);
 }
 
 Event::Event(int eventType, float u, float v, UvEdge* edgePtr, UvEdge* otherEdgePtr)
@@ -21,6 +22,7 @@ Event::Event(int eventType, float u, float v, UvEdge* edgePtr, UvEdge* otherEdge
     this->v = v;
     this->edgePtr = edgePtr;
     this->otherEdgePtr = otherEdgePtr;
+    this->vu = std::make_pair(v, u);
 }
 
 Event::~Event()
@@ -34,40 +36,20 @@ bool Event::operator==(const Event& rhs) const
 
 bool Event::operator>(const Event& rhs) const
 {
-    if (this->u == rhs.u && this->v == rhs.v)
-        return false;
-    else if (this->v == rhs.v)
-        return this->u > rhs.u;
-    else
-        return this->v > rhs.v;
+    return vu > rhs.vu;
 }
 
 bool Event::operator>=(const Event& rhs) const
 {
-    if (this->u == rhs.u && this->v == rhs.v)
-        return true;
-    else if (this->v == rhs.v)
-        return this->u > rhs.u;
-    else
-        return this->v > rhs.v;
+    return vu >= rhs.vu;
 }
 
 bool Event::operator<(const Event& rhs) const
 {
-    if (this->u == rhs.u && this->v == rhs.v)
-        return false;
-    else if (this->v == rhs.v)
-        return this->u < rhs.u;
-    else
-        return this->v < rhs.v;
+    return vu < rhs.vu;
 }
 
 bool Event::operator<=(const Event& rhs) const
 {
-    if (this->u == rhs.u && this->v == rhs.v)
-        return true;
-    else if (this->v == rhs.v)
-        return this->u < rhs.u;
-    else
-        return this->v < rhs.v;
+    return vu <= rhs.vu;
 }
