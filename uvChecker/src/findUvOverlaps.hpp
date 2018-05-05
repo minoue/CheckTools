@@ -40,21 +40,20 @@ public:
     static MSyntax newSyntax();
 
     MStatus check(const std::unordered_set<UvEdge, hash_edge>& edges, int threadNumber);
-    MStatus checkEdgesAndCreateEvent(UvEdge& edgeA, UvEdge& edgeB, std::vector<Event>& eventQueue, int threadNumber);
+    MStatus checkEdgesAndCreateEvent(UvEdge& edgeA, UvEdge& edgeB, std::multiset<Event>& eventQueue, int threadNumber);
     MStatus initializeObject(const MDagPath& dagPath, const int objectId);
     MStatus initializeFaces(objectData data, std::vector<std::vector<UvEdge>>& edgeVectorTemp);
-    void safeInsert(UvEdge& edge, std::unordered_set<UvEdge, hash_edge>& edgeSet);
 
     bool doBegin(Event& currentEvent,
-        std::vector<Event>& eventQueue,
+        std::multiset<Event>& eventQueue,
         std::vector<UvEdge>& statusQueue,
         int threadNumber);
     bool doEnd(Event& currentEvent,
-        std::vector<Event>& eventQueue,
+        std::multiset<Event>& eventQueue,
         std::vector<UvEdge>& statusQueue,
         int threadNumber);
     bool doCross(Event& currentEvent,
-        std::vector<Event>& eventQueue,
+        std::multiset<Event>& eventQueue,
         std::vector<UvEdge>& statusQueue,
         int threadNumber);
 
