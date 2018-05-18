@@ -2,6 +2,7 @@
 #define __UVPOINT__
 
 #include <string>
+#include <utility>
 
 class UvPoint {
 public:
@@ -13,7 +14,8 @@ public:
     float v;
     int index;
     int shellIndex;
-
+    std::pair<float, float> vu; // A pair for point comparison. v value the first as it needs to be compared by v first.
+    
     bool operator==(const UvPoint& rhs) const;
     inline bool operator!=(const UvPoint& rhs) const
     {
