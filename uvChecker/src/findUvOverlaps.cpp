@@ -305,8 +305,8 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
         float u = uArray[uvId];
         float v = vArray[uvId];
         UvShell& currentShell = uvShellArrayTemp[uvShellIds[uvId]];
-        currentShell.uVector.push_back(u);
-        currentShell.vVector.push_back(v);
+        currentShell.uVector.emplace_back(u);
+        currentShell.vVector.emplace_back(v);
     }
 
     // Setup bounding box information for each shell
@@ -330,7 +330,7 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
     for (unsigned int i = 0; i < uvCounts.length(); i++) {
         int numFaceUVs = uvCounts[i];
         for (int u = 0; u < numFaceUVs; u++) {
-            uvIdVector[i].push_back(uvIds[uvCounter]);
+            uvIdVector[i].emplace_back(uvIds[uvCounter]);
             uvCounter++;
         }
     }
@@ -460,7 +460,7 @@ MStatus FindUvOverlaps::initializeFaces(objectData data, std::vector<std::vector
             } else {
                 edge.init(p1, p2, stringId, currentShellIndex);
             }
-            edgeVectorTemp[data.threadIndex].push_back(edge);
+            edgeVectorTemp[data.threadIndex].emplace_back(edge);
         }
     }
 
@@ -520,7 +520,7 @@ MStatus FindUvOverlaps::check(const std::unordered_set<UvEdge, hash_edge>& edges
 bool FindUvOverlaps::doBegin(Event& currentEvent, std::multiset<Event>& eventQueue, std::vector<UvEdge>& statusQueue, int threadNumber)
 {
     const UvEdge& edge = *(currentEvent.edgePtr);
-    statusQueue.push_back(edge);
+    statusQueue.emplace_back(edge);
 
     // if there are no edges to compare
     size_t numStatus = statusQueue.size();
@@ -650,10 +650,10 @@ MStatus FindUvOverlaps::checkEdgesAndCreateEvent(UvEdge& edgeA, UvEdge& edgeB, s
         float uv[2]; // countainer for uv inters point
         UvUtils::getEdgeIntersectionPoint(edgeA.begin.u, edgeA.begin.v, edgeA.end.u, edgeA.end.v, edgeB.begin.u, edgeB.begin.v, edgeB.end.u, edgeB.end.v, uv);
 
-        tempResultVector[threadNumber].push_back(edgeA.begin.path);
-        tempResultVector[threadNumber].push_back(edgeB.begin.path);
-        tempResultVector[threadNumber].push_back(edgeA.end.path);
-        tempResultVector[threadNumber].push_back(edgeB.end.path);
+        tempResultVector[threadNumber].emplace_back(edgeA.begin.path);
+        tempResultVector[threadNumber].emplace_back(edgeB.begin.path);
+        tempResultVector[threadNumber].emplace_back(edgeA.end.path);
+        tempResultVector[threadNumber].emplace_back(edgeB.end.path);
 
         if (isParallel == false) {
             Event crossEvent(2, uv[0], uv[1], &edgeA, &edgeB);
