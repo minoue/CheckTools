@@ -519,8 +519,8 @@ MStatus FindUvOverlaps::check(const std::unordered_set<UvEdge, hash_edge>& edges
 
 bool FindUvOverlaps::doBegin(Event& currentEvent, std::multiset<Event>& eventQueue, std::vector<UvEdge>& statusQueue, int threadNumber)
 {
-    const UvEdge& edge = *(currentEvent.edgePtr);
-    statusQueue.emplace_back(edge);
+    const UvEdge& currentEdge = *(currentEvent.edgePtr);
+    statusQueue.emplace_back(currentEdge);
 
     // if there are no edges to compare
     size_t numStatus = statusQueue.size();
@@ -536,14 +536,12 @@ bool FindUvOverlaps::doBegin(Event& currentEvent, std::multiset<Event>& eventQue
     std::sort(statusQueue.begin(), statusQueue.end(), UvEdgeComparator());
 
     // StatusQueue was sorted so you have to find the edge added to the queue above and find its index
-    std::vector<UvEdge>::iterator foundIter = std::find(statusQueue.begin(), statusQueue.end(), edge);
+    std::vector<UvEdge>::iterator foundIter = std::find(statusQueue.begin(), statusQueue.end(), currentEdge);
     if (foundIter == statusQueue.end()) {
         // If the edge was not found in the queue, skin this function and go to next event
         return false;
     }
     size_t index = std::distance(statusQueue.begin(), foundIter);
-
-    UvEdge& currentEdge = statusQueue[index];
 
     if (index == 0) {
         // If first item, check the next edge
@@ -564,9 +562,9 @@ bool FindUvOverlaps::doBegin(Event& currentEvent, std::multiset<Event>& eventQue
 
 bool FindUvOverlaps::doEnd(Event& currentEvent, std::multiset<Event>& eventQueue, std::vector<UvEdge>& statusQueue, int threadNumber)
 {
-    const UvEdge& edge = *(currentEvent.edgePtr);
+    const UvEdge& currentEdge = *(currentEvent.edgePtr);
 
-    std::vector<UvEdge>::iterator iter_for_removal = std::find(statusQueue.begin(), statusQueue.end(), edge);
+    std::vector<UvEdge>::iterator iter_for_removal = std::find(statusQueue.begin(), statusQueue.end(), currentEdge);
     if (iter_for_removal == statusQueue.end()) {
         if (verbose)
             MGlobal::displayInfo("Failed to find the edge to be removed at the end event.");
@@ -580,7 +578,6 @@ bool FindUvOverlaps::doEnd(Event& currentEvent, std::multiset<Event>& eventQueue
         // if num items are less than 2 in the countainer, do nothing
     } else if (removeIndex == 0) {
         // if first item, do nothing
-
     } else if (removeIndex == statusQueue.size() - 1) {
         // if last item, do nothing
     } else {
@@ -642,7 +639,7 @@ bool FindUvOverlaps::doCross(Event& currentEvent, std::multiset<Event>& eventQue
     return false;
 }
 
-MStatus FindUvOverlaps::checkEdgesAndCreateEvent(UvEdge& edgeA, UvEdge& edgeB, std::multiset<Event>& eventQueue, int threadNumber)
+MStatus FindUvOverlaps::checkEdgesAndCreateEvent(const UvEdge& edgeA, const UvEdge& edgeB, std::multiset<Event>& eventQueue, int threadNumber)
 {
     bool isParallel = false;
     if (UvUtils::isEdgeIntersected(edgeA, edgeB, isParallel)) {

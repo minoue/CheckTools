@@ -8,7 +8,7 @@
 class Event {
 public:
     Event(int eventType, const UvEdge* edgePtr, UvPoint eventPoint, int index);
-    Event(int eventType, float u, float v, UvEdge* edgePtr, UvEdge* otherEdgePtr);
+    Event(int eventType, float u, float v, const UvEdge* edgePtr, const UvEdge* otherEdgePtr);
     ~Event();
 
     int eventType;

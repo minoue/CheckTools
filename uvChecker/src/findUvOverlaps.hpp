@@ -40,7 +40,7 @@ public:
     static MSyntax newSyntax();
 
     MStatus check(const std::unordered_set<UvEdge, hash_edge>& edges, int threadNumber);
-    MStatus checkEdgesAndCreateEvent(UvEdge& edgeA, UvEdge& edgeB, std::multiset<Event>& eventQueue, int threadNumber);
+    MStatus checkEdgesAndCreateEvent(const UvEdge& edgeA, const UvEdge& edgeB, std::multiset<Event>& eventQueue, int threadNumber);
     MStatus initializeObject(const MDagPath& dagPath, const int objectId);
     MStatus initializeFaces(objectData data, std::vector<std::vector<UvEdge>>& edgeVectorTemp);
 
