@@ -193,8 +193,11 @@ void UvEdge::setCrossingPointX(const float Y)
 bool UvEdgeComparator::operator()(const UvEdge& rhs1, const UvEdge& rhs2) const
 {
     if (rhs1.crossingPointX == rhs2.crossingPointX) {
-        return rhs1.end.u < rhs2.end.u;
-
+        if (rhs1.end.u == rhs2.end.u) {
+            return rhs1.stringID < rhs2.stringID;
+        } else {
+            return rhs1.end.u < rhs2.end.u;
+        }
     } else {
         return rhs1.crossingPointX < rhs2.crossingPointX;
     }
