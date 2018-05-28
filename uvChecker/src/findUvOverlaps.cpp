@@ -141,6 +141,7 @@ MStatus FindUvOverlaps::redoIt()
             UvShell& shellA = uvShellArrayMaster[shellCombinations[i][0]];
             UvShell& shellB = uvShellArrayMaster[shellCombinations[i][1]];
 
+            // Check if two bounding boxes of two UV shells are overlapped
             bool isOverlapped = UvUtils::isBoundingBoxOverlapped(
                 shellA.uMin,
                 shellA.uMax,
@@ -180,6 +181,7 @@ MStatus FindUvOverlaps::redoIt()
             //
             int threadCount = int(shellArray.size());
 
+            // Create temp container to send to each thread
             tempResultVector.resize(threadCount);
             for (int i = 0; i < threadCount; i++) {
                 tempResultVector[i].reserve(shellArray[i].size());
@@ -214,7 +216,7 @@ MStatus FindUvOverlaps::redoIt()
         }
     }
 
-    // Re-insert all results from temporary vector to Maya's MStringArray
+    // Re-insert all results from temp vectors in each thread to Maya's MStringArray
     // for setResult command
     for (size_t i = 0; i < tempResultVector.size(); i++) {
         std::vector<std::string>& pathArray = tempResultVector[i];
@@ -516,7 +518,11 @@ MStatus FindUvOverlaps::check(const std::unordered_set<UvEdge, hash_edge>& edges
     return MS::kSuccess;
 }
 
-bool FindUvOverlaps::doBegin(Event& currentEvent, std::multiset<Event>& eventQueue, std::vector<UvEdge>& statusQueue, int threadNumber)
+bool FindUvOverlaps::doBegin(
+    Event& currentEvent,
+    std::multiset<Event>& eventQueue,
+    std::vector<UvEdge>& statusQueue,
+    int threadNumber)
 {
     const UvEdge& currentEdge = *(currentEvent.edgePtr);
     statusQueue.emplace_back(currentEdge);
@@ -537,7 +543,7 @@ bool FindUvOverlaps::doBegin(Event& currentEvent, std::multiset<Event>& eventQue
     // StatusQueue was sorted so you have to find the edge added to the queue above and find its index
     std::vector<UvEdge>::iterator foundIter = std::find(statusQueue.begin(), statusQueue.end(), currentEdge);
     if (foundIter == statusQueue.end()) {
-        // If the edge was not found in the queue, skin this function and go to next event
+        // If the edge was not found in the queue, skip this function and go to next event
         return false;
     }
     size_t index = std::distance(statusQueue.begin(), foundIter);
@@ -559,7 +565,12 @@ bool FindUvOverlaps::doBegin(Event& currentEvent, std::multiset<Event>& eventQue
     return true;
 }
 
-bool FindUvOverlaps::doEnd(Event& currentEvent, std::multiset<Event>& eventQueue, std::vector<UvEdge>& statusQueue, int threadNumber)
+bool FindUvOverlaps::doEnd(
+    Event& currentEvent,
+    std::multiset<Event>& eventQueue,
+    std::vector<UvEdge>&
+    statusQueue,
+    int threadNumber)
 {
     const UvEdge& currentEdge = *(currentEvent.edgePtr);
 
@@ -592,7 +603,11 @@ bool FindUvOverlaps::doEnd(Event& currentEvent, std::multiset<Event>& eventQueue
     return true;
 }
 
-bool FindUvOverlaps::doCross(Event& currentEvent, std::multiset<Event>& eventQueue, std::vector<UvEdge>& statusQueue, int threadNumber)
+bool FindUvOverlaps::doCross(
+    Event& currentEvent,
+    std::multiset<Event>& eventQueue,
+    std::vector<UvEdge>& statusQueue,
+    int threadNumber)
 {
     if (statusQueue.size() <= 2) {
         return false;
@@ -638,7 +653,11 @@ bool FindUvOverlaps::doCross(Event& currentEvent, std::multiset<Event>& eventQue
     return false;
 }
 
-MStatus FindUvOverlaps::checkEdgesAndCreateEvent(const UvEdge& edgeA, const UvEdge& edgeB, std::multiset<Event>& eventQueue, int threadNumber)
+MStatus FindUvOverlaps::checkEdgesAndCreateEvent(
+    const UvEdge& edgeA,
+    const UvEdge& edgeB,
+    std::multiset<Event>& eventQueue,
+    int threadNumber)
 {
     bool isParallel = false;
     if (UvUtils::isEdgeIntersected(edgeA, edgeB, isParallel)) {
