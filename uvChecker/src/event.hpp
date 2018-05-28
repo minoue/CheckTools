@@ -25,10 +25,7 @@ public:
         return !(*this == rhs);
     }
 
-    bool operator>(const Event& rhs) const;
-    bool operator>=(const Event& rhs) const;
     bool operator<(const Event& rhs) const;
-    bool operator<=(const Event& rhs) const;
 
     enum EVENT_TYPE {
         BEGIN,

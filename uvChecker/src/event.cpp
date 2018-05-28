@@ -34,22 +34,7 @@ bool Event::operator==(const Event& rhs) const
     return this->index == rhs.index;
 }
 
-bool Event::operator>(const Event& rhs) const
-{
-    return vu > rhs.vu;
-}
-
-bool Event::operator>=(const Event& rhs) const
-{
-    return vu >= rhs.vu;
-}
-
 bool Event::operator<(const Event& rhs) const
 {
     return vu < rhs.vu;
-}
-
-bool Event::operator<=(const Event& rhs) const
-{
-    return vu <= rhs.vu;
 }

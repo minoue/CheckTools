@@ -22,10 +22,8 @@ public:
     {
         return !(*this == rhs);
     }
-    bool operator>(const UvEdge& rhs) const;
-    bool operator>=(const UvEdge& rhs) const;
+    
     bool operator<(const UvEdge& rhs) const;
-    bool operator<=(const UvEdge& rhs) const;
 
     void setCrossingPointX(const float Y);
     void init(UvPoint beginPt, UvPoint endPt, std::string strId, int shellIndex);

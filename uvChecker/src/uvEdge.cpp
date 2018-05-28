@@ -27,24 +27,9 @@ bool UvEdge::operator==(const UvEdge& rhs) const
     return this->stringID == rhs.stringID;
 }
 
-bool UvEdge::operator>(const UvEdge& rhs) const
-{
-    return this->stringID > rhs.stringID;
-}
-
-bool UvEdge::operator>=(const UvEdge& rhs) const
-{
-    return this->stringID >= rhs.stringID;
-}
-
 bool UvEdge::operator<(const UvEdge& rhs) const
 {
     return this->stringID < rhs.stringID;
-}
-
-bool UvEdge::operator<=(const UvEdge& rhs) const
-{
-    return this->stringID <= rhs.stringID;
 }
 
 void UvEdge::init(UvPoint beginPt, UvPoint endPt, std::string strId, int shellIndex)

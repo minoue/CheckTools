@@ -469,7 +469,6 @@ MStatus FindUvOverlaps::initializeFaces(objectData data, std::vector<std::vector
 
 MStatus FindUvOverlaps::check(const std::unordered_set<UvEdge, hash_edge>& edges, int threadNumber)
 {
-    MTimer testTimer;
     // Container for all events. Items need to be always sorted.
     std::multiset<Event> eventQueue;
 
