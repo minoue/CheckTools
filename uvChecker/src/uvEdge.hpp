@@ -23,7 +23,18 @@ public:
         return !(*this == rhs);
     }
     
-    bool operator<(const UvEdge& rhs) const;
+    inline bool operator<(const UvEdge& rhs) const
+    {
+        if (this->crossingPointX == rhs.crossingPointX) {
+            if (this->end.u == rhs.end.u) {
+                return this->stringID < rhs.stringID;
+            } else {
+                return this->end.u < rhs.end.u;
+            }
+        } else {
+            return this->crossingPointX < rhs.crossingPointX;
+        }
+    }
 
     void setCrossingPointX(const float Y);
     void init(UvPoint beginPt, UvPoint endPt, std::string strId, int shellIndex);
@@ -31,11 +42,6 @@ public:
     float crossingPointX;
 
 private:
-};
-
-class UvEdgeComparator {
-public:
-    bool operator()(const UvEdge& rhs1, const UvEdge& rhs2) const;
 };
 
 #endif /* defined(__UVEDGE_H__) */

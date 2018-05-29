@@ -27,11 +27,6 @@ bool UvEdge::operator==(const UvEdge& rhs) const
     return this->stringID == rhs.stringID;
 }
 
-bool UvEdge::operator<(const UvEdge& rhs) const
-{
-    return this->stringID < rhs.stringID;
-}
-
 void UvEdge::init(UvPoint beginPt, UvPoint endPt, std::string strId, int shellIndex)
 {
     this->begin = beginPt;
@@ -53,18 +48,5 @@ void UvEdge::setCrossingPointX(const float Y)
         this->crossingPointX = this->begin.u;
     } else {
         this->crossingPointX = ((Y - y1) * (x2 - x1)) / (y2 - y1) + x1;
-    }
-}
-
-bool UvEdgeComparator::operator()(const UvEdge& rhs1, const UvEdge& rhs2) const
-{
-    if (rhs1.crossingPointX == rhs2.crossingPointX) {
-        if (rhs1.end.u == rhs2.end.u) {
-            return rhs1.stringID < rhs2.stringID;
-        } else {
-            return rhs1.end.u < rhs2.end.u;
-        }
-    } else {
-        return rhs1.crossingPointX < rhs2.crossingPointX;
     }
 }

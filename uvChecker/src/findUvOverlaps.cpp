@@ -538,7 +538,7 @@ bool FindUvOverlaps::doBegin(
     for (size_t i = 0; i < numStatus; i++) {
         statusQueue[i].setCrossingPointX(currentEvent.v);
     }
-    std::sort(statusQueue.begin(), statusQueue.end(), UvEdgeComparator());
+    std::sort(statusQueue.begin(), statusQueue.end());
 
     // StatusQueue was sorted so you have to find the edge added to the queue above and find its index
     std::vector<UvEdge>::iterator foundIter = std::find(statusQueue.begin(), statusQueue.end(), currentEdge);
