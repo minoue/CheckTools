@@ -1,6 +1,7 @@
 #include "findUvOverlaps.hpp"
 #include "uvPoint.hpp"
 #include "uvUtils.hpp"
+#include "uvEdge.hpp"
 
 #include <maya/MArgDatabase.h>
 #include <maya/MArgList.h>
@@ -535,9 +536,7 @@ bool FindUvOverlaps::doBegin(
 
     // Update x values of intersection to the sweepline for all edges
     // in the statusQueue
-    for (size_t i = 0; i < numStatus; i++) {
-        statusQueue[i].setCrossingPointX(currentEvent.v);
-    }
+    edgeUtils::setCrosingPoints(statusQueue, currentEvent.v);
     std::sort(statusQueue.begin(), statusQueue.end());
 
     // StatusQueue was sorted so you have to find the edge added to the queue above and find its index
@@ -660,8 +659,7 @@ MStatus FindUvOverlaps::checkEdgesAndCreateEvent(
     int threadNumber)
 {
     bool isParallel = false;
-    if (UvUtils::isEdgeIntersected(edgeA, edgeB, isParallel)) {
-        // if (edgeA.isIntersected(edgeB, isParallel)) {
+    if (edgeUtils::isEdgeIntersected(edgeA, edgeB, isParallel)) {
 
         float uv[2]; // countainer for uv inters point
         UvUtils::getEdgeIntersectionPoint(edgeA.begin.u, edgeA.begin.v, edgeA.end.u, edgeA.end.v, edgeB.begin.u, edgeB.begin.v, edgeB.end.u, edgeB.end.v, uv);
