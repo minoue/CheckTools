@@ -245,10 +245,10 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
     MStatus status;
 
     MFnMesh fnMesh(dagPath);
-
-    objectData objData;
     numEdges = fnMesh.numEdges();
 
+    // Temporary container to store uvShell objects for CURRENT OBJECT
+    // These uvShell objects will be copied into uvShellArrayMaster at the end
     std::vector<UvShell> uvShellArrayTemp;
 
     // getUvShellsIds function gives wrong number of uv shells when accessing
@@ -323,7 +323,8 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
 
     int numPolygons = fnMesh.numPolygons();
 
-    // Create 2d vector of 2d vecotr, which contains Uv indices of each polygon face.
+    // Create a vector of 2d vecotr, which contains Uv indices of each polygon face.
+    // eg. [[0, 1, 2, 3], [1, 4, 5, 2], ...]
     std::vector<std::vector<int>> uvIdVector;
     uvIdVector.resize(numPolygons);
     MIntArray uvCounts;
@@ -339,6 +340,7 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
     }
 
     // Setup shared thread data
+    objectData objData;
     objData.uvCounts = &uvCounts;
     objData.objectId = objectId;
     objData.uvIdVector = &uvIdVector;
@@ -348,12 +350,10 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
 
     const int numThreads = 8;
     int threadRange = numPolygons / numThreads;
-    int amari = numPolygons % numThreads;
+    int divisionRemainder = numPolygons % numThreads;
 
     int rangeBegin = 0;
     int rangeEnd = threadRange;
-
-    std::thread threadArray[numThreads];
 
     // Temporary container to store all edge objects. Edges in this container
     // will be re-inserted to a set later to remove duplicates
@@ -363,33 +363,53 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
         edgeVectorTemp[tn].reserve(numEdges);
     }
 
-    // Loop all polygon faces and create edge objects
-    for (int i = 0; i < numThreads; i++) {
-        if (i == numThreads - 1)
-            rangeEnd += amari;
+    if (multiThread) {
+        // Create thread object
+        std::thread threadArray[numThreads];
 
-        // Setup thread-specific data
-        objData.threadIndex = i;
-        objData.begin = rangeBegin;
-        objData.end = rangeEnd;
+        // Loop all polygon faces and create edge objects
+        for (int i = 0; i < numThreads; i++) {
+            if (i == numThreads - 1)
+                rangeEnd += divisionRemainder;
 
-        if (multiThread) {
-            threadArray[i] = std::thread(&FindUvOverlaps::initializeFaces, this, objData, std::ref(edgeVectorTemp));
-        } else {
-            initializeFaces(objData, edgeVectorTemp);
+            // Setup thread-specific data
+            objData.threadIndex = i;
+            objData.begin = rangeBegin;
+            objData.end = rangeEnd;
+
+            threadArray[i] = std::thread(
+                    &FindUvOverlaps::initializeFaces,
+                    this, 
+                    objData,
+                    std::ref(edgeVectorTemp));
+
+            rangeBegin += threadRange;
+            rangeEnd += threadRange;
         }
 
-        rangeBegin += threadRange;
-        rangeEnd += threadRange;
-    }
-
-    if (multiThread) {
+        // thread join
         for (int i = 0; i < numThreads; i++) {
             threadArray[i].join();
         }
-    }
 
-    // Flatten temp edge vector to unordered_set
+    } else {
+        // Loop all polygon faces and create edge objects
+        for (int i = 0; i < numThreads; i++) {
+            if (i == numThreads - 1)
+                rangeEnd += divisionRemainder;
+
+            // Setup thread-specific data
+            objData.threadIndex = i;
+            objData.begin = rangeBegin;
+            objData.end = rangeEnd;
+
+            initializeFaces(objData, edgeVectorTemp);
+
+            rangeBegin += threadRange;
+            rangeEnd += threadRange;
+        }
+    }
+    
     for (int i = 0; i < numThreads; i++) {
         for (size_t s = 0; s < edgeVectorTemp[i].size(); s++) {
             UvEdge& edge = edgeVectorTemp[i][s];
@@ -400,7 +420,11 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
     // Switch back to the initial uv set
     fnMesh.setCurrentUVSetName(currentUvSet);
 
-    std::copy(uvShellArrayTemp.begin(), uvShellArrayTemp.end(), std::back_inserter(uvShellArrayMaster));
+    // Copy uvShells in temp container to master container
+    std::copy(
+            uvShellArrayTemp.begin(), 
+            uvShellArrayTemp.end(), 
+            std::back_inserter(uvShellArrayMaster));
 
     return MS::kSuccess;
 }
