@@ -39,11 +39,13 @@ if (WIN32)
         set(LIBRARY_DIR "C:/Program Files/Autodesk/Maya2017/lib")
         set(MAYA_COMPILE_DEFINITIONS "REQUIRE_IOSTREAM;_BOOL;NT_PLUGIN")
         set(MAYA_PLUGIN_EXTENSION ".mll")
+        set(MAYA_TARGET_TYPE RUNTIME)
 elseif (APPLE)
         set(INCLUDE_DIR "/Applications/Autodesk/maya2017/devkit/include")
         set(LIBRARY_DIR "/Applications/Autodesk/maya2017/Maya.app/Contents/MacOS")
         set(MAYA_COMPILE_DEFINITIONS "REQUIRE_IOSTREAM;_BOOL;OSMac_")
         set(MAYA_PLUGIN_EXTENSION ".bundle")
+        set(MAYA_TARGET_TYPE LIBRARY)
         set(CMAKE_MACOSX_RPATH ON)
 else ()
         set(INCLUDE_DIR "")
@@ -51,6 +53,7 @@ else ()
         set(MAYA_COMPILE_DEFINITIONS "REQUIRE_IOSTREAM;_BOOL;LINUX")
         set(MAYA_PLUGIN_EXTENSION ".so")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+        set(MAYA_TARGET_TYPE LIBRARY)
 endif()
 
 
@@ -71,8 +74,11 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
         LINK_FLAGS "/export:initializePlugin /export:uninitializePlugin"
         )
 endif()
+
 set_target_properties(${PROJECT_NAME} PROPERTIES
         COMPILE_DEFINITIONS "${MAYA_COMPILE_DEFINITIONS}"
         PREFIX ""
         SUFFIX ${MAYA_PLUGIN_EXTENSION}
         )
+
+install(TARGETS ${PROJECT_NAME} ${MAYA_TARGET_TYPE} DESTINATION plug-ins)
