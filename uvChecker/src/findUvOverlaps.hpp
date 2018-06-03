@@ -16,6 +16,9 @@
 #include "uvEdge.hpp"
 #include "uvShell.hpp"
 
+#include <set>
+#include <vector>
+
 struct objectData {
     int objectId;
     MIntArray* uvCounts;
@@ -26,6 +29,19 @@ struct objectData {
     int begin;
     int end;
     int threadIndex;
+};
+
+struct checkThreadData {
+    Event* currentEventPtr;
+    std::multiset<Event>* eventQueuePtr;
+    std::vector<UvEdge>* statusQueuePtr;
+    int threadNumber;
+    float sweepline;
+    
+    const UvEdge* currentEdgePtr;
+    const UvEdge* otherEdgePtr;
+    const UvEdge* edgeA;
+    const UvEdge* edgeB;
 };
 
 class FindUvOverlaps : public MPxCommand {
@@ -40,22 +56,13 @@ public:
     static MSyntax newSyntax();
 
     MStatus check(const std::unordered_set<UvEdge, hash_edge>& edges, int threadNumber);
-    MStatus checkEdgesAndCreateEvent(const UvEdge& edgeA, const UvEdge& edgeB, std::multiset<Event>& eventQueue, int threadNumber);
+    MStatus checkEdgesAndCreateEvent(checkThreadData& checkData);
     MStatus initializeObject(const MDagPath& dagPath, const int objectId);
     MStatus initializeFaces(objectData data, std::vector<std::vector<UvEdge>>& edgeVectorTemp);
 
-    bool doBegin(Event& currentEvent,
-        std::multiset<Event>& eventQueue,
-        std::vector<UvEdge>& statusQueue,
-        int threadNumber);
-    bool doEnd(Event& currentEvent,
-        std::multiset<Event>& eventQueue,
-        std::vector<UvEdge>& statusQueue,
-        int threadNumber);
-    bool doCross(Event& currentEvent,
-        std::multiset<Event>& eventQueue,
-        std::vector<UvEdge>& statusQueue,
-        int threadNumber);
+    bool doBegin(checkThreadData& checkData);
+    bool doEnd(checkThreadData& checkData);
+    bool doCross(checkThreadData& checkData);
 
 private:
     bool verbose;
