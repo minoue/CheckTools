@@ -55,7 +55,7 @@ public:
     static void* creator();
     static MSyntax newSyntax();
 
-    MStatus check(const std::unordered_set<UvEdge, hash_edge>& edges, int threadNumber);
+    MStatus check(const std::set<UvEdge>& edges, int threadNumber);
     MStatus checkEdgesAndCreateEvent(checkThreadData& checkData);
     MStatus initializeObject(const MDagPath& dagPath, const int objectId);
     MStatus initializeFaces(objectData data, std::vector<std::vector<UvEdge>>& edgeVectorTemp);

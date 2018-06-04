@@ -31,7 +31,7 @@ public:
     std::vector<float> vVector;
     std::unordered_set<int> polygonIDs;
     std::vector<int> borderUvPoints;
-    std::unordered_set<UvEdge, hash_edge> unordered_edgeSet;
+    std::set<UvEdge> edgeSet;
 
     bool operator==(const UvShell& rhs) const;
     inline bool operator!=(const UvShell& rhs) const

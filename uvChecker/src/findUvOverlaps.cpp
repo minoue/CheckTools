@@ -115,7 +115,7 @@ MStatus FindUvOverlaps::redoIt()
         // don't need to check uv bounding box overlaps check.
         tempResultVector.resize(1);
         tempResultVector[0].reserve(1000);
-        status = check(uvShellArrayMaster[0].unordered_edgeSet, 0);
+        status = check(uvShellArrayMaster[0].edgeSet, 0);
         if (status != MS::kSuccess) {
             MGlobal::displayInfo("Error found in shell");
         }
@@ -124,7 +124,7 @@ MStatus FindUvOverlaps::redoIt()
         // make one combined shell and send it to checker command
 
         // Countainer for both overlapped shells and indivisual shells for checker
-        std::vector<std::unordered_set<UvEdge, hash_edge>> shellArray;
+        std::vector<std::set<UvEdge>> shellArray;
 
         // Array like [0, 1, 3, 4 ...... nbUvShells]
         // UV shells with those indices will be independent shells that don't overlap
@@ -157,9 +157,9 @@ MStatus FindUvOverlaps::redoIt()
                 // Check boundingbox check for two shells
                 // If those two shells are overlapped, combine them into one single shell
                 // and add to shellArray
-                std::unordered_set<UvEdge, hash_edge> combinedEdges;
-                combinedEdges.insert(shellA.unordered_edgeSet.begin(), shellA.unordered_edgeSet.end());
-                combinedEdges.insert(shellB.unordered_edgeSet.begin(), shellB.unordered_edgeSet.end());
+                std::set<UvEdge> combinedEdges;
+                combinedEdges.insert(shellA.edgeSet.begin(), shellA.edgeSet.end());
+                combinedEdges.insert(shellB.edgeSet.begin(), shellB.edgeSet.end());
                 shellArray.push_back(combinedEdges);
 
                 // Remove from shellIndices as these shells don't have to be checked
@@ -173,7 +173,7 @@ MStatus FindUvOverlaps::redoIt()
         std::set<int>::iterator shIter;
         for (shIter = shellIndices.begin(); shIter != shellIndices.end(); ++shIter) {
             int index = *shIter;
-            std::unordered_set<UvEdge, hash_edge>& tempSet = uvShellArrayMaster[index].unordered_edgeSet;
+            std::set<UvEdge>& tempSet = uvShellArrayMaster[index].edgeSet;
             shellArray.push_back(tempSet);
         }
 
@@ -413,7 +413,7 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
     for (int i = 0; i < numThreads; i++) {
         for (size_t s = 0; s < edgeVectorTemp[i].size(); s++) {
             UvEdge& edge = edgeVectorTemp[i][s];
-            uvShellArrayTemp[edge.shellIndex].unordered_edgeSet.insert(edge);
+            uvShellArrayTemp[edge.shellIndex].edgeSet.insert(edge);
         }
     }
 
@@ -494,14 +494,14 @@ MStatus FindUvOverlaps::initializeFaces(objectData data, std::vector<std::vector
     return MS::kSuccess;
 }
 
-MStatus FindUvOverlaps::check(const std::unordered_set<UvEdge, hash_edge>& edges, int threadNumber)
+MStatus FindUvOverlaps::check(const std::set<UvEdge>& edges, int threadNumber)
 {
     // Container for all events. Items need to be always sorted.
     std::multiset<Event> eventQueue;
 
     // Create event objects from edge set
     int eventIndex = 0;
-    for (std::unordered_set<UvEdge, hash_edge>::const_iterator iter = edges.begin(), end = edges.end(); iter != end; ++iter) {
+    for (std::set<UvEdge>::const_iterator iter = edges.begin(), end = edges.end(); iter != end; ++iter) {
 
         Event ev1(0, &(*iter), iter->begin, eventIndex);
         eventIndex += 1;
