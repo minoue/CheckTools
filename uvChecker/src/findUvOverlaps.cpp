@@ -556,8 +556,6 @@ MStatus FindUvOverlaps::check(const std::unordered_set<UvEdge, hash_edge>& edges
 bool FindUvOverlaps::doBegin(checkThreadData& checkData)
 {
     // Extract data
-    // Event& currentEvent = *checkData.currentEventPtr;
-    // const UvEdge& currentEdge = *currentEvent.edgePtr;
     const UvEdge& currentEdge = *checkData.currentEdgePtr;
     std::vector<UvEdge>& statusQueue = *checkData.statusQueuePtr;
     
@@ -582,21 +580,23 @@ bool FindUvOverlaps::doBegin(checkThreadData& checkData)
         // If the edge was not found in the queue, skip this function and go to next event
         return false;
     }
-    size_t index = std::distance(statusQueue.begin(), foundIter);
+    // size_t index = std::distance(statusQueue.begin(), foundIter);
 
-    if (index == 0) {
+    if (foundIter == statusQueue.begin()) {
         // If first item, check the next edge
-        checkData.edgeB = &statusQueue[index + 1];
-        checkEdgesAndCreateEvent(checkData);
-    } else if (index == numStatus - 1) {
-        // if last iten in the statusQueue
-        checkData.edgeB = &statusQueue[index - 1];
-        checkEdgesAndCreateEvent(checkData);
-    } else {
-        checkData.edgeB = &statusQueue[index + 1];
+        checkData.edgeB = &*(++foundIter);
         checkEdgesAndCreateEvent(checkData);
         
-        checkData.edgeB = &statusQueue[index - 1];
+    } else if (foundIter == statusQueue.end() - 1) {
+        // if last iten in the statusQueue
+        checkData.edgeB = &*(--foundIter);
+        checkEdgesAndCreateEvent(checkData);
+        
+    } else {
+        checkData.edgeB = &*(++foundIter);
+        checkEdgesAndCreateEvent(checkData);
+        
+        checkData.edgeB = &*(foundIter-2);
         checkEdgesAndCreateEvent(checkData);
     }
     return true;
@@ -605,37 +605,38 @@ bool FindUvOverlaps::doBegin(checkThreadData& checkData)
 bool FindUvOverlaps::doEnd(checkThreadData& checkData)
 {
     // Extract data
-    // Event& currentEvent = *checkData.currentEventPtr;
-    // const UvEdge& currentEdge = *currentEvent.edgePtr;
     const UvEdge& currentEdge = *checkData.currentEdgePtr;
     std::vector<UvEdge>& statusQueue = *checkData.statusQueuePtr;
 
-    std::vector<UvEdge>::iterator iter_for_removal = std::find(statusQueue.begin(), statusQueue.end(), currentEdge);
-    if (iter_for_removal == statusQueue.end()) {
+    std::vector<UvEdge>::iterator foundIter = std::find(statusQueue.begin(), statusQueue.end(), currentEdge);
+    if (foundIter == statusQueue.end()) {
         if (verbose)
             MGlobal::displayInfo("Failed to find the edge to be removed at the end event.");
         // if iter not found
         return false;
     }
 
-    size_t removeIndex = std::distance(statusQueue.begin(), iter_for_removal);
-
-    if (statusQueue.size() <= 2) {
-        // if num items are less than 2 in the countainer, do nothing
-    } else if (removeIndex == 0) {
-        // if first item, do nothing
-    } else if (removeIndex == statusQueue.size() - 1) {
-        // if last item, do nothing
+    if (foundIter == statusQueue.begin() || foundIter == statusQueue.end()-1) {
+        // if first or last item, do nothing
     } else {
         // check previous and next edge intersection as they can be next
         // each other after removing the current edge
-        checkData.edgeA = &statusQueue[removeIndex + 1]; // next edge
-        checkData.edgeB = &statusQueue[removeIndex - 1]; // previous edge
+        
+        ++foundIter;
+        checkData.edgeA = &*(foundIter); // next edge
+        
+        --foundIter;
+        --foundIter;
+        
+        checkData.edgeB = &*(foundIter); // previous edge
+        
         checkEdgesAndCreateEvent(checkData);
+        
+        ++foundIter; // Move back to original iterator position
     }
 
     // Remove current edge from the statusQueue
-    statusQueue.erase(iter_for_removal);
+    statusQueue.erase(foundIter);
     return true;
 }
 
@@ -652,10 +653,12 @@ bool FindUvOverlaps::doCross(checkThreadData& checkData)
     const UvEdge& otherEdge = *checkData.otherEdgePtr;
     std::vector<UvEdge>::iterator thisEdgeIter = std::find(statusQueue.begin(), statusQueue.end(), thisEdge);
     std::vector<UvEdge>::iterator otherEdgeIter = std::find(statusQueue.begin(), statusQueue.end(), otherEdge);
+    
     if (thisEdgeIter == statusQueue.end() || otherEdgeIter == statusQueue.end()) {
         // if not found
         return false;
     }
+    
     size_t thisIndex = std::distance(statusQueue.begin(), thisEdgeIter);
     size_t otherIndex = std::distance(statusQueue.begin(), otherEdgeIter);
     size_t small, big;
@@ -669,18 +672,24 @@ bool FindUvOverlaps::doCross(checkThreadData& checkData)
     }
 
     if (small == 0) {
+        // Check the first edge and the one after next edge
         checkData.edgeA = &statusQueue[small];
         checkData.edgeB = &statusQueue[big + 1];
         checkEdgesAndCreateEvent(checkData);
+        
     } else if (big == statusQueue.size() - 1) {
-        checkData.edgeA = &statusQueue[small - 1];
-        checkData.edgeB = &statusQueue[big];
-        checkEdgesAndCreateEvent(checkData);
-    } else {
+        // Check the last edge and the one before the previous edge
         checkData.edgeA = &statusQueue[small - 1];
         checkData.edgeB = &statusQueue[big];
         checkEdgesAndCreateEvent(checkData);
         
+    } else {
+        // Check the first edge and the one after next(third)
+        checkData.edgeA = &statusQueue[small - 1];
+        checkData.edgeB = &statusQueue[big];
+        checkEdgesAndCreateEvent(checkData);
+        
+        // Check the second edge and the one after next(forth)
         checkData.edgeA = &statusQueue[small];
         checkData.edgeB = &statusQueue[big + 1];
         checkEdgesAndCreateEvent(checkData);
@@ -699,7 +708,15 @@ MStatus FindUvOverlaps::checkEdgesAndCreateEvent(checkThreadData& checkData)
     if (edgeUtils::isEdgeIntersected(edgeA, edgeB, isParallel)) {
 
         float uv[2]; // countainer for uv inters point
-        UvUtils::getEdgeIntersectionPoint(edgeA.begin.u, edgeA.begin.v, edgeA.end.u, edgeA.end.v, edgeB.begin.u, edgeB.begin.v, edgeB.end.u, edgeB.end.v, uv);
+        UvUtils::getEdgeIntersectionPoint(edgeA.begin.u,
+                                          edgeA.begin.v,
+                                          edgeA.end.u,
+                                          edgeA.end.v,
+                                          edgeB.begin.u,
+                                          edgeB.begin.v,
+                                          edgeB.end.u,
+                                          edgeB.end.v,
+                                          uv);
 
         tempResultVector[threadNumber].emplace_back(edgeA.begin.path);
         tempResultVector[threadNumber].emplace_back(edgeB.begin.path);
