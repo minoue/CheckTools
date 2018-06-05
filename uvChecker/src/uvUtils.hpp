@@ -9,8 +9,9 @@
 #ifndef uvUtils_hpp
 #define uvUtils_hpp
 
-#include <vector>
+#include "UvEdge.hpp"
 #include <string>
+#include <vector>
 
 class UvUtils {
 public:
@@ -39,7 +40,7 @@ public:
         const float Dx,
         const float Dy,
         float uv[2]);
-    
+
     static void displayTime(std::string message, double time);
 
 private:

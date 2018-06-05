@@ -15,7 +15,7 @@ Event::Event(int eventType, const UvEdge* edgePtr, UvPoint eventPoint, int index
     this->vu = std::make_pair(point.v, point.u);
 }
 
-Event::Event(int eventType, float u, float v, UvEdge* edgePtr, UvEdge* otherEdgePtr)
+Event::Event(int eventType, float u, float v, const UvEdge* edgePtr, const UvEdge* otherEdgePtr)
 {
     this->eventType = eventType;
     this->u = u;
@@ -34,22 +34,7 @@ bool Event::operator==(const Event& rhs) const
     return this->index == rhs.index;
 }
 
-bool Event::operator>(const Event& rhs) const
-{
-    return vu > rhs.vu;
-}
-
-bool Event::operator>=(const Event& rhs) const
-{
-    return vu >= rhs.vu;
-}
-
 bool Event::operator<(const Event& rhs) const
 {
     return vu < rhs.vu;
-}
-
-bool Event::operator<=(const Event& rhs) const
-{
-    return vu <= rhs.vu;
 }

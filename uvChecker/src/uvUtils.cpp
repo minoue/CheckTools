@@ -7,10 +7,10 @@
 //
 
 #include "uvUtils.hpp"
-#include <string>
 #include <algorithm>
-#include <maya/MString.h>
 #include <maya/MGlobal.h>
+#include <maya/MString.h>
+#include <string>
 
 float UvUtils::getTriangleArea(const float Ax, const float Ay, const float Bx, const float By, const float Cx, const float Cy)
 {
