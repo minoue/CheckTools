@@ -9,7 +9,6 @@
 #ifndef uvUtils_hpp
 #define uvUtils_hpp
 
-#include "UvEdge.hpp"
 #include <string>
 #include <vector>
 
