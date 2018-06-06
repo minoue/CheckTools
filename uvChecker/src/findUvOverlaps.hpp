@@ -58,7 +58,6 @@ public:
     MStatus check(const std::set<UvEdge>& edges, int threadNumber);
     MStatus checkEdgesAndCreateEvent(checkThreadData& checkData);
     MStatus initializeObject(const MDagPath& dagPath, const int objectId);
-    MStatus initializeFaces(objectData data, std::vector<std::vector<UvEdge>>& edgeVectorTemp);
 
     bool doBegin(checkThreadData& checkData);
     bool doEnd(checkThreadData& checkData);
@@ -73,7 +72,7 @@ private:
     int numEdges;
     MTimer timer;
 
-    // Container to store all UV shells to be tested
+    // Container to store all UV shells from all selected objects to be tested
     std::vector<UvShell> uvShellArrayMaster;
 
     // Countainer for UVs of final result to be returned
