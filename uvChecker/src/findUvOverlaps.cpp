@@ -12,7 +12,6 @@
 #include <iterator>
 #include <string>
 #include <thread>
-#include <utility>
 
 FindUvOverlaps::FindUvOverlaps()
 {
@@ -328,9 +327,10 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
     int nextCounter;
     fnMesh.getAssignedUVs(uvCounts, uvIds, uvSetPtr);
     
+    std::pair<int, int> p;
     std::set<std::pair<int, int>> edges;
-    int idA, idB;
     int uvCountSize = uvCounts.length();
+    
     for (unsigned int i = 0; i < uvCountSize; i++) {
         int numFaceUVs = uvCounts[i];
         for (int u=0; u<numFaceUVs; u++) {
@@ -339,53 +339,167 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
             } else {
                 nextCounter = uvCounter + 1;
             }
-            idA = uvIds[uvCounter];
-            idB = uvIds[nextCounter];
+            
+            int idA = uvIds[uvCounter];
+            int idB = uvIds[nextCounter];
             
             if (idA < idB) {
-                std::pair<int, int> p = std::make_pair(idA, idB);
-                edges.insert(p);
+                p = std::make_pair(idA, idB);
             } else {
-                std::pair<int, int> p = std::make_pair(idB, idA);
-                edges.insert(p);
+                p = std::make_pair(idB, idA);
             }
+            
+            edges.insert(p);
             uvCounter++;
         }
     }
     
-    std::set<std::pair<int, int>>::iterator edgesIter;
-    for (edgesIter=edges.begin(); edgesIter != edges.end(); ++edgesIter) {
-        const int& uvIdA = (*edgesIter).first;
-        const int& uvIdB = (*edgesIter).second;
-        
-        std::string stringId;
-        if (uvIdA < uvIdB) {
-            stringId = std::to_string((long long)objectId) + std::to_string((long long)uvIdA) + std::to_string((long long)uvIdB);
-        } else {
-            stringId = std::to_string((long long)objectId) + std::to_string((long long)uvIdB) + std::to_string((long long)uvIdA);
+    std::vector<std::pair<int, int>> edgeArray;
+    edgeArray.reserve(edges.size());
+    std::set<std::pair<int, int>>::iterator edgesIter2;
+    for (edgesIter2=edges.begin(); edgesIter2 != edges.end(); ++edgesIter2) {
+        edgeArray.emplace_back(*edgesIter2);
+    }
+    
+    objectData data;
+    data.objectId = objectId;
+    data.uvShellIds = &uvShellIds;
+    data.uArray = &uArray;
+    data.vArray = &vArray;
+    data.edgeArrayPtr = &edgeArray;
+    data.path = dagPath.fullPathName().asChar();
+    
+    int numEdges = edges.size();
+    const int numThreads = 8;
+    int threadRange = numEdges / numThreads;
+    int divisionRemainder = numEdges % numThreads;
+    
+    int rangeBegin = 0;  // initial range start
+    int rangeEnd = threadRange; // initial range end
+    
+    // std::cout << "Total Number of edges : " << numEdges << std::endl;
+    
+    std::vector<std::vector<UvEdge>> edgeArray2;
+    edgeArray2.resize(numThreads);
+    for (int i=0; i<numThreads; i++) {
+        edgeArray2[i].reserve(numEdges);
+    }
+    
+    std::thread threadArray[numThreads];
+    
+    for (int i=0; i<numThreads; i++) {
+        if (i == numThreads - 1) {
+            // last thread
+            rangeEnd += divisionRemainder;
         }
-        int currentShellIndex = uvShellIds[uvIdA];
+        
+        data.begin = rangeBegin;
+        data.end = rangeEnd;
+        data.threadId = i;
+        
+        threadArray[i] = std::thread(&FindUvOverlaps::createUvEdge, this, data, std::ref(edgeArray2));
+        
+        rangeBegin += threadRange;
+        rangeEnd += threadRange;
+    }
+    
+    // thread join
+    for (int i = 0; i < numThreads; i++) {
+        threadArray[i].join();
+    }
+    
+    std::vector<UvEdge>::iterator threadEdgeIter;
+    for (int i=0; i<numThreads; i++) {
+        std::vector<UvEdge>& threadEdges = edgeArray2[i];
+        for (threadEdgeIter=threadEdges.begin(); threadEdgeIter != threadEdges.end(); ++threadEdgeIter) {
+            UvEdge& e = *threadEdgeIter;
+            uvShellArrayTemp[e.shellIndex].edgeSet.insert(e);
+        }
+    }
+    
+//    for (std::vector<UvEdge>::iterator eIter = edgeArray2.begin(); eIter != edgeArray2.end(); ++eIter) {
+//        UvEdge& e = *eIter;
+//        int shellId = e.shellIndex;
+//        uvShellArrayTemp[shellId].edgeSet.insert(e);
+//    }
+    
+//    std::set<std::pair<int, int>>::iterator edgesIter;
+//    std::string stringId, dagPathStr, path_to_p1, path_to_p2;
+//    
+//    for (edgesIter=edges.begin(); edgesIter != edges.end(); ++edgesIter) {
+//        
+//        const int& uvIdA = (*edgesIter).first;
+//        const int& uvIdB = (*edgesIter).second;
+//        
+//        stringId = std::to_string((long long)objectId) + std::to_string((long long)uvIdA) + std::to_string((long long)uvIdB);
+//        
+//        int currentShellIndex = uvShellIds[uvIdA];
+//
+//        dagPathStr = dagPath.fullPathName().asChar();
+//        path_to_p1 = dagPathStr + ".map[" + std::to_string((long long)uvIdA) + "]";
+//        path_to_p2 = dagPathStr + ".map[" + std::to_string((long long)uvIdB) + "]";
+//
+//        UvPoint p1(uArray[uvIdA], vArray[uvIdA], uvIdA, currentShellIndex, path_to_p1);
+//        UvPoint p2(uArray[uvIdB], vArray[uvIdB], uvIdB, currentShellIndex, path_to_p2);
+//        
+//        // Create edge objects and insert them to shell edge set
+//        UvEdge edge;
+//        if (p1 > p2) {
+//            edge.init(p2, p1, stringId, currentShellIndex);
+//        } else {
+//            edge.init(p1, p2, stringId, currentShellIndex);
+//        }
+//        uvShellArrayTemp[currentShellIndex].edgeSet.insert(edge);
+//    }
+    
+    // Copy uvShells in temp container to master container
+    std::copy(uvShellArrayTemp.begin(), uvShellArrayTemp.end(), std::back_inserter(uvShellArrayMaster));
 
-        std::string dagPathStr = dagPath.fullPathName().asChar();
+    return MS::kSuccess;
+}
+
+MStatus FindUvOverlaps::createUvEdge(objectData data, std::vector<std::vector<UvEdge>>& edgeArray2) {
+    
+//    MString begin, end, num;
+//    num.set(data.threadId);
+//    begin.set(data.begin);
+//    end.set(data.end);
+//    
+//    MGlobal::displayInfo("Thread ID : " + num);
+//    MGlobal::displayInfo(begin + " to " + end);
+//    MGlobal::displayInfo("-------");
+    std::vector<std::pair<int, int>>& idPairArray = *data.edgeArrayPtr;
+    int objectId = data.objectId;
+    int threadId = data.threadId;
+    MIntArray& uvShellIds = *data.uvShellIds;
+    std::string dagPathStr = data.path;
+    MFloatArray& uArray = *data.uArray;
+    MFloatArray& vArray = *data.vArray;
+    
+    
+    std::string stringId;
+    for (int i=data.begin; i<data.end; i++) {
+        const int uvIdA = idPairArray[i].first;
+        const int uvIdB = idPairArray[i].second;
+        stringId = std::to_string((long long)objectId) + std::to_string((long long)uvIdA) + std::to_string((long long)uvIdB);
+        int currentShellIndex = uvShellIds[uvIdA];
+        
         std::string path_to_p1 = dagPathStr + ".map[" + std::to_string((long long)uvIdA) + "]";
         std::string path_to_p2 = dagPathStr + ".map[" + std::to_string((long long)uvIdB) + "]";
-
+        
         UvPoint p1(uArray[uvIdA], vArray[uvIdA], uvIdA, currentShellIndex, path_to_p1);
         UvPoint p2(uArray[uvIdB], vArray[uvIdB], uvIdB, currentShellIndex, path_to_p2);
         
-        // Create edge objects and insert them to shell edge set
         UvEdge edge;
         if (p1 > p2) {
             edge.init(p2, p1, stringId, currentShellIndex);
         } else {
             edge.init(p1, p2, stringId, currentShellIndex);
         }
-        uvShellArrayTemp[currentShellIndex].edgeSet.insert(edge);
+        // edgeArray2[i] = edge;
+        edgeArray2[threadId].emplace_back(edge);
     }
     
-    // Copy uvShells in temp container to master container
-    std::copy(uvShellArrayTemp.begin(), uvShellArrayTemp.end(), std::back_inserter(uvShellArrayMaster));
-
     return MS::kSuccess;
 }
 

@@ -18,17 +18,18 @@
 
 #include <set>
 #include <vector>
+#include <utility>
 
 struct objectData {
     int objectId;
-    MIntArray* uvCounts;
+    std::string path;
     MIntArray* uvShellIds;
-    std::vector<std::vector<int>>* uvIdVector;
     MFloatArray* uArray;
     MFloatArray* vArray;
+    std::vector<std::pair<int, int>>* edgeArrayPtr;
     int begin;
     int end;
-    int threadIndex;
+    int threadId;
 };
 
 struct checkThreadData {
@@ -58,6 +59,7 @@ public:
     MStatus check(const std::set<UvEdge>& edges, int threadNumber);
     MStatus checkEdgesAndCreateEvent(checkThreadData& checkData);
     MStatus initializeObject(const MDagPath& dagPath, const int objectId);
+    MStatus createUvEdge(objectData data, std::vector<std::vector<UvEdge>>& edgeArray2);
 
     bool doBegin(checkThreadData& checkData);
     bool doEnd(checkThreadData& checkData);
