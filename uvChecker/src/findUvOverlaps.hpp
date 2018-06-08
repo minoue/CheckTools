@@ -26,7 +26,7 @@ struct objectData {
     MIntArray* uvShellIds;
     MFloatArray* uArray;
     MFloatArray* vArray;
-    std::vector<std::pair<int, int>>* edgeArrayPtr;
+    std::vector<std::pair<int, int>>* idPairVecPtr;
     int begin;
     int end;
     int threadId;
