@@ -26,9 +26,6 @@ Find overlapped UVs with other shells or itself.
 |:---------|----------:|:--------------:|:-------:|:----------:|
 |uvSet|set|string||C|
 |verbose|v|bool|False|C|
-|multithread|mt|bool|False|C|
-* Multithread flag makes the command faster only when checking multiple UV shells
-properties
 
 ### Example
 ```python

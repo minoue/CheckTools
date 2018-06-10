@@ -11,11 +11,16 @@ uv checker
 overlaps checker based on the Bentley–Ottmann algorithm
 
 ## Build
+### Linux/MacOS
 ```
 >git clone https://github.com/minoue/CheckTools
 >cd CheckTools
 >mkdir build
 >cd build
 >cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release ../
->cmake --build . --config Release
+>cmake --build . --config Release --target install
+```
+
+### Windows
+```
 ```
