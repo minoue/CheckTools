@@ -27,7 +27,6 @@ MSyntax FindUvOverlaps::newSyntax()
     syntax.addArg(MSyntax::kString);
     syntax.addFlag("-v", "-verbose", MSyntax::kBoolean);
     syntax.addFlag("-set", "-uvSet", MSyntax::kString);
-    syntax.addFlag("-mt", "-multiThread", MSyntax::kBoolean);
     return syntax;
 }
 
@@ -52,11 +51,6 @@ MStatus FindUvOverlaps::doIt(const MArgList& args)
         argData.getFlagArgument("-uvSet", 0, uvSet);
     else
         uvSet = "None";
-
-    if (argData.isFlagSet("-multiThread"))
-        argData.getFlagArgument("-multiThread", 0, multiThread);
-    else
-        multiThread = false;
 
     return redoIt();
 }
@@ -177,44 +171,27 @@ MStatus FindUvOverlaps::redoIt()
             shellArray.push_back(edges);
         }
 
-        if (multiThread) {
-            // Check each shell in multithreas
-            //
-            int threadCount = int(shellArray.size());
+        // Check each shell in multithreads
+        //
+        int threadCount = int(shellArray.size());
 
-            // Create temp container to send to each thread
-            tempResultVector.resize(threadCount);
-            for (int i = 0; i < threadCount; i++) {
-                tempResultVector[i].reserve(shellArray[i].size());
-            }
-
-            std::thread* threadArray = new std::thread[threadCount];
-
-            for (int i = 0; i < threadCount; i++) {
-                threadArray[i] = std::thread(
-                    &FindUvOverlaps::check,
-                    this,
-                    std::ref(shellArray[i]),
-                    i);
-            }
-
-            for (int i = 0; i < threadCount; i++) {
-                threadArray[i].join();
-            }
-
-            delete[] threadArray;
-
-        } else {
-            // Check each shell in single thread
-            tempResultVector.resize(1);
-            tempResultVector[0].reserve(1000);
-            for (size_t s = 0; s < shellArray.size(); s++) {
-                status = check(shellArray[s], 0);
-                if (status != MS::kSuccess) {
-                    MGlobal::displayInfo("Error found in shell");
-                }
-            }
+        // Create temp container to send to each thread
+        tempResultVector.resize(threadCount);
+        for (int i = 0; i < threadCount; i++) {
+            tempResultVector[i].reserve(shellArray[i].size());
         }
+
+        std::thread* threadArray = new std::thread[threadCount];
+
+        for (int i = 0; i < threadCount; i++) {
+            threadArray[i] = std::thread(&FindUvOverlaps::check, this, std::ref(shellArray[i]), i);
+        }
+
+        for (int i = 0; i < threadCount; i++) {
+            threadArray[i].join();
+        }
+
+        delete[] threadArray;
     }
 
     // Re-insert all results from temp vectors in each thread to Maya's MStringArray
@@ -376,8 +353,6 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
     
     int rangeBegin = 0;  // initial range start
     int rangeEnd = threadRange; // initial range end
-    
-    // std::cout << "Total Number of edges : " << numEdges << std::endl;
     
     // Container for the results from each thread
     std::vector<std::vector<UvEdge>> threadEdgeVector;

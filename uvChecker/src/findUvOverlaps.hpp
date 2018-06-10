@@ -67,7 +67,6 @@ public:
 
 private:
     bool verbose;
-    bool multiThread;
     MDagPath dagPath;
     MString uvSet;
     MSelectionList mSel;
