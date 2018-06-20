@@ -16,10 +16,10 @@
 #include "uvEdge.hpp"
 #include "uvShell.hpp"
 
-#include <set>
 #include <mutex>
-#include <vector>
+#include <set>
 #include <utility>
+#include <vector>
 
 struct objectData {
     int objectId;
@@ -39,7 +39,7 @@ struct checkThreadData {
     std::vector<UvEdge>* statusQueuePtr;
     int threadNumber;
     float sweepline;
-    
+
     const UvEdge* currentEdgePtr;
     const UvEdge* otherEdgePtr;
     const UvEdge* edgeA;
@@ -65,7 +65,7 @@ public:
     bool doBegin(checkThreadData& checkData);
     bool doEnd(checkThreadData& checkData);
     bool doCross(checkThreadData& checkData);
-    
+
     void safeInsert(std::string& path);
 
 private:
@@ -76,7 +76,6 @@ private:
     int numEdges;
     MTimer timer;
     std::mutex mtx;
-    
 
     // Container to store all UV shells from all selected objects to be tested
     std::vector<UvShell> uvShellArrayMaster;
