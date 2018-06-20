@@ -189,7 +189,11 @@ MStatus FindUvOverlaps::redoIt()
     // Re-insert all results from temp vectors in each thread to Maya's MStringArray
     // for setResult command
     for (size_t i = 0; i < resultVector.size(); i++) {
-        resultStringArray.append(resultVector[i].c_str());
+        status = resultStringArray.append(resultVector[i].c_str());
+        if (status != MS::kSuccess) {
+            MGlobal::displayInfo("Failed to create result string array");
+            return MS::kFailure;
+        }
     }
 
     timer.endTimer();
@@ -661,10 +665,10 @@ MStatus FindUvOverlaps::checkEdgesAndCreateEvent(checkThreadData& checkData)
             edgeB.end.v,
             uv);
 
-        resultVector.push_back(edgeA.begin.path);
-        resultVector.push_back(edgeB.begin.path);
-        resultVector.push_back(edgeA.end.path);
-        resultVector.push_back(edgeB.end.path);
+        safeInsert(edgeA.begin.path);
+        safeInsert(edgeB.begin.path);
+        safeInsert(edgeA.end.path);
+        safeInsert(edgeB.end.path);
 
         if (isParallel == false) {
             Event crossEvent(2, uv[0], uv[1], &edgeA, &edgeB);
@@ -674,7 +678,7 @@ MStatus FindUvOverlaps::checkEdgesAndCreateEvent(checkThreadData& checkData)
     return MS::kSuccess;
 }
 
-void FindUvOverlaps::safeInsert(std::string& path)
+void FindUvOverlaps::safeInsert(const std::string& path)
 {
     std::lock_guard<std::mutex> locker(mtx);
     resultVector.push_back(path);

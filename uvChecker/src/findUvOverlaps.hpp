@@ -66,7 +66,7 @@ public:
     bool doEnd(checkThreadData& checkData);
     bool doCross(checkThreadData& checkData);
 
-    void safeInsert(std::string& path);
+    void safeInsert(const std::string& path);
 
 private:
     bool verbose;
