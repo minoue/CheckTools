@@ -361,7 +361,11 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
         data.end = rangeEnd;
         data.threadId = i;
 
-        threadArray[i] = std::thread(&FindUvOverlaps::createUvEdge, this, data, std::ref(threadEdgeVector));
+        threadArray[i] = std::thread(
+            &FindUvOverlaps::createUvEdge,
+            this,
+            data,
+            std::ref(threadEdgeVector));
 
         rangeBegin += threadRange;
         rangeEnd += threadRange;
@@ -373,17 +377,21 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
     }
 
     // Extract edges from each thread results and insert them to shells
-    std::vector<UvEdge>::iterator threadEdgeIter;
+    std::vector<UvEdge>::iterator it;
     for (int i = 0; i < numThreads; i++) {
         std::vector<UvEdge>& threadEdges = threadEdgeVector[i];
-        for (threadEdgeIter = threadEdges.begin(); threadEdgeIter != threadEdges.end(); ++threadEdgeIter) {
-            UvEdge& e = *threadEdgeIter;
+        std::vector<UvEdge>::iterator itEnd = threadEdges.end();
+        for (it = threadEdges.begin(); it != itEnd; ++it) {
+            UvEdge& e = *it;
             uvShellArrayTemp[e.shellIndex].edgeSet.insert(e);
         }
     }
 
     // Copy uvShells in temp container to master container
-    std::copy(uvShellArrayTemp.begin(), uvShellArrayTemp.end(), std::back_inserter(uvShellArrayMaster));
+    std::copy(
+        uvShellArrayTemp.begin(),
+        uvShellArrayTemp.end(),
+        std::back_inserter(uvShellArrayMaster));
 
     return MS::kSuccess;
 }
@@ -403,7 +411,9 @@ MStatus FindUvOverlaps::createUvEdge(objectData data, std::vector<std::vector<Uv
     for (int i = data.begin; i < data.end; i++) {
         const int uvIdA = idPairArray[i].first;
         const int uvIdB = idPairArray[i].second;
-        stringId = std::to_string((long long)objectId) + std::to_string((long long)uvIdA) + std::to_string((long long)uvIdB);
+        stringId = std::to_string(
+                       (long long)objectId)
+            + std::to_string((long long)uvIdA) + std::to_string((long long)uvIdB);
         int currentShellIndex = uvShellIds[uvIdA];
 
         std::string path_to_p1 = dagPathStr + ".map[" + std::to_string((long long)uvIdA) + "]";
@@ -432,7 +442,9 @@ MStatus FindUvOverlaps::check(const std::set<UvEdge>& edges, int threadNumber)
 
     // Create event objects from edge set
     int eventIndex = 0;
-    for (std::set<UvEdge>::const_iterator iter = edges.begin(), end = edges.end(); iter != end; ++iter) {
+    for (std::set<UvEdge>::const_iterator iter = edges.begin(), end = edges.end();
+         iter != end;
+         ++iter) {
 
         Event ev1(0, &(*iter), iter->begin, eventIndex);
         eventIndex += 1;
@@ -506,7 +518,8 @@ bool FindUvOverlaps::doBegin(checkThreadData& checkData)
     std::sort(statusQueue.begin(), statusQueue.end());
 
     // StatusQueue was sorted so you have to find the edge added to the queue above and find its index
-    std::vector<UvEdge>::iterator foundIter = std::find(statusQueue.begin(), statusQueue.end(), currentEdge);
+    std::vector<UvEdge>::iterator foundIter;
+    foundIter = std::find(statusQueue.begin(), statusQueue.end(), currentEdge);
     if (foundIter == statusQueue.end()) {
         // If the edge was not found in the queue, skip this function and go to next event
         return false;
@@ -538,7 +551,8 @@ bool FindUvOverlaps::doEnd(checkThreadData& checkData)
     const UvEdge& currentEdge = *checkData.currentEdgePtr;
     std::vector<UvEdge>& statusQueue = *checkData.statusQueuePtr;
 
-    std::vector<UvEdge>::iterator foundIter = std::find(statusQueue.begin(), statusQueue.end(), currentEdge);
+    std::vector<UvEdge>::iterator foundIter;
+    foundIter = std::find(statusQueue.begin(), statusQueue.end(), currentEdge);
     if (foundIter == statusQueue.end()) {
         if (verbose)
             MGlobal::displayInfo("Failed to find the edge to be removed at the end event.");
