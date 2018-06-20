@@ -17,6 +17,7 @@
 #include "uvShell.hpp"
 
 #include <set>
+#include <mutex>
 #include <vector>
 #include <utility>
 
@@ -64,6 +65,8 @@ public:
     bool doBegin(checkThreadData& checkData);
     bool doEnd(checkThreadData& checkData);
     bool doCross(checkThreadData& checkData);
+    
+    void safeInsert(std::string& path);
 
 private:
     bool verbose;
@@ -72,6 +75,8 @@ private:
     MSelectionList mSel;
     int numEdges;
     MTimer timer;
+    std::mutex mtx;
+    
 
     // Container to store all UV shells from all selected objects to be tested
     std::vector<UvShell> uvShellArrayMaster;
@@ -80,7 +85,7 @@ private:
     MStringArray resultStringArray;
 
     // temp result container for each thread
-    std::vector<std::vector<std::string>> tempResultVector;
+    std::vector<std::string> resultVector;
 };
 
 #endif /* defined(__FINDUVOVERLAPS2_H__) */

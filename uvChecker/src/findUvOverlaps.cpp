@@ -107,8 +107,6 @@ MStatus FindUvOverlaps::redoIt()
     if (uvShellArrayMaster.size() == 1) {
         // if there is only one uv shell, just send it to checker command.
         // don't need to check uv bounding box overlaps check.
-        tempResultVector.resize(1);
-        tempResultVector[0].reserve(1000);
         status = check(uvShellArrayMaster[0].edgeSet, 0);
         if (status != MS::kSuccess) {
             MGlobal::displayInfo("Error found in shell");
@@ -175,12 +173,6 @@ MStatus FindUvOverlaps::redoIt()
         //
         int threadCount = int(shellArray.size());
 
-        // Create temp container to send to each thread
-        tempResultVector.resize(threadCount);
-        for (int i = 0; i < threadCount; i++) {
-            tempResultVector[i].reserve(shellArray[i].size());
-        }
-
         std::thread* threadArray = new std::thread[threadCount];
 
         for (int i = 0; i < threadCount; i++) {
@@ -196,12 +188,8 @@ MStatus FindUvOverlaps::redoIt()
 
     // Re-insert all results from temp vectors in each thread to Maya's MStringArray
     // for setResult command
-    for (size_t i = 0; i < tempResultVector.size(); i++) {
-        std::vector<std::string>& pathArray = tempResultVector[i];
-        for (size_t s = 0; s < pathArray.size(); s++) {
-            MString v = pathArray[s].c_str();
-            resultStringArray.append(v);
-        }
+    for (size_t i=0; i<resultVector.size(); i++) {
+        resultStringArray.append(resultVector[i].c_str());
     }
 
     timer.endTimer();
@@ -645,7 +633,6 @@ MStatus FindUvOverlaps::checkEdgesAndCreateEvent(checkThreadData& checkData)
     const UvEdge& edgeA = *checkData.edgeA;
     const UvEdge& edgeB = *checkData.edgeB;
     std::multiset<Event>& eventQueue = *checkData.eventQueuePtr;
-    int threadNumber = checkData.threadNumber;
     
     if (edgeUtils::isEdgeIntersected(edgeA, edgeB, isParallel)) {
 
@@ -660,10 +647,10 @@ MStatus FindUvOverlaps::checkEdgesAndCreateEvent(checkThreadData& checkData)
                                           edgeB.end.v,
                                           uv);
 
-        tempResultVector[threadNumber].emplace_back(edgeA.begin.path);
-        tempResultVector[threadNumber].emplace_back(edgeB.begin.path);
-        tempResultVector[threadNumber].emplace_back(edgeA.end.path);
-        tempResultVector[threadNumber].emplace_back(edgeB.end.path);
+        resultVector.push_back(edgeA.begin.path);
+        resultVector.push_back(edgeB.begin.path);
+        resultVector.push_back(edgeA.end.path);
+        resultVector.push_back(edgeB.end.path);
 
         if (isParallel == false) {
             Event crossEvent(2, uv[0], uv[1], &edgeA, &edgeB);
@@ -671,6 +658,11 @@ MStatus FindUvOverlaps::checkEdgesAndCreateEvent(checkThreadData& checkData)
         }
     }
     return MS::kSuccess;
+}
+
+void FindUvOverlaps::safeInsert(std::string &path) {
+    std::lock_guard<std::mutex> locker(mtx);
+    resultVector.push_back(path);
 }
 
 MStatus FindUvOverlaps::undoIt()
