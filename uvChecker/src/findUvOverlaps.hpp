@@ -16,9 +16,10 @@
 #include "uvEdge.hpp"
 #include "uvShell.hpp"
 
+#include <mutex>
 #include <set>
-#include <vector>
 #include <utility>
+#include <vector>
 
 struct objectData {
     int objectId;
@@ -38,7 +39,7 @@ struct checkThreadData {
     std::vector<UvEdge>* statusQueuePtr;
     int threadNumber;
     float sweepline;
-    
+
     const UvEdge* currentEdgePtr;
     const UvEdge* otherEdgePtr;
     const UvEdge* edgeA;
@@ -65,6 +66,8 @@ public:
     bool doEnd(checkThreadData& checkData);
     bool doCross(checkThreadData& checkData);
 
+    void safeInsert(const std::string& path);
+
 private:
     bool verbose;
     MDagPath dagPath;
@@ -72,6 +75,7 @@ private:
     MSelectionList mSel;
     int numEdges;
     MTimer timer;
+    std::mutex mtx;
 
     // Container to store all UV shells from all selected objects to be tested
     std::vector<UvShell> uvShellArrayMaster;
@@ -80,7 +84,7 @@ private:
     MStringArray resultStringArray;
 
     // temp result container for each thread
-    std::vector<std::vector<std::string>> tempResultVector;
+    std::vector<std::string> resultVector;
 };
 
 #endif /* defined(__FINDUVOVERLAPS2_H__) */
