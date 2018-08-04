@@ -2,12 +2,12 @@
 #define __MESHCHECKER_H__
 
 #include <maya/MDagPath.h>
+#include <maya/MIntArray.h>
 #include <maya/MItMeshEdge.h>
 #include <maya/MItMeshPolygon.h>
 #include <maya/MItMeshVertex.h>
 #include <maya/MPxCommand.h>
 #include <maya/MStringArray.h>
-#include <maya/MIntArray.h>
 
 #include <string>
 

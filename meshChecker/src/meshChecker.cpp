@@ -2,15 +2,14 @@
 #include <maya/MArgDatabase.h>
 #include <maya/MArgList.h>
 #include <maya/MDoubleArray.h>
+#include <maya/MFnDagNode.h>
 #include <maya/MFnMesh.h>
 #include <maya/MGlobal.h>
+#include <maya/MPlug.h>
 #include <maya/MSelectionList.h>
 #include <maya/MString.h>
 #include <maya/MSyntax.h>
 #include <maya/MUintArray.h>
-#include <maya/MFnDagNode.h>
-#include <maya/MPlug.h>
-
 
 MeshChecker::MeshChecker()
 {
@@ -120,7 +119,8 @@ MStatus MeshChecker::findCreaseEDges()
     return MS::kSuccess;
 }
 
-MStatus MeshChecker::findZeroLengthEdges() {
+MStatus MeshChecker::findZeroLengthEdges()
+{
     double length;
     for (MItMeshEdge mItEdge(mDagPath); !mItEdge.isDone(); mItEdge.next()) {
         mItEdge.getLength(length);
@@ -131,13 +131,14 @@ MStatus MeshChecker::findZeroLengthEdges() {
     return MS::kSuccess;
 }
 
-MStatus MeshChecker::findUnfrozenVertices() {
+MStatus MeshChecker::findUnfrozenVertices()
+{
     // reference
     // https://nccastaff.bournemouth.ac.uk/jmacey/RobTheBloke/www/research/maya/mfn_attributes.htm
     mDagPath.extendToShape();
     MFnDagNode mFnDag(mDagPath);
     MPlug pntsArray = mFnDag.findPlug("pnts");
-    
+
     MFnMesh fnMesh(mDagPath);
     unsigned int numVerts = fnMesh.numVertices();
 
@@ -149,11 +150,11 @@ MStatus MeshChecker::findUnfrozenVertices() {
             MPlug plug_x = compound.child(0);
             MPlug plug_y = compound.child(1);
             MPlug plug_z = compound.child(2);
-        
+
             plug_x.getValue(x);
             plug_y.getValue(y);
             plug_z.getValue(z);
-            
+
             float temp = x + y + z;
             if (temp != 0)
                 indexArray.append(i);
