@@ -135,15 +135,7 @@ MStatus FindUvOverlaps::redoIt()
             UvShell& shellB = uvShellArrayMaster[shellCombinations[i][1]];
 
             // Check if two bounding boxes of two UV shells are overlapped
-            bool isOverlapped = UvUtils::isBoundingBoxOverlapped(
-                shellA.uMin,
-                shellA.uMax,
-                shellA.vMin,
-                shellA.vMax,
-                shellB.uMin,
-                shellB.uMax,
-                shellB.vMin,
-                shellB.vMax);
+            bool isOverlapped = shellA * shellB;
 
             if (isOverlapped) {
                 // Check boundingbox check for two shells

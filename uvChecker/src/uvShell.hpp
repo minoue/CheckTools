@@ -38,6 +38,8 @@ public:
     {
         return !(*this == rhs);
     }
+    
+    bool operator*(const UvShell& rhs) const;
 
 private:
 };
