@@ -415,13 +415,11 @@ MStatus FindUvOverlaps::createUvEdge(objectData data, std::vector<std::vector<Uv
     for (int i = data.begin; i < data.end; i++) {
         const int uvIdA = idPairArray[i].first;
         const int uvIdB = idPairArray[i].second;
-        stringId = std::to_string(
-                       (long long)objectId)
-            + std::to_string((long long)uvIdA) + std::to_string((long long)uvIdB);
+        stringId = std::to_string(objectId) + std::to_string(uvIdA) + std::to_string(uvIdB);
         int currentShellIndex = uvShellIds[uvIdA];
 
-        std::string path_to_p1 = dagPathStr + ".map[" + std::to_string((long long)uvIdA) + "]";
-        std::string path_to_p2 = dagPathStr + ".map[" + std::to_string((long long)uvIdB) + "]";
+        std::string path_to_p1 = dagPathStr + ".map[" + std::to_string(uvIdA) + "]";
+        std::string path_to_p2 = dagPathStr + ".map[" + std::to_string(uvIdB) + "]";
 
         UvPoint p1(uArray[uvIdA], vArray[uvIdA], uvIdA, currentShellIndex, path_to_p1);
         UvPoint p2(uArray[uvIdB], vArray[uvIdB], uvIdB, currentShellIndex, path_to_p2);
