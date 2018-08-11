@@ -40,6 +40,7 @@ public:
     }
     
     bool operator*(const UvShell& rhs) const;
+    UvShell operator+(const UvShell& rhs) const;
 
 private:
 };
