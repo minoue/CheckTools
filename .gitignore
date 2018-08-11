@@ -18,4 +18,5 @@ xcode/
 uvChecker/.idea/
 uvChecker/cmake-build-debug/
 modules/
+plug-ins/
 !CMakeLists.txt
