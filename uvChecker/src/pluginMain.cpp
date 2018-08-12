@@ -1,5 +1,5 @@
-#include "findUvOverlaps.hpp"
-#include "uvChecker.hpp"
+#include "findUvOverlaps.h"
+#include "uvChecker.h"
 #include <maya/MFnPlugin.h>
 
 static const char* const VERSION = "1.2.4";

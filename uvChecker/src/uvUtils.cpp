@@ -6,7 +6,7 @@
 //
 //
 
-#include "uvUtils.hpp"
+#include "uvUtils.h"
 #include <algorithm>
 #include <maya/MGlobal.h>
 #include <maya/MString.h>

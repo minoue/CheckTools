@@ -12,9 +12,9 @@
 #include <maya/MSyntax.h>
 #include <maya/MTimer.h>
 
-#include "event.hpp"
-#include "uvEdge.hpp"
-#include "uvShell.hpp"
+#include "event.h"
+#include "uvEdge.h"
+#include "uvShell.h"
 
 #include <mutex>
 #include <set>

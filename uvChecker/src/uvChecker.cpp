@@ -1,4 +1,4 @@
-#include "uvChecker.hpp"
+#include "uvChecker.h"
 #include <math.h>
 #include <maya/MArgDatabase.h>
 #include <maya/MArgList.h>

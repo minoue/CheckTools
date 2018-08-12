@@ -1,8 +1,8 @@
 #ifndef __UVEVENT__
 #define __UVEVENT__
 
-#include "uvEdge.hpp"
-#include "uvPoint.hpp"
+#include "uvEdge.h"
+#include "uvPoint.h"
 #include <utility>
 
 class Event {

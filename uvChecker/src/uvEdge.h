@@ -1,7 +1,7 @@
 #ifndef __UVEDGE__
 #define __UVEDGE__
 
-#include "uvPoint.hpp"
+#include "uvPoint.h"
 #include <vector>
 
 class UvEdge {
