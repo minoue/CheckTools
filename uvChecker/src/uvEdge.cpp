@@ -41,7 +41,7 @@ namespace edgeUtils
 {
     void setCrosingPoints(std::vector<UvEdge>& statusQueue, float Y) {
         size_t queueSize = statusQueue.size();
-        for (int i=0; i<queueSize; i++) {
+        for (size_t i=0; i<queueSize; i++) {
             UvEdge& e = statusQueue[i];
             float x1 = e.begin.u;
             float y1 = e.begin.v;
