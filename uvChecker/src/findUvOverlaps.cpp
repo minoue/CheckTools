@@ -1,7 +1,7 @@
 #include "findUvOverlaps.h"
-#include "uvEdge.h"
-#include "uvPoint.h"
-#include "uvUtils.h"
+#include "bentleyOttman/uvEdge.h"
+#include "bentleyOttman/uvPoint.h"
+#include "bentleyOttman/uvUtils.h"
 
 #include <maya/MArgDatabase.h>
 #include <maya/MArgList.h>

@@ -5,18 +5,18 @@ set(SOURCE_FILES
     src/pluginMain.cpp
     src/uvChecker.cpp
     src/uvChecker.h
-    src/uvPoint.cpp
-    src/uvPoint.h
-    src/uvEdge.cpp
-    src/uvEdge.h
+    src/bentleyOttman/uvPoint.cpp
+    src/bentleyOttman/uvPoint.h
+    src/bentleyOttman/uvEdge.cpp
+    src/bentleyOttman/uvEdge.h
+    src/bentleyOttman/event.cpp
+    src/bentleyOttman/event.h
+    src/bentleyOttman/uvUtils.cpp
+    src/bentleyOttman/uvUtils.h
     src/uvShell.cpp
     src/uvShell.h
     src/findUvOverlaps.cpp
     src/findUvOverlaps.h
-    src/event.cpp
-    src/event.h
-    src/uvUtils.cpp
-    src/uvUtils.h
     )
 
 # https://www.guyrutenberg.com/2014/01/05/enabling-c11-c0x-in-cmake/

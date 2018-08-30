@@ -12,8 +12,8 @@
 #include <maya/MSyntax.h>
 #include <maya/MTimer.h>
 
-#include "event.h"
-#include "uvEdge.h"
+#include "bentleyOttman/event.h"
+#include "bentleyOttman/uvEdge.h"
 #include "uvShell.h"
 
 #include <mutex>
