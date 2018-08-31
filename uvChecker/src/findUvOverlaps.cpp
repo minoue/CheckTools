@@ -5,6 +5,7 @@
 
 #include <maya/MArgDatabase.h>
 #include <maya/MArgList.h>
+#include <maya/MFnMesh.h>
 #include <maya/MGlobal.h>
 
 #include <algorithm>
@@ -321,95 +322,14 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath, const int obje
     std::sort(idPairVec.begin(), idPairVec.end());
     idPairVec.erase(std::unique(idPairVec.begin(), idPairVec.end()), idPairVec.end());
 
-    // Construct data struct for each thread
-    objectData data;
-    data.objectId = objectId;
-    data.uvShellIds = &uvShellIds;
-    data.uArray = &uArray;
-    data.vArray = &vArray;
-    data.idPairVecPtr = &idPairVec;
-    data.path = dagPath.fullPathName().asChar();
-
-    int numEdges = idPairVec.size();
-    const int numThreads = 8;
-    int threadRange = numEdges / numThreads;
-    int divisionRemainder = numEdges % numThreads;
-
-    int rangeBegin = 0; // initial range start
-    int rangeEnd = threadRange; // initial range end
-
-    // Container for the results from each thread
-    std::vector<std::vector<UvEdge>> threadEdgeVector;
-    threadEdgeVector.resize(numThreads);
-    for (int i = 0; i < numThreads; i++) {
-        threadEdgeVector[i].reserve(numEdges);
-    }
-
-    std::thread threadArray[numThreads];
-
-    for (int i = 0; i < numThreads; i++) {
-        if (i == numThreads - 1) {
-            // last thread
-            rangeEnd += divisionRemainder;
-        }
-
-        data.begin = rangeBegin;
-        data.end = rangeEnd;
-        data.threadId = i;
-
-        threadArray[i] = std::thread(
-            &FindUvOverlaps::createUvEdge,
-            this,
-            data,
-            std::ref(threadEdgeVector));
-
-        rangeBegin += threadRange;
-        rangeEnd += threadRange;
-    }
-
-    // thread join
-    for (int i = 0; i < numThreads; i++) {
-        threadArray[i].join();
-    }
-
-    // Extract edges from each thread results and insert them to shells
-    std::vector<UvEdge>::iterator it;
-    for (int i = 0; i < numThreads; i++) {
-        std::vector<UvEdge>& threadEdges = threadEdgeVector[i];
-        std::vector<UvEdge>::iterator itEnd = threadEdges.end();
-        for (it = threadEdges.begin(); it != itEnd; ++it) {
-            UvEdge& e = *it;
-            uvShellArrayTemp[e.shellIndex].edgeSet.insert(e);
-        }
-    }
-
-    // Copy uvShells in temp container to master container
-    std::copy(
-        uvShellArrayTemp.begin(),
-        uvShellArrayTemp.end(),
-        std::back_inserter(uvShellArrayMaster));
-
-    return MS::kSuccess;
-}
-
-MStatus FindUvOverlaps::createUvEdge(objectData data, std::vector<std::vector<UvEdge>>& threadEdgeVector)
-{
-
-    std::vector<std::pair<int, int>>& idPairArray = *data.idPairVecPtr;
-    int objectId = data.objectId;
-    int threadId = data.threadId;
-    MIntArray& uvShellIds = *data.uvShellIds;
-    std::string dagPathStr = data.path;
-    MFloatArray& uArray = *data.uArray;
-    MFloatArray& vArray = *data.vArray;
-
-    std::string stringId;
-    for (int i = data.begin; i < data.end; i++) {
-        const int uvIdA = idPairArray[i].first;
-        const int uvIdB = idPairArray[i].second;
-        stringId = std::to_string(objectId) + std::to_string(uvIdA) + std::to_string(uvIdB);
+    std::vector<std::pair<int, int>>::iterator pairIter;
+    for (pairIter = idPairVec.begin(); pairIter != idPairVec.end(); ++pairIter) {
+        const int uvIdA = (*pairIter).first;
+        const int uvIdB = (*pairIter).second;
+        std::string stringId = std::to_string(objectId) + std::to_string(uvIdA) + std::to_string(uvIdB);
         int currentShellIndex = uvShellIds[uvIdA];
 
+        std::string dagPathStr = dagPath.fullPathName().asChar();
         std::string path_to_p1 = dagPathStr + ".map[" + std::to_string(uvIdA) + "]";
         std::string path_to_p2 = dagPathStr + ".map[" + std::to_string(uvIdB) + "]";
 
@@ -423,8 +343,14 @@ MStatus FindUvOverlaps::createUvEdge(objectData data, std::vector<std::vector<Uv
             edge.init(p1, p2, stringId, currentShellIndex);
         }
 
-        threadEdgeVector[threadId].emplace_back(edge);
+        uvShellArrayTemp[currentShellIndex].edgeSet.insert(edge);
     }
+
+    // Copy uvShells in temp container to master container
+    std::copy(
+        uvShellArrayTemp.begin(),
+        uvShellArrayTemp.end(),
+        std::back_inserter(uvShellArrayMaster));
 
     return MS::kSuccess;
 }

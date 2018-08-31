@@ -3,7 +3,6 @@
 
 #include <maya/MDagPath.h>
 #include <maya/MFloatArray.h>
-#include <maya/MFnMesh.h>
 #include <maya/MIntArray.h>
 #include <maya/MPxCommand.h>
 #include <maya/MSelectionList.h>
@@ -20,18 +19,6 @@
 #include <set>
 #include <utility>
 #include <vector>
-
-struct objectData {
-    int objectId;
-    std::string path;
-    MIntArray* uvShellIds;
-    MFloatArray* uArray;
-    MFloatArray* vArray;
-    std::vector<std::pair<int, int>>* idPairVecPtr;
-    int begin;
-    int end;
-    int threadId;
-};
 
 struct checkThreadData {
     Event* currentEventPtr;
@@ -60,7 +47,6 @@ public:
     MStatus check(const std::set<UvEdge>& edges, int threadNumber);
     MStatus checkEdgesAndCreateEvent(checkThreadData& checkData);
     MStatus initializeObject(const MDagPath& dagPath, const int objectId);
-    MStatus createUvEdge(objectData data, std::vector<std::vector<UvEdge>>& edgeArray2);
 
     bool doBegin(checkThreadData& checkData);
     bool doEnd(checkThreadData& checkData);
