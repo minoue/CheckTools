@@ -3,16 +3,14 @@
 
 #include <string>
 #include <utility>
+#include "point2D.h"
 
-class UvPoint {
+class UvPoint : public Point2D {
 public:
     UvPoint();
     UvPoint(float u, float v, int index, int shellIndex, std::string path);
     ~UvPoint();
 
-    float u;
-    float v;
-    int index;
     int shellIndex;
     std::pair<float, float> vu; // A pair for point comparison. v value the first as it needs to be compared by v first.
     

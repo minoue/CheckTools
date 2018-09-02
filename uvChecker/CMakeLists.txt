@@ -13,6 +13,8 @@ set(SOURCE_FILES
     src/bentleyOttman/event.h
     src/bentleyOttman/uvUtils.cpp
     src/bentleyOttman/uvUtils.h
+    src/bentleyOttman/point2D.h
+    src/bentleyOttman/point2D.cpp
     src/uvShell.cpp
     src/uvShell.h
     src/findUvOverlaps.cpp
