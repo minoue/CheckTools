@@ -5,20 +5,24 @@ set(SOURCE_FILES
     src/pluginMain.cpp
     src/uvChecker.cpp
     src/uvChecker.h
-    src/bentleyOttman/uvPoint.cpp
-    src/bentleyOttman/uvPoint.h
-    src/bentleyOttman/uvEdge.cpp
-    src/bentleyOttman/uvEdge.h
-    src/bentleyOttman/event.cpp
-    src/bentleyOttman/event.h
-    src/bentleyOttman/uvUtils.cpp
-    src/bentleyOttman/uvUtils.h
-    src/bentleyOttman/point2D.h
-    src/bentleyOttman/point2D.cpp
     src/uvShell.cpp
     src/uvShell.h
     src/findUvOverlaps.cpp
     src/findUvOverlaps.h
+    src/uvUtils.cpp
+    src/uvUtils.hpp
+    src/BentleyOttman/src/point2D.cpp
+    src/BentleyOttman/src/point2D.hpp
+    src/BentleyOttman/src/vector2D.cpp
+    src/BentleyOttman/src/vector2D.hpp
+    src/BentleyOttman/src/utils.cpp
+    src/BentleyOttman/src/utils.hpp
+    src/BentleyOttman/src/lineSegment.cpp
+    src/BentleyOttman/src/lineSegment.hpp
+    src/BentleyOttman/src/event.cpp
+    src/BentleyOttman/src/event.hpp
+    src/BentleyOttman/src/bentleyOttman.cpp
+    src/BentleyOttman/src/bentleyOttman.hpp
     )
 
 # https://www.guyrutenberg.com/2014/01/05/enabling-c11-c0x-in-cmake/

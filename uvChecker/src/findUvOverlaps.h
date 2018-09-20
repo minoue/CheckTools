@@ -11,27 +11,12 @@
 #include <maya/MSyntax.h>
 #include <maya/MTimer.h>
 
-#include "bentleyOttman/event.h"
-#include "bentleyOttman/uvEdge.h"
 #include "uvShell.h"
 
 #include <mutex>
 #include <set>
 #include <utility>
 #include <vector>
-
-struct checkThreadData {
-    Event* currentEventPtr;
-    std::multiset<Event>* eventQueuePtr;
-    std::vector<UvEdge>* statusQueuePtr;
-    int threadNumber;
-    float sweepline;
-
-    const UvEdge* currentEdgePtr;
-    const UvEdge* otherEdgePtr;
-    const UvEdge* edgeA;
-    const UvEdge* edgeB;
-};
 
 class FindUvOverlaps : public MPxCommand {
 public:
@@ -44,15 +29,7 @@ public:
     static void* creator();
     static MSyntax newSyntax();
 
-    MStatus check(const std::set<UvEdge>& edges, int threadNumber);
-    MStatus checkEdgesAndCreateEvent(checkThreadData& checkData);
-    MStatus initializeObject(const MDagPath& dagPath, const int objectId);
-
-    bool doBegin(checkThreadData& checkData);
-    bool doEnd(checkThreadData& checkData);
-    bool doCross(checkThreadData& checkData);
-
-    void safeInsert(const std::string& path);
+    MStatus initializeObject(const MDagPath& dagPath);
 
 private:
     bool verbose;

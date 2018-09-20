@@ -59,8 +59,8 @@ UvShell UvShell::operator+(const UvShell &rhs) const
     else
         combinedShell.vMax = rhs.vMax;
     
-    combinedShell.edgeSet.insert(this->edgeSet.begin(), this->edgeSet.end());
-    combinedShell.edgeSet.insert(rhs.edgeSet.begin(), rhs.edgeSet.end());
+    // combinedShell.edgeSet.insert(this->edgeSet.begin(), this->edgeSet.end());
+    // combinedShell.edgeSet.insert(rhs.edgeSet.begin(), rhs.edgeSet.end());
     
     return combinedShell;
 }
