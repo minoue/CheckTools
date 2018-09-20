@@ -1,0 +1,3 @@
+[submodule "uvChecker/src/BentleyOttman"]
+	path = uvChecker/src/BentleyOttman
+	url = https://github.com/minoue/BentleyOttman
