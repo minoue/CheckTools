@@ -36,9 +36,7 @@ private:
     MDagPath dagPath;
     MString uvSet;
     MSelectionList mSel;
-    int numEdges;
     MTimer timer;
-    std::mutex mtx;
 
     // Container to store all UV shells from all selected objects to be tested
     std::vector<UvShell> uvShellArrayMaster;

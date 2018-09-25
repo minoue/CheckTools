@@ -216,7 +216,6 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath)
     MStatus status;
 
     MFnMesh fnMesh(dagPath);
-    numEdges = fnMesh.numEdges();
 
     // Temporary container to store uvShell objects for CURRENT OBJECT
     // These uvShell objects will be copied into uvShellArrayMaster at the end
