@@ -13,7 +13,6 @@
 
 #include "uvShell.h"
 
-#include <mutex>
 #include <set>
 #include <utility>
 #include <vector>
@@ -29,8 +28,6 @@ public:
     static void* creator();
     static MSyntax newSyntax();
 
-    MStatus initializeObject(const MDagPath& dagPath);
-
 private:
     bool verbose;
     MDagPath dagPath;
@@ -38,6 +35,19 @@ private:
     MSelectionList mSel;
     MTimer timer;
 
+    void makeCombinations(size_t N, std::vector<std::vector<int>>& vec);
+    void displayTime(std::string message, double time);
+    MStatus initializeObject(const MDagPath& dagPath);
+    bool isBoundingBoxOverlapped(
+        const float BA_uMin,
+        const float BA_uMax,
+        const float BA_vMin,
+        const float BA_vMax,
+        const float BB_uMin,
+        const float BB_uMax,
+        const float BB_vMin,
+        const float BB_vMax);
+    
     // Container to store all UV shells from all selected objects to be tested
     std::vector<UvShell> uvShellArrayMaster;
 

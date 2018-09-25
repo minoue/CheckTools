@@ -9,7 +9,6 @@
 #include <maya/MGlobal.h>
 
 #include "uvShell.h"
-#include "uvUtils.hpp"
 
 #include <algorithm>
 #include <iostream>
@@ -33,6 +32,57 @@ MSyntax FindUvOverlaps::newSyntax()
     syntax.addFlag("-v", "-verbose", MSyntax::kBoolean);
     syntax.addFlag("-set", "-uvSet", MSyntax::kString);
     return syntax;
+}
+
+/* https://stackoverflow.com/questions/12991758/creating-all-possible-k-combinations-of-n-items-in-c */
+void FindUvOverlaps::makeCombinations(size_t N, std::vector<std::vector<int>>& vec)
+{
+    std::string bitmask(2, 1); // K leading 1's
+    bitmask.resize(N, 0); // N-K trailing 0's
+
+    // print integers and permute bitmask
+    do {
+        std::vector<int> sb;
+        for (size_t i = 0; i < N; ++i) {
+            if (bitmask[i]) {
+                sb.push_back((int)i);
+            }
+        }
+        vec.push_back(sb);
+    } while (std::prev_permutation(bitmask.begin(), bitmask.end()));
+}
+
+void FindUvOverlaps::displayTime(std::string message, double time)
+{
+    MString timeStr;
+    MString ms = message.c_str();
+    timeStr.set(time);
+    MGlobal::displayInfo(ms + " : " + timeStr + " seconds.");
+}
+
+bool FindUvOverlaps::isBoundingBoxOverlapped(
+    const float BA_uMin,
+    const float BA_uMax,
+    const float BA_vMin,
+    const float BA_vMax,
+    const float BB_uMin,
+    const float BB_uMax,
+    const float BB_vMin,
+    const float BB_vMax)
+{
+    if (BA_uMax < BB_uMin)
+        return false;
+
+    if (BA_uMin > BB_uMax)
+        return false;
+
+    if (BA_vMax < BB_vMin)
+        return false;
+
+    if (BA_vMin > BB_vMax)
+        return false;
+
+    return true;
 }
 
 MStatus FindUvOverlaps::doIt(const MArgList& args)
@@ -95,7 +145,7 @@ MStatus FindUvOverlaps::redoIt()
 
     timer.endTimer();
     if (verbose) {
-        UvUtils::displayTime("Initialization completed", timer.elapsedTime());
+        displayTime("Initialization completed", timer.elapsedTime());
     }
     timer.clear();
 
@@ -143,7 +193,7 @@ MStatus FindUvOverlaps::redoIt()
 
         // Get combinations of shell indices eg. (0, 1), (0, 2), (1, 2),,,
         std::vector<std::vector<int> > shellCombinations;
-        UvUtils::makeCombinations(uvShellArrayMaster.size(), shellCombinations);
+        makeCombinations(uvShellArrayMaster.size(), shellCombinations);
 
         std::vector<BentleyOttman> boArray;
 
@@ -152,7 +202,7 @@ MStatus FindUvOverlaps::redoIt()
             UvShell& shellB = uvShellArrayMaster[shellCombinations[i][1]];
 
             // Check if two bounding boxes of two UV shells are overlapped
-            bool isOverlapped = UvUtils::isBoundingBoxOverlapped(
+            bool isOverlapped = isBoundingBoxOverlapped(
                 shellA.uMin,
                 shellA.uMax,
                 shellA.vMin,

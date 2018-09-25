@@ -9,8 +9,6 @@ set(SOURCE_FILES
     src/uvShell.h
     src/findUvOverlaps.cpp
     src/findUvOverlaps.h
-    src/uvUtils.cpp
-    src/uvUtils.hpp
     src/BentleyOttman/src/point2D.cpp
     src/BentleyOttman/src/point2D.hpp
     src/BentleyOttman/src/vector2D.cpp
