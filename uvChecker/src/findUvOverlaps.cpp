@@ -382,7 +382,7 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath)
 
 
     std::vector<std::vector<LineSegment> > edgeArray;
-    edgeArray.reserve(uvShellArrayTemp.size());
+    edgeArray.resize(nbUvShells);
     std::vector<std::pair<int, int>>::iterator pairIter;
     float u, v;
 
