@@ -15,6 +15,7 @@
 #include <iterator>
 #include <string>
 #include <thread>
+#include <set>
 
 
 FindUvOverlaps::FindUvOverlaps()
@@ -58,31 +59,6 @@ void FindUvOverlaps::displayTime(std::string message, double time)
     MString ms = message.c_str();
     timeStr.set(time);
     MGlobal::displayInfo(ms + " : " + timeStr + " seconds.");
-}
-
-bool FindUvOverlaps::isBoundingBoxOverlapped(
-    const float BA_uMin,
-    const float BA_uMax,
-    const float BA_vMin,
-    const float BA_vMax,
-    const float BB_uMin,
-    const float BB_uMax,
-    const float BB_vMin,
-    const float BB_vMax)
-{
-    if (BA_uMax < BB_uMin)
-        return false;
-
-    if (BA_uMin > BB_uMax)
-        return false;
-
-    if (BA_vMax < BB_vMin)
-        return false;
-
-    if (BA_vMin > BB_vMax)
-        return false;
-
-    return true;
 }
 
 MStatus FindUvOverlaps::doIt(const MArgList& args)
@@ -202,17 +178,7 @@ MStatus FindUvOverlaps::redoIt()
             UvShell& shellB = uvShellArrayMaster[shellCombinations[i][1]];
 
             // Check if two bounding boxes of two UV shells are overlapped
-            bool isOverlapped = isBoundingBoxOverlapped(
-                shellA.uMin,
-                shellA.uMax,
-                shellA.vMin,
-                shellA.vMax,
-                shellB.uMin,
-                shellB.uMax,
-                shellB.vMin,
-                shellB.vMax);
-
-            if (isOverlapped) {
+            if (shellA * shellB) {
                 // Check boundingbox check for two shells
                 // If those two shells are overlapped, combine them into one single shell
                 
