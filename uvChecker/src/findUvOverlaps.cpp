@@ -7,6 +7,7 @@
 #include <maya/MArgList.h>
 #include <maya/MFnMesh.h>
 #include <maya/MGlobal.h>
+#include <maya/MFloatArray.h>
 
 #include "uvShell.h"
 
@@ -346,7 +347,7 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath)
     std::sort(idPairVec.begin(), idPairVec.end());
     idPairVec.erase(std::unique(idPairVec.begin(), idPairVec.end()), idPairVec.end());
 
-
+    // Temp countainer for lineSegments for each UVShell
     std::vector<std::vector<LineSegment> > edgeArray;
     edgeArray.resize(nbUvShells);
     std::vector<std::pair<int, int>>::iterator pairIter;
@@ -361,8 +362,8 @@ MStatus FindUvOverlaps::initializeObject(const MDagPath& dagPath)
         fnMesh.getUV(idB, u, v);
         Point2D p2(u, v, idB);
 
-        LineSegment line(p1, p2);
-        line.groupId = dagPath.fullPathName().asChar();
+        // Create new lineSegment object
+        LineSegment line(p1, p2, dagPath.fullPathName().asChar());
 
         int shellIndex = uvShellIds[idA];
         edgeArray[shellIndex].push_back(line);
