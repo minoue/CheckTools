@@ -32,9 +32,16 @@ private:
     MSelectionList mSel;
     MTimer timer;
 
+    unsigned int totalNumberOfShells;
+    unsigned int getTotalNumOfShells;
+
+    int magicNumber = 0;
+    int magicNumber2 = 0;
+
     void makeCombinations(size_t N, std::vector<std::vector<int>>& vec);
     void displayTime(std::string message, double time);
     MStatus initializeObject(const MDagPath& dagPath);
+    MStatus getUVTriangles(const MDagPath& dagPath);
     
     // Container to store all UV shells from all selected objects to be tested
     std::vector<UvShell> uvShellArrayMaster;

@@ -4,6 +4,7 @@
 #include <vector>
 #include "BentleyOttman/src/bentleyOttman.hpp"
 #include "BentleyOttman/src/lineSegment.hpp"
+#include "aabb.h"
 
 
 class UvShell {
@@ -17,6 +18,9 @@ public:
     float uMin;
     float vMax;
     float vMin;
+
+    // std::vector<AABB::Triangle> triangles;
+    AABB::Tree BVHTree;
 
     std::vector<float> uVector;
     std::vector<float> vVector;
