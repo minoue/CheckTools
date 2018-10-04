@@ -19,4 +19,7 @@ uvChecker/.idea/
 uvChecker/cmake-build-debug/
 modules/
 plug-ins/
+.idea/
+cmake-build-debug/
+cmake-build-release/
 !CMakeLists.txt
