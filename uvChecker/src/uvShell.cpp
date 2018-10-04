@@ -20,26 +20,16 @@ bool UvShell::operator==(const UvShell& rhs) const
 
 bool UvShell::operator*(const UvShell &rhs) const
 {
-    if (this->BVHTree.root->xMax < rhs.BVHTree.root->xMin)
+    if (this->uMax < rhs.uMin)
         return false;
-    
-    if (this->BVHTree.root->xMin > rhs.BVHTree.root->xMax)
-        return false;
-    
-    if (this->BVHTree.root->yMax < rhs.BVHTree.root->yMin)
-        return false;
-    
-    if (this->BVHTree.root->yMin > rhs.BVHTree.root->yMax)
-        return false;
-    
-    return true;    
 
-    // bool a = AABB::nodeCompare(this->BVHTree.root, rhs.BVHTree.root);
-    // bool b = AABB::nodeCompare(rhs.BVHTree.root, this->BVHTree.root);
-    //
-    // if (a == false || b == false) {
-    //     return false;
-    // } else {
-    //     return true;
-    // }
+    if (this->uMin > rhs.uMax)
+        return false;
+
+    if (this->vMax < rhs.vMin)
+        return false;
+
+    if (this->vMin > rhs.vMax)
+        return false;
+    return true;
 }

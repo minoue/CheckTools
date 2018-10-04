@@ -19,12 +19,10 @@ public:
     float vMax;
     float vMin;
 
-    // std::vector<AABB::Triangle> triangles;
-    AABB::Tree BVHTree;
-
-    std::vector<float> uVector;
-    std::vector<float> vVector;
-    BentleyOttman BO;
+    std::vector<float> xVector;
+    std::vector<float> yVector;
+    std::vector<LineSegment> edges;
+    std::string path;
 
     bool operator==(const UvShell& rhs) const;
     inline bool operator!=(const UvShell& rhs) const

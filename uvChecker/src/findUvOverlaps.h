@@ -8,11 +8,13 @@
 #include <maya/MStringArray.h>
 #include <maya/MSyntax.h>
 #include <maya/MTimer.h>
+#include <maya/MFnMesh.h>
 
 #include "uvShell.h"
 
 #include <utility>
 #include <vector>
+
 
 class FindUvOverlaps : public MPxCommand {
 public:
@@ -26,31 +28,25 @@ public:
     static MSyntax newSyntax();
 
 private:
+    int uvShellCounter;
     bool verbose;
     MDagPath dagPath;
+    MFnMesh fnMesh;
     MString uvSet;
+    bool multithread;
+    MString currentUVSetName;
     MSelectionList mSel;
     MTimer timer;
 
-    unsigned int totalNumberOfShells;
-    unsigned int getTotalNumOfShells;
-
-    int magicNumber = 0;
-    int magicNumber2 = 0;
-
-    void makeCombinations(size_t N, std::vector<std::vector<int>>& vec);
+    MString getWorkUvSet();
+    void check(BentleyOttman& bto);
     void displayTime(std::string message, double time);
-    MStatus initializeObject(const MDagPath& dagPath);
-    MStatus getUVTriangles(const MDagPath& dagPath);
-    
+
     // Container to store all UV shells from all selected objects to be tested
     std::vector<UvShell> uvShellArrayMaster;
 
     // Countainer for UVs of final result to be returned
     MStringArray resultStringArray;
-
-    // temp result container for each thread
-    std::vector<std::string> resultVector;
 };
 
 #endif /* defined(__FINDUVOVERLAPS2_H__) */
