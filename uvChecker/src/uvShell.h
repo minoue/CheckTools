@@ -4,7 +4,6 @@
 #include <vector>
 #include "BentleyOttman/src/bentleyOttman.hpp"
 #include "BentleyOttman/src/lineSegment.hpp"
-#include "aabb.h"
 
 
 class UvShell {

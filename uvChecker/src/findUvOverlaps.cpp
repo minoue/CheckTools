@@ -12,7 +12,6 @@
 #include <maya/MIntArray.h>
 
 #include "uvShell.h"
-#include "aabb.h"
 
 #include <algorithm>
 #include <iostream>
@@ -199,7 +198,6 @@ MStatus FindUvOverlaps::redoIt() {
         std::vector<std::vector<LineSegment> > edgeVector;
         edgeVector.resize(nbUvShells);
         std::vector<std::pair<int, int>>::iterator pairIter;
-        float u, v;
 
         MFloatArray uArray;
         MFloatArray vArray;
