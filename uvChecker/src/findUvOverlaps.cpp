@@ -22,9 +22,8 @@
 #include <thread>
 
 
-FindUvOverlaps::FindUvOverlaps()
+FindUvOverlaps::FindUvOverlaps() : uvShellCounter(0)
 {
-    this->uvShellCounter = 0;
 }
 
 FindUvOverlaps::~FindUvOverlaps()

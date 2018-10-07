@@ -4,9 +4,8 @@ UvShell::UvShell()
 {
 }
 
-UvShell::UvShell(int shellIndex)
+UvShell::UvShell(int shellIndex) : shellIndex(shellIndex)
 {
-    this->shellIndex = shellIndex;
 }
 
 UvShell::~UvShell()
@@ -31,5 +30,6 @@ bool UvShell::operator*(const UvShell &rhs) const
 
     if (this->vMin > rhs.vMax)
         return false;
+
     return true;
 }
