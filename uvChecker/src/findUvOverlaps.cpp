@@ -353,10 +353,10 @@ MStatus FindUvOverlaps::redoIt() {
     for (size_t i=0; i<btoVector.size(); i++) {
 
         BentleyOttman& bto = btoVector[i];
-        std::vector<LineSegment>::iterator iter;
-        for (iter = bto.result.begin(); iter != bto.result.end(); ++iter) {
-            const LineSegment &line = *iter;
-
+        std::vector<LineSegment*>::iterator iter;
+        for (iter = bto.resultPtr.begin(); iter != bto.resultPtr.end(); ++iter) {
+            LineSegment* linePtr = *iter;
+            const LineSegment& line = *linePtr;
             MString s;
             std::string path;
 
