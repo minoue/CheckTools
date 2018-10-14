@@ -13,8 +13,6 @@ set(SOURCE_FILES
     src/BentleyOttman/src/point2D.hpp
     src/BentleyOttman/src/vector2D.cpp
     src/BentleyOttman/src/vector2D.hpp
-    src/BentleyOttman/src/utils.cpp
-    src/BentleyOttman/src/utils.hpp
     src/BentleyOttman/src/lineSegment.cpp
     src/BentleyOttman/src/lineSegment.hpp
     src/BentleyOttman/src/event.cpp

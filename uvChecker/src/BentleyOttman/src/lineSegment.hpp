@@ -29,6 +29,10 @@ public:
     }
 
     bool operator*(const LineSegment& rhs) const;
+
+private:
+    float getTriangleArea(float Ax, float Ay, float Bx, float By, float Cx, float Cy) const;
+    bool sameSigns(const float x, const float y) const;
 };
 
 class EdgeCrossingComparator {
@@ -40,14 +44,6 @@ public:
         } else {
             return left->crossingPointY < right->crossingPointY;
         }
-    }
-};
-
-class EdgeIndexComparator {
-public:
-    bool operator()(const LineSegment& left, const LineSegment& right) const
-    {
-        return left.index < right.index;
     }
 };
 

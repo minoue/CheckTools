@@ -4,7 +4,6 @@
 //
 
 #include "lineSegment.hpp"
-#include "utils.hpp"
 #include <algorithm>
 #include <iostream>
 
@@ -48,13 +47,22 @@ bool LineSegment::operator==(const LineSegment& rhs) const
     return (this->begin == rhs.begin && this->end == rhs.end);
 }
 
+float LineSegment::getTriangleArea(float Ax, float Ay, float Bx, float By, float Cx, float Cy) const {
+    return ((Ax * (By - Cy)) + (Bx * (Cy - Ay)) + (Cx * (Ay - By))) * 0.5F;
+}
+
+bool LineSegment::sameSigns(const float x, const float y) const
+{
+    return (x >= 0) ^ (y < 0);
+}
+
 bool LineSegment::operator*(const LineSegment& rhs) const
 {
     // Check if two edges are on a same line
-    float t1 = Utils::getTriangleArea(this->begin.x, this->begin.y, rhs.begin.x, rhs.begin.y, this->end.x, this->end.y);
-    float t2 = Utils::getTriangleArea(this->begin.x, this->begin.y, rhs.end.x, rhs.end.y, this->end.x, this->end.y);
-    float t3 = Utils::getTriangleArea(rhs.begin.x, rhs.begin.y, this->begin.x, this->begin.y, rhs.end.x, rhs.end.y);
-    float t4 = Utils::getTriangleArea(rhs.begin.x, rhs.begin.y, this->end.x, this->end.y, rhs.end.x, rhs.end.y);
+    float t1 = getTriangleArea(this->begin.x, this->begin.y, rhs.begin.x, rhs.begin.y, this->end.x, this->end.y);
+    float t2 = getTriangleArea(this->begin.x, this->begin.y, rhs.end.x, rhs.end.y, this->end.x, this->end.y);
+    float t3 = getTriangleArea(rhs.begin.x, rhs.begin.y, this->begin.x, this->begin.y, rhs.end.x, rhs.end.y);
+    float t4 = getTriangleArea(rhs.begin.x, rhs.begin.y, this->end.x, this->end.y, rhs.end.x, rhs.end.y);
 
     if (t1 == 0 && t2 == 0 && t3 == 0 && t4 == 0) {
         // Two lines are on a same line
@@ -73,8 +81,8 @@ bool LineSegment::operator*(const LineSegment& rhs) const
     if (t1 * t2 == 0)
         return false;
 
-    bool ccw1 = Utils::sameSigns(t1, t2);
-    bool ccw2 = Utils::sameSigns(t3, t4);
+    bool ccw1 = sameSigns(t1, t2);
+    bool ccw2 = sameSigns(t3, t4);
 
     if (ccw1 == false && ccw2 == false) {
         return true;
