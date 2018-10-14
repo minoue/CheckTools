@@ -7,7 +7,6 @@
 #define lineSegment_hpp
 
 #include "point2D.hpp"
-#include <stdio.h>
 #include <string>
 #include <utility>
 

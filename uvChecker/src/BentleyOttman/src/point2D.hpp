@@ -7,7 +7,6 @@
 #define point2D_hpp
 
 #include "vector2D.hpp"
-#include <stdio.h>
 #include <utility>
 
 class Point2D {
