@@ -71,7 +71,7 @@ bool LineSegment::operator*(const LineSegment& rhs) const
         v1.normalize();
         v2.normalize();
         float dot = v1 * v2;
-        if (dot == 1 || dot == 0) {
+        if (dot >= 0) {
             return false;
         } else {
             return true;
