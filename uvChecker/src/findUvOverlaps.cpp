@@ -20,6 +20,7 @@
 #include <set>
 #include <map>
 #include <thread>
+#include <unordered_set>
 
 
 FindUvOverlaps::FindUvOverlaps() : uvShellCounter(0)
@@ -350,24 +351,31 @@ MStatus FindUvOverlaps::redoIt() {
     }
     timer.clear();
 
+    // Re-insert ot unordered_set to remove duplicates
+    std::unordered_set<std::string> resultSet;
     for (size_t i=0; i<btoVector.size(); i++) {
 
         BentleyOttman& bto = btoVector[i];
         std::vector<LineSegment*>::iterator iter;
+        std::string path;
         for (iter = bto.resultPtr.begin(); iter != bto.resultPtr.end(); ++iter) {
             LineSegment* linePtr = *iter;
             const LineSegment& line = *linePtr;
-            MString s;
-            std::string path;
 
             path = line.groupId + ".map[" + std::to_string(line.index.first) + "]";
-            s.set(path.c_str());
-            resultStringArray.append(s);
+            resultSet.insert(path);
 
             path = line.groupId + ".map[" + std::to_string(line.index.second) + "]";
-            s.set(path.c_str());
-            resultStringArray.append(s);
+            resultSet.insert(path);
         }
+    }
+
+    // Insert all results to MStringArray for return
+    MString s;
+    std::unordered_set<std::string>::iterator resultSetIter;
+    for (resultSetIter = resultSet.begin(); resultSetIter != resultSet.end(); ++resultSetIter) {
+        s.set((*resultSetIter).c_str());
+        resultStringArray.append(s);
     }
 
     setResult(resultStringArray);
