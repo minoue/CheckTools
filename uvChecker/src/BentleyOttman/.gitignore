@@ -1,0 +1,6 @@
+*.un~
+tags
+.DS_Store
+*.o
+xcode/
+build/
