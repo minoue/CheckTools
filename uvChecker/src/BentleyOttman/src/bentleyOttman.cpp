@@ -57,27 +57,21 @@ void BentleyOttman::createNewEvent(LineSegment *lineA, LineSegment *lineB) {
     float x, y;
     lineUtils::getIntersectionPoint(*lineA, *lineB, x, y);
     Point2D p(x, y, 0);
-    Event crossEvent(2, lineA, lineB, p, 0);
+    Event crossEvent(2, lineA, lineB, p);
     eventQueue.insert(crossEvent);
 }
 
 void BentleyOttman::check()
 {
-    int eventIndex = 0;
-
     std::vector<LineSegment>::iterator edgeIter;
 
     for (edgeIter = edges.begin(); edgeIter != edges.end(); ++edgeIter) {
-        Event ev1(0, &(*edgeIter), (*edgeIter).begin, eventIndex);
-        eventIndex++;
-        Event ev2(1, &(*edgeIter), (*edgeIter).end, eventIndex);
-        eventIndex++;
-
+        Event ev1(0, &(*edgeIter), (*edgeIter).begin);
+        Event ev2(1, &(*edgeIter), (*edgeIter).end);
         eventQueue.insert(ev1);
         eventQueue.insert(ev2);
     }
 
-    statusQueue.reserve(edges.size());
     statusPtrQueue.reserve(edges.size());
 
     while (true) {

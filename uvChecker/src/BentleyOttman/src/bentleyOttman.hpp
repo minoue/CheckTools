@@ -35,7 +35,7 @@ private:
     bool doCross(Event& ev);
     void createNewEvent(LineSegment* lineA, LineSegment* lineB);
     void assignGroupId();
-    std::vector<LineSegment> statusQueue;
+
     std::vector<LineSegment*> statusPtrQueue;
     std::multiset<Event> eventQueue;
 };

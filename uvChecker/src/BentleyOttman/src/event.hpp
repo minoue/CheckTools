@@ -13,8 +13,8 @@
 class Event {
 public:
     Event();
-    Event(int eventType, LineSegment* edgePtrA, Point2D point, int index);
-    Event(int eventType, LineSegment* edgePtrA, LineSegment* edgePtrB, Point2D point, int index);
+    Event(int eventType, LineSegment* edgePtrA, Point2D point);
+    Event(int eventType, LineSegment* edgePtrA, LineSegment* edgePtrB, Point2D point);
     ~Event();
 
     Point2D eventPoint;
@@ -24,11 +24,6 @@ public:
     LineSegment* edgePtrA;
     LineSegment* edgePtrB;
 
-    bool operator==(const Event& rhs) const;
-    inline bool operator!=(const Event& rhs) const
-    {
-        return !(*this == rhs);
-    }
     bool operator<(const Event& rhs) const;
 
     enum EVENT_TYPE {
