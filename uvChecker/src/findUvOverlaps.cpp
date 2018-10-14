@@ -289,22 +289,22 @@ MStatus FindUvOverlaps::redoIt() {
                 std::vector<LineSegment> overlapsB;
                 for (size_t k=0; k<numEdgeA; k++) {
                     LineSegment& line = shellA.edges[k];
-                    if ((uMin < line.begin.x && line.begin.x < uMax) && (vMin < line.begin.y && line.begin.y < vMax)) {
+                    if ((uMin <= line.begin.x && line.begin.x <= uMax) && (vMin <= line.begin.y && line.begin.y <= vMax)) {
                         overlapsA.push_back(line);
                         continue;
                     }
-                    if ((uMin < line.end.x && line.end.x < uMax) && (vMin < line.end.y && line.end.y < vMax)) {
+                    if ((uMin <= line.end.x && line.end.x <= uMax) && (vMin <= line.end.y && line.end.y <= vMax)) {
                         overlapsA.push_back(line);
                         continue;
                     }
                 }
                 for (size_t h=0; h<numEdgeB; h++) {
                     LineSegment& line = shellB.edges[h];
-                    if ((uMin < line.begin.x && line.begin.x < uMax) && (vMin < line.begin.y && line.begin.y < vMax)) {
+                    if ((uMin <= line.begin.x && line.begin.x <= uMax) && (vMin <= line.begin.y && line.begin.y <= vMax)) {
                         overlapsB.push_back(line);
                         continue;
                     }
-                    if ((uMin < line.end.x && line.end.x < uMax) && (vMin < line.end.y && line.end.y < vMax)) {
+                    if ((uMin <= line.end.x && line.end.x <= uMax) && (vMin <= line.end.y && line.end.y <= vMax)) {
                         overlapsB.push_back(line);
                         continue;
                     }
