@@ -9,16 +9,16 @@ set(SOURCE_FILES
     src/uvShell.h
     src/findUvOverlaps.cpp
     src/findUvOverlaps.h
-    src/BentleyOttman/src/point2D.cpp
-    src/BentleyOttman/src/point2D.hpp
-    src/BentleyOttman/src/vector2D.cpp
-    src/BentleyOttman/src/vector2D.hpp
-    src/BentleyOttman/src/lineSegment.cpp
-    src/BentleyOttman/src/lineSegment.hpp
-    src/BentleyOttman/src/event.cpp
-    src/BentleyOttman/src/event.hpp
-    src/BentleyOttman/src/bentleyOttman.cpp
-    src/BentleyOttman/src/bentleyOttman.hpp
+    src/BentleyOttman/point2D.cpp
+    src/BentleyOttman/point2D.hpp
+    src/BentleyOttman/vector2D.cpp
+    src/BentleyOttman/vector2D.hpp
+    src/BentleyOttman/lineSegment.cpp
+    src/BentleyOttman/lineSegment.hpp
+    src/BentleyOttman/event.cpp
+    src/BentleyOttman/event.hpp
+    src/BentleyOttman/bentleyOttman.cpp
+    src/BentleyOttman/bentleyOttman.hpp
     )
 
 # https://www.guyrutenberg.com/2014/01/05/enabling-c11-c0x-in-cmake/

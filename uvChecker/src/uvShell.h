@@ -2,8 +2,8 @@
 #define __UVSHELL_H__
 
 #include <vector>
-#include "BentleyOttman/src/bentleyOttman.hpp"
-#include "BentleyOttman/src/lineSegment.hpp"
+#include "BentleyOttman/bentleyOttman.hpp"
+#include "BentleyOttman/lineSegment.hpp"
 
 
 class UvShell {

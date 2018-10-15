@@ -1,7 +1,7 @@
 #include "findUvOverlaps.h"
-#include "BentleyOttman/src/point2D.hpp"
-#include "BentleyOttman/src/lineSegment.hpp"
-#include "BentleyOttman/src/bentleyOttman.hpp"
+#include "BentleyOttman/point2D.hpp"
+#include "BentleyOttman/lineSegment.hpp"
+#include "BentleyOttman/bentleyOttman.hpp"
 
 #include <maya/MArgDatabase.h>
 #include <maya/MArgList.h>
