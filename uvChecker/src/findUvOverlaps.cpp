@@ -23,16 +23,13 @@
 #include <unordered_set>
 
 
-FindUvOverlaps::FindUvOverlaps() : uvShellCounter(0)
-{
+FindUvOverlaps::FindUvOverlaps() : uvShellCounter(0) {
 }
 
-FindUvOverlaps::~FindUvOverlaps()
-{
+FindUvOverlaps::~FindUvOverlaps() {
 }
 
-MSyntax FindUvOverlaps::newSyntax()
-{
+MSyntax FindUvOverlaps::newSyntax() {
     MSyntax syntax;
     syntax.addArg(MSyntax::kString);
     syntax.addFlag("-v", "-verbose", MSyntax::kBoolean);
@@ -41,16 +38,14 @@ MSyntax FindUvOverlaps::newSyntax()
     return syntax;
 }
 
-void FindUvOverlaps::displayTime(std::string message, double time)
-{
+void FindUvOverlaps::displayTime(std::string message, double time) {
     MString timeStr;
     MString ms = message.c_str();
     timeStr.set(time);
     MGlobal::displayInfo(ms + " : " + timeStr + " seconds.");
 }
 
-MStatus FindUvOverlaps::doIt(const MArgList& args)
-{
+MStatus FindUvOverlaps::doIt(const MArgList &args) {
     MStatus status;
 
     MArgDatabase argData(syntax(), args);
@@ -87,7 +82,7 @@ MString FindUvOverlaps::getWorkUvSet() {
     MStringArray uvSetNames;
     fnMesh.getUVSetNames(uvSetNames);
     for (unsigned int uv = 0; uv < uvSetNames.length(); uv++) {
-        MString& uvSetName = uvSetNames[uv];
+        MString &uvSetName = uvSetNames[uv];
         if (uvSetName == uvSet) {
             uvSetFound = true;
             break;
@@ -118,13 +113,13 @@ MStatus FindUvOverlaps::redoIt() {
     timer.beginTimer();
 
     unsigned int numSelected = mSel.length();
-    for (unsigned int i=0; i<numSelected; i++) {
+    for (unsigned int i = 0; i < numSelected; i++) {
         mSel.getDagPath(i, dagPath);
         fnMesh.setObject(dagPath);
         std::string dagPathStr = dagPath.fullPathName().asChar();
 
         MString workUvSet = getWorkUvSet();
-        MString* uvSetPtr = &workUvSet;
+        MString *uvSetPtr = &workUvSet;
 
         // Check if specified object is geometry or not
         status = dagPath.extendToShape();
@@ -217,9 +212,9 @@ MStatus FindUvOverlaps::redoIt() {
             edgeVector[shellIndex].push_back(line);
         }
 
-        for (size_t i=0; i<edgeVector.size(); i++) {
+        for (size_t i = 0; i < edgeVector.size(); i++) {
             // Copy lineSegment vectors from temp vector to master shell Array
-            uvShellArrayMaster[i+uvShellCounter].edges = edgeVector[i];
+            uvShellArrayMaster[i + uvShellCounter].edges = edgeVector[i];
         }
 
         uvShellCounter += nbUvShells;
@@ -231,7 +226,7 @@ MStatus FindUvOverlaps::redoIt() {
 
     size_t numShells = uvShellArrayMaster.size();
 
-    for (size_t i=0; i<numShells; i++) {
+    for (size_t i = 0; i < numShells; i++) {
         UvShell &shell = uvShellArrayMaster[i];
 
         // Setup bounding box for each shell
@@ -257,9 +252,9 @@ MStatus FindUvOverlaps::redoIt() {
         btoVector.push_back(bto);
     }
 
-    for (int i=0; i<numShells; i++) {
-        UvShell& shellA = uvShellArrayMaster[i];
-        for (int j=i+1; j<numShells; j++) {
+    for (int i = 0; i < numShells; i++) {
+        UvShell &shellA = uvShellArrayMaster[i];
+        for (int j = i + 1; j < numShells; j++) {
             UvShell shellB = uvShellArrayMaster[j];
 
             if (shellA * shellB) {
@@ -288,9 +283,10 @@ MStatus FindUvOverlaps::redoIt() {
                 size_t numEdgeB = shellB.edges.size();
                 std::vector<LineSegment> overlapsA;
                 std::vector<LineSegment> overlapsB;
-                for (size_t k=0; k<numEdgeA; k++) {
-                    LineSegment& line = shellA.edges[k];
-                    if ((uMin <= line.begin.x && line.begin.x <= uMax) && (vMin <= line.begin.y && line.begin.y <= vMax)) {
+                for (size_t k = 0; k < numEdgeA; k++) {
+                    LineSegment &line = shellA.edges[k];
+                    if ((uMin <= line.begin.x && line.begin.x <= uMax) &&
+                        (vMin <= line.begin.y && line.begin.y <= vMax)) {
                         overlapsA.push_back(line);
                         continue;
                     }
@@ -299,9 +295,10 @@ MStatus FindUvOverlaps::redoIt() {
                         continue;
                     }
                 }
-                for (size_t h=0; h<numEdgeB; h++) {
-                    LineSegment& line = shellB.edges[h];
-                    if ((uMin <= line.begin.x && line.begin.x <= uMax) && (vMin <= line.begin.y && line.begin.y <= vMax)) {
+                for (size_t h = 0; h < numEdgeB; h++) {
+                    LineSegment &line = shellB.edges[h];
+                    if ((uMin <= line.begin.x && line.begin.x <= uMax) &&
+                        (vMin <= line.begin.y && line.begin.y <= vMax)) {
                         overlapsB.push_back(line);
                         continue;
                     }
@@ -330,16 +327,16 @@ MStatus FindUvOverlaps::redoIt() {
     timer.beginTimer();
 
     if (multithread) {
-        std::thread* threadArray = new std::thread[btoVector.size()];
-        for (size_t i=0; i<btoVector.size(); i++) {
+        std::thread *threadArray = new std::thread[btoVector.size()];
+        for (size_t i = 0; i < btoVector.size(); i++) {
             threadArray[i] = std::thread(&FindUvOverlaps::check, this, std::ref(btoVector[i]));
         }
-        for (size_t i=0; i < btoVector.size(); i++) {
+        for (size_t i = 0; i < btoVector.size(); i++) {
             threadArray[i].join();
         }
         delete[] threadArray;
     } else {
-        for (size_t i=0; i<btoVector.size(); i++) {
+        for (size_t i = 0; i < btoVector.size(); i++) {
             btoVector[i].check();
         }
     }
@@ -353,14 +350,14 @@ MStatus FindUvOverlaps::redoIt() {
 
     // Re-insert ot unordered_set to remove duplicates
     std::unordered_set<std::string> resultSet;
-    for (size_t i=0; i<btoVector.size(); i++) {
+    for (size_t i = 0; i < btoVector.size(); i++) {
 
-        BentleyOttman& bto = btoVector[i];
-        std::vector<LineSegment*>::iterator iter;
+        BentleyOttman &bto = btoVector[i];
+        std::vector<LineSegment *>::iterator iter;
         std::string path;
         for (iter = bto.resultPtr.begin(); iter != bto.resultPtr.end(); ++iter) {
-            LineSegment* linePtr = *iter;
-            const LineSegment& line = *linePtr;
+            LineSegment *linePtr = *iter;
+            const LineSegment &line = *linePtr;
 
             path = line.groupId + ".map[" + std::to_string(line.index.first) + "]";
             resultSet.insert(path);
@@ -383,21 +380,18 @@ MStatus FindUvOverlaps::redoIt() {
     return MS::kSuccess;
 }
 
-void FindUvOverlaps::check(BentleyOttman& bto) {
+void FindUvOverlaps::check(BentleyOttman &bto) {
     bto.check();
 }
 
-MStatus FindUvOverlaps::undoIt()
-{
+MStatus FindUvOverlaps::undoIt() {
     return MS::kSuccess;
 }
 
-bool FindUvOverlaps::isUndoable() const
-{
+bool FindUvOverlaps::isUndoable() const {
     return false;
 }
 
-void* FindUvOverlaps::creator()
-{
+void *FindUvOverlaps::creator() {
     return new FindUvOverlaps;
 }

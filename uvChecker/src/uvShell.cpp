@@ -1,24 +1,19 @@
 #include "uvShell.h"
 
-UvShell::UvShell()
-{
+UvShell::UvShell() {
 }
 
-UvShell::UvShell(int shellIndex) : shellIndex(shellIndex)
-{
+UvShell::UvShell(int shellIndex) : shellIndex(shellIndex) {
 }
 
-UvShell::~UvShell()
-{
+UvShell::~UvShell() {
 }
 
-bool UvShell::operator==(const UvShell& rhs) const
-{
+bool UvShell::operator==(const UvShell &rhs) const {
     return this->shellIndex == rhs.shellIndex;
 }
 
-bool UvShell::operator*(const UvShell &rhs) const
-{
+bool UvShell::operator*(const UvShell &rhs) const {
     if (this->uMax < rhs.uMin)
         return false;
 

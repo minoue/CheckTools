@@ -10,16 +10,13 @@
 #include <maya/MStringArray.h>
 #include <set>
 
-UvChecker::UvChecker()
-{
+UvChecker::UvChecker() {
 }
 
-UvChecker::~UvChecker()
-{
+UvChecker::~UvChecker() {
 }
 
-MSyntax UvChecker::newSyntax()
-{
+MSyntax UvChecker::newSyntax() {
     MSyntax syntax;
     syntax.addArg(MSyntax::kString);
     syntax.addFlag("-v", "-verbose", MSyntax::kBoolean);
@@ -28,10 +25,9 @@ MSyntax UvChecker::newSyntax()
     return syntax;
 }
 
-MStatus UvChecker::doIt(const MArgList& args)
-{
+MStatus UvChecker::doIt(const MArgList &args) {
     MStatus status;
-    
+
     MSelectionList sel;
 
     MArgDatabase argData(syntax(), args);
@@ -75,58 +71,53 @@ MStatus UvChecker::doIt(const MArgList& args)
     return redoIt();
 }
 
-MStatus UvChecker::redoIt()
-{
+MStatus UvChecker::redoIt() {
     MStatus status;
 
     switch (checkNumber) {
-    case UvChecker::UDIM:
-        if (verbose == true) {
-            MGlobal::displayInfo("Checking UDIM borders");
-        }
-        status = findUdimIntersections();
-        CHECK_MSTATUS_AND_RETURN_IT(status);
-        break;
-    case UvChecker::HAS_UVS:
-        if (verbose == true) {
-            MGlobal::displayInfo("Checking Non UVed faces");
-        }
-        status = findNoUvFaces();
-        CHECK_MSTATUS_AND_RETURN_IT(status);
-        break;
-    case UvChecker::ZERO_AREA:
-        if (verbose == true) {
-            MGlobal::displayInfo("Checking Zero UV faces");
-        }
-        status = findZeroUvFaces();
-        CHECK_MSTATUS_AND_RETURN_IT(status);
-        break;
-    default:
-        MGlobal::displayError("Invalid check number");
-        return MS::kFailure;
-        break;
+        case UvChecker::UDIM:
+            if (verbose == true) {
+                MGlobal::displayInfo("Checking UDIM borders");
+            }
+            status = findUdimIntersections();
+            CHECK_MSTATUS_AND_RETURN_IT(status);
+            break;
+        case UvChecker::HAS_UVS:
+            if (verbose == true) {
+                MGlobal::displayInfo("Checking Non UVed faces");
+            }
+            status = findNoUvFaces();
+            CHECK_MSTATUS_AND_RETURN_IT(status);
+            break;
+        case UvChecker::ZERO_AREA:
+            if (verbose == true) {
+                MGlobal::displayInfo("Checking Zero UV faces");
+            }
+            status = findZeroUvFaces();
+            CHECK_MSTATUS_AND_RETURN_IT(status);
+            break;
+        default:
+            MGlobal::displayError("Invalid check number");
+            return MS::kFailure;
+            break;
     }
 
     return MS::kSuccess;
 }
 
-MStatus UvChecker::undoIt()
-{
+MStatus UvChecker::undoIt() {
     return MS::kSuccess;
 }
 
-bool UvChecker::isUndoable() const
-{
+bool UvChecker::isUndoable() const {
     return false;
 }
 
-void* UvChecker::creator()
-{
+void *UvChecker::creator() {
     return new UvChecker;
 }
 
-MStatus UvChecker::findUdimIntersections()
-{
+MStatus UvChecker::findUdimIntersections() {
     MStatus status;
 
     MIntArray indexArray;
@@ -165,7 +156,7 @@ MStatus UvChecker::findUdimIntersections()
     for (indexSetIter = indexSet.begin(); indexSetIter != indexSet.end(); ++indexSetIter) {
         indexArray.append(*indexSetIter);
     }
-    
+
     unsigned int arrayLength = indexArray.length();
     MStringArray resultArray;
     for (unsigned int i = 0; i < arrayLength; i++) {
@@ -179,8 +170,7 @@ MStatus UvChecker::findUdimIntersections()
     return MS::kSuccess;
 }
 
-MStatus UvChecker::findNoUvFaces()
-{
+MStatus UvChecker::findNoUvFaces() {
     MStringArray resultArray;
 
     bool hasUVs;
@@ -197,8 +187,7 @@ MStatus UvChecker::findNoUvFaces()
     return MS::kSuccess;
 }
 
-MStatus UvChecker::findZeroUvFaces()
-{
+MStatus UvChecker::findZeroUvFaces() {
     MStringArray resultArray;
     double area;
     bool hasUVs;

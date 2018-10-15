@@ -7,12 +7,10 @@
 #include <algorithm>
 #include <iostream>
 
-LineSegment::LineSegment()
-{
+LineSegment::LineSegment() {
 }
 
-LineSegment::LineSegment(Point2D p1, Point2D p2)
-{
+LineSegment::LineSegment(Point2D p1, Point2D p2) {
     if (p1 < p2) {
         this->begin = p1;
         this->end = p2;
@@ -24,8 +22,7 @@ LineSegment::LineSegment(Point2D p1, Point2D p2)
     }
 }
 
-LineSegment::LineSegment(Point2D p1, Point2D p2, std::string groupId)
-{
+LineSegment::LineSegment(Point2D p1, Point2D p2, std::string groupId) {
     if (p1 < p2) {
         this->begin = p1;
         this->end = p2;
@@ -38,12 +35,10 @@ LineSegment::LineSegment(Point2D p1, Point2D p2, std::string groupId)
     this->groupId = groupId;
 }
 
-LineSegment::~LineSegment()
-{
+LineSegment::~LineSegment() {
 }
 
-bool LineSegment::operator==(const LineSegment& rhs) const
-{
+bool LineSegment::operator==(const LineSegment &rhs) const {
     return (this->begin == rhs.begin && this->end == rhs.end);
 }
 
@@ -51,13 +46,11 @@ float LineSegment::getTriangleArea(float Ax, float Ay, float Bx, float By, float
     return ((Ax * (By - Cy)) + (Bx * (Cy - Ay)) + (Cx * (Ay - By))) * 0.5F;
 }
 
-bool LineSegment::sameSigns(const float x, const float y) const
-{
+bool LineSegment::sameSigns(const float x, const float y) const {
     return (x >= 0) ^ (y < 0);
 }
 
-bool LineSegment::operator*(const LineSegment& rhs) const
-{
+bool LineSegment::operator*(const LineSegment &rhs) const {
     // Check if two edges are on a same line
     float t1 = getTriangleArea(this->begin.x, this->begin.y, rhs.begin.x, rhs.begin.y, this->end.x, this->end.y);
     float t2 = getTriangleArea(this->begin.x, this->begin.y, rhs.end.x, rhs.end.y, this->end.x, this->end.y);
@@ -92,34 +85,33 @@ bool LineSegment::operator*(const LineSegment& rhs) const
 }
 
 namespace lineUtils {
-void getIntersectionPoint(const LineSegment& lineA, const LineSegment& lineB, float& x, float& y)
-{
+    void getIntersectionPoint(const LineSegment &lineA, const LineSegment &lineB, float &x, float &y) {
 
-    // Y = AX + B
-    float a1 = (lineA.end.y - lineA.begin.y) / (lineA.end.x - lineA.begin.x);
-    float a2 = (lineB.end.y - lineB.begin.y) / (lineB.end.x - lineB.begin.x);
-    float b1 = lineA.begin.y - (a1 * lineA.begin.x);
-    float b2 = lineB.begin.y - (a2 * lineB.begin.x);
+        // Y = AX + B
+        float a1 = (lineA.end.y - lineA.begin.y) / (lineA.end.x - lineA.begin.x);
+        float a2 = (lineB.end.y - lineB.begin.y) / (lineB.end.x - lineB.begin.x);
+        float b1 = lineA.begin.y - (a1 * lineA.begin.x);
+        float b2 = lineB.begin.y - (a2 * lineB.begin.x);
 
-    a1 = -1.0F * a1;
-    a2 = -1.0F * a2;
+        a1 = -1.0F * a1;
+        a2 = -1.0F * a2;
 
-    // Matrix
-    // | (-a1) 1  || X | = | b1 |
-    // | (-a2) 1  || Y | = | b2 |
+        // Matrix
+        // | (-a1) 1  || X | = | b1 |
+        // | (-a2) 1  || Y | = | b2 |
 
-    float adbc = a1 - a2;
+        float adbc = a1 - a2;
 
-    // Get inverse matrix
+        // Get inverse matrix
 
-    float a = 1.0F * (1.0F / adbc);
-    float b = -a2 * (1.0F / adbc);
-    float c = -1.0F * (1.0F / adbc);
-    float d = a1 * (1.0F / adbc);
+        float a = 1.0F * (1.0F / adbc);
+        float b = -a2 * (1.0F / adbc);
+        float c = -1.0F * (1.0F / adbc);
+        float d = a1 * (1.0F / adbc);
 
-    // [u] = [ a c ] [y_interceptA]
-    // [v]   [ b d ] [y_interceptB]
-    x = (a * b1) + (c * b2);
-    y = (b * b1) + (d * b2);
-}
+        // [u] = [ a c ] [y_interceptA]
+        // [v]   [ b d ] [y_interceptB]
+        x = (a * b1) + (c * b2);
+        y = (b * b1) + (d * b2);
+    }
 }
