@@ -327,15 +327,43 @@ MStatus FindUvOverlaps::redoIt() {
     timer.beginTimer();
 
     if (multithread) {
-        std::thread *threadArray = new std::thread[btoVector.size()];
-        for (size_t i = 0; i < btoVector.size(); i++) {
-            threadArray[i] = std::thread(&FindUvOverlaps::check, this, std::ref(btoVector[i]));
+        int numTasks = 12;
+        if (btoVector.size() <= numTasks) {
+            // If number of shells is small enough, create same amount of threas
+            std::thread *threadArray = new std::thread[btoVector.size()];
+            for (size_t i = 0; i < btoVector.size(); i++) {
+                threadArray[i] = std::thread(&FindUvOverlaps::check, this, std::ref(btoVector[i]));
+            }
+            for (size_t i = 0; i < btoVector.size(); i++) {
+                threadArray[i].join();
+            }
+            delete[] threadArray;
+        } else {
+            // If number of shells are larger than tasks, split them into each task
+            std::vector<std::thread> threadVector;
+            threadVector.reserve(numTasks);
+            int taskLength = round((float)numShells / (float)numTasks);
+            int start = 0;
+            int end = taskLength;
+            int last = numTasks - 1;
+            for (int i=0; i<numTasks; i++) {
+                if (end > numShells || i == last) {
+                    end = numShells;
+                }
+                std::thread th(&FindUvOverlaps::check_mt, this, std::ref(btoVector), start, end);
+                threadVector.emplace_back(std::thread(std::move(th)));
+                if (end == numShells) {
+                    break;
+                }
+                start += taskLength;
+                end += taskLength;
+            }
+            for (size_t i=0; i<threadVector.size(); i++) {
+                threadVector[i].join();
+            }
         }
-        for (size_t i = 0; i < btoVector.size(); i++) {
-            threadArray[i].join();
-        }
-        delete[] threadArray;
     } else {
+        // Single thread
         for (size_t i = 0; i < btoVector.size(); i++) {
             btoVector[i].check();
         }
@@ -382,6 +410,12 @@ MStatus FindUvOverlaps::redoIt() {
 
 void FindUvOverlaps::check(BentleyOttman &bto) {
     bto.check();
+}
+
+void FindUvOverlaps::check_mt(std::vector<BentleyOttman> &bto, int start, int end) {
+    for (int i=start; i<end; i++) {
+        bto[i].check();
+    }
 }
 
 MStatus FindUvOverlaps::undoIt() {
