@@ -147,7 +147,7 @@ MStatus FindUvOverlaps::redoIt() {
         for (unsigned int index = 0; index < nbUvShells; index++) {
             UvShell shell(index);
             shell.path = dagPathStr;
-            uvShellArrayMaster.push_back(shell);
+            uvShellArrayMaster.emplace_back(shell);
         }
 
         MIntArray uvCounts; // Num of UVs per face eg. [4, 4, 4, 4, ...]
@@ -209,7 +209,7 @@ MStatus FindUvOverlaps::redoIt() {
             LineSegment line(p1, p2, dagPathStr);
 
             int shellIndex = uvShellIds[idA];
-            edgeVector[shellIndex].push_back(line);
+            edgeVector[shellIndex].emplace_back(line);
         }
 
         for (size_t i = 0; i < edgeVector.size(); i++) {
@@ -237,10 +237,10 @@ MStatus FindUvOverlaps::redoIt() {
         vVec.reserve(numEdges * 2);
         std::vector<LineSegment>::iterator edgeIter;
         for (edgeIter = shell.edges.begin(); edgeIter != shell.edges.end(); ++edgeIter) {
-            uVec.push_back(edgeIter->begin.x);
-            uVec.push_back(edgeIter->end.x);
-            vVec.push_back(edgeIter->begin.y);
-            vVec.push_back(edgeIter->end.y);
+            uVec.emplace_back(edgeIter->begin.x);
+            uVec.emplace_back(edgeIter->end.x);
+            vVec.emplace_back(edgeIter->begin.y);
+            vVec.emplace_back(edgeIter->end.y);
         }
         shell.uMin = *std::min_element(uVec.begin(), uVec.end());
         shell.uMax = *std::max_element(uVec.begin(), uVec.end());
@@ -249,7 +249,7 @@ MStatus FindUvOverlaps::redoIt() {
 
         // Create BentleyOttman objects
         BentleyOttman bto(shell.edges, shell.path);
-        btoVector.push_back(bto);
+        btoVector.emplace_back(bto);
     }
 
     for (int i = 0; i < numShells; i++) {
@@ -287,11 +287,11 @@ MStatus FindUvOverlaps::redoIt() {
                     LineSegment &line = shellA.edges[k];
                     if ((uMin <= line.begin.x && line.begin.x <= uMax) &&
                         (vMin <= line.begin.y && line.begin.y <= vMax)) {
-                        overlapsA.push_back(line);
+                        overlapsA.emplace_back(line);
                         continue;
                     }
                     if ((uMin <= line.end.x && line.end.x <= uMax) && (vMin <= line.end.y && line.end.y <= vMax)) {
-                        overlapsA.push_back(line);
+                        overlapsA.emplace_back(line);
                         continue;
                     }
                 }
@@ -299,11 +299,11 @@ MStatus FindUvOverlaps::redoIt() {
                     LineSegment &line = shellB.edges[h];
                     if ((uMin <= line.begin.x && line.begin.x <= uMax) &&
                         (vMin <= line.begin.y && line.begin.y <= vMax)) {
-                        overlapsB.push_back(line);
+                        overlapsB.emplace_back(line);
                         continue;
                     }
                     if ((uMin <= line.end.x && line.end.x <= uMax) && (vMin <= line.end.y && line.end.y <= vMax)) {
-                        overlapsB.push_back(line);
+                        overlapsB.emplace_back(line);
                         continue;
                     }
                 }
@@ -311,7 +311,7 @@ MStatus FindUvOverlaps::redoIt() {
                 BentleyOttman newBO_a(overlapsA, shellA.path);
                 BentleyOttman newBO_b(overlapsB, shellB.path);
                 BentleyOttman b = newBO_a + newBO_b;
-                btoVector.push_back(b);
+                btoVector.emplace_back(b);
             }
         }
     }
