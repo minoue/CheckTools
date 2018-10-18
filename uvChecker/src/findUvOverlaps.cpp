@@ -342,17 +342,18 @@ MStatus FindUvOverlaps::redoIt() {
             // If number of shells are larger than tasks, split them into each task
             std::vector<std::thread> threadVector;
             threadVector.reserve(numTasks);
-            int taskLength = round((float)numShells / (float)numTasks);
+            int numChecks = btoVector.size();
+            int taskLength = round((float)numChecks / (float)numTasks);
             int start = 0;
             int end = taskLength;
             int last = numTasks - 1;
             for (int i=0; i<numTasks; i++) {
-                if (end > numShells || i == last) {
-                    end = numShells;
+                if (end > numChecks || i == last) {
+                    end = numChecks;
                 }
                 std::thread th(&FindUvOverlaps::check_mt, this, std::ref(btoVector), start, end);
                 threadVector.emplace_back(std::thread(std::move(th)));
-                if (end == numShells) {
+                if (end == numChecks) {
                     break;
                 }
                 start += taskLength;
