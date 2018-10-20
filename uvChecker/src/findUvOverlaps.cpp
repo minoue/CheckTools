@@ -155,13 +155,13 @@ MStatus FindUvOverlaps::redoIt() {
         int uvCounter = 0;
         int nextCounter;
         fnMesh.getAssignedUVs(uvCounts, uvIds, uvSetPtr);
-        int uvCountSize = uvCounts.length();
+        size_t uvCountSize = uvCounts.length();
 
         std::vector<std::pair<int, int>> idPairVec;
         idPairVec.reserve(uvCountSize * 4);
 
-        for (unsigned int i = 0; i < uvCountSize; i++) {
-            int numFaceUVs = uvCounts[i];
+        for (unsigned int j = 0; j < uvCountSize; j++) {
+            int numFaceUVs = uvCounts[j];
             for (int u = 0; u < numFaceUVs; u++) {
                 if (u == numFaceUVs - 1) {
                     nextCounter = uvCounter - numFaceUVs + 1;
@@ -212,9 +212,9 @@ MStatus FindUvOverlaps::redoIt() {
             edgeVector[shellIndex].emplace_back(line);
         }
 
-        for (size_t i = 0; i < edgeVector.size(); i++) {
+        for (size_t j = 0; j < edgeVector.size(); j++) {
             // Copy lineSegment vectors from temp vector to master shell Array
-            uvShellArrayMaster[i + uvShellCounter].edges = edgeVector[i];
+            uvShellArrayMaster[j + uvShellCounter].edges = edgeVector[j];
         }
 
         uvShellCounter += nbUvShells;
@@ -327,7 +327,7 @@ MStatus FindUvOverlaps::redoIt() {
     timer.beginTimer();
 
     if (multithread) {
-        int numTasks = 12;
+        size_t numTasks = 12;
         if (btoVector.size() <= numTasks) {
             // If number of shells is small enough, create same amount of threas
             std::thread *threadArray = new std::thread[btoVector.size()];
@@ -342,11 +342,11 @@ MStatus FindUvOverlaps::redoIt() {
             // If number of shells are larger than tasks, split them into each task
             std::vector<std::thread> threadVector;
             threadVector.reserve(numTasks);
-            int numChecks = btoVector.size();
-            int taskLength = round((float)numChecks / (float)numTasks);
-            int start = 0;
-            int end = taskLength;
-            int last = numTasks - 1;
+            size_t numChecks = btoVector.size();
+            size_t taskLength = round((float)numChecks / (float)numTasks);
+            size_t start = 0;
+            size_t end = taskLength;
+            size_t last = numTasks - 1;
             for (int i=0; i<numTasks; i++) {
                 if (end > numChecks || i == last) {
                     end = numChecks;
