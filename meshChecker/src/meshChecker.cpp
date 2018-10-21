@@ -19,18 +19,16 @@ MeshChecker::~MeshChecker() {
 
 MStatus MeshChecker::findTriangles() {
     for (MItMeshPolygon mItPoly(mDagPath); !mItPoly.isDone(); mItPoly.next()) {
-        if (mItPoly.polygonVertexCount() == 3) {
+        if (mItPoly.polygonVertexCount() == 3)
             indexArray.append(mItPoly.index());
-        }
     }
     return MS::kSuccess;
 }
 
 MStatus MeshChecker::findNgons() {
     for (MItMeshPolygon mItPoly(mDagPath); !mItPoly.isDone(); mItPoly.next()) {
-        if (mItPoly.polygonVertexCount() >= 5) {
+        if (mItPoly.polygonVertexCount() >= 5)
             indexArray.append(mItPoly.index());
-        }
     }
     return MS::kSuccess;
 }
@@ -49,9 +47,8 @@ MStatus MeshChecker::findNonManifoldEdges() {
 
 MStatus MeshChecker::findLaminaFaces() {
     for (MItMeshPolygon mItPoly(mDagPath); !mItPoly.isDone(); mItPoly.next()) {
-        if (mItPoly.isLamina() == true) {
+        if (mItPoly.isLamina() == true)
             indexArray.append(mItPoly.index());
-        }
     }
     return MS::kSuccess;
 }
@@ -75,9 +72,8 @@ MStatus MeshChecker::findZeroAreaFaces(double &maxFaceArea) {
     double area;
     for (MItMeshPolygon mItPoly(mDagPath); !mItPoly.isDone(); mItPoly.next()) {
         mItPoly.getArea(area);
-        if (area < maxFaceArea) {
+        if (area < maxFaceArea)
             indexArray.append(mItPoly.index());
-        }
     }
     return MS::kSuccess;
 }
@@ -85,9 +81,8 @@ MStatus MeshChecker::findZeroAreaFaces(double &maxFaceArea) {
 MStatus MeshChecker::findMeshBorderEdges() {
     for (MItMeshEdge mItEdge(mDagPath); !mItEdge.isDone(); mItEdge.next()) {
         bool isBorder = mItEdge.onBoundary();
-        if (isBorder) {
+        if (isBorder)
             indexArray.append(mItEdge.index());
-        }
     }
     return MS::kSuccess;
 }
@@ -113,9 +108,8 @@ MStatus MeshChecker::findZeroLengthEdges() {
     double length;
     for (MItMeshEdge mItEdge(mDagPath); !mItEdge.isDone(); mItEdge.next()) {
         mItEdge.getLength(length);
-        if (length < minEdgeLength) {
+        if (length < minEdgeLength)
             indexArray.append(mItEdge.index());
-        }
     }
     return MS::kSuccess;
 }
