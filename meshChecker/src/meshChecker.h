@@ -8,6 +8,7 @@
 #include <maya/MItMeshVertex.h>
 #include <maya/MPxCommand.h>
 #include <maya/MStringArray.h>
+#include <maya/MSelectionList.h>
 
 #include <string>
 
@@ -51,6 +52,7 @@ public:
     };
 
 private:
+    MSelectionList mList;
     MDagPath mDagPath;
     double maxFaceArea;
     MIntArray indexArray;

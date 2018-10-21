@@ -6,7 +6,6 @@
 #include <maya/MFnMesh.h>
 #include <maya/MGlobal.h>
 #include <maya/MPlug.h>
-#include <maya/MSelectionList.h>
 #include <maya/MString.h>
 #include <maya/MSyntax.h>
 #include <maya/MUintArray.h>
@@ -184,21 +183,26 @@ MSyntax MeshChecker::newSyntax() {
 }
 
 MStatus MeshChecker::doIt(const MArgList &args) {
+
     MStatus status;
-
-    if (args.length() != 1) {
-        MGlobal::displayError("Need 1 arg!");
-        return MStatus::kFailure;
-    }
-
     MArgDatabase argData(syntax(), args);
 
-    // arg
-    MString argument = args.asString(0, &status);
-    if (status != MS::kSuccess) {
+    if (args.length() == 0) {
+        MGlobal::getActiveSelectionList(mList);
+    } else if (args.length() > 0) {
+        MString argument = args.asString(0, &status);
+        if (status != MS::kSuccess) {
+            return MStatus::kFailure;
+        }
+        CHECK_MSTATUS_AND_RETURN_IT(status);
+        mList.add(argument);
+    } else {
         return MStatus::kFailure;
     }
-    CHECK_MSTATUS_AND_RETURN_IT(status);
+
+    mList.getDagPath(0, mDagPath);
+
+    // arg
 
     if (argData.isFlagSet("-check")) {
         argData.getFlagArgument("-check", 0, checkNumber);
@@ -221,10 +225,6 @@ MStatus MeshChecker::doIt(const MArgList &args) {
         argData.getFlagArgument("-edit", 0, edit);
     else
         edit = false;
-
-    MSelectionList mList;
-    mList.add(argument);
-    mList.getDagPath(0, mDagPath);
 
     switch (checkNumber) {
         case MeshChecker::TRIANGLES:
