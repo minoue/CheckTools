@@ -7,7 +7,7 @@
 #include <iostream>
 #include <vector>
 
-#include "bentleyOttman.hpp"
+#include "bentleyOttmann.hpp"
 #include "lineSegment.hpp"
 #include "point2D.hpp"
 #include "testData/dataSet.hpp"

@@ -1,6 +1,6 @@
 //
-//  event.hpp
-//  bentleyOttman
+//  event.hptp
+//  bentleyOttmann
 //
 
 #ifndef event_hpp

@@ -1,6 +1,6 @@
 //
 //  lineSegment.hpp
-//  bentleyOttman
+//  bentleyOttmann
 //
 
 #ifndef lineSegment_hpp

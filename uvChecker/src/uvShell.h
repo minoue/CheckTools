@@ -2,7 +2,7 @@
 #define __UVSHELL_H__
 
 #include <vector>
-#include "BentleyOttman/bentleyOttman.hpp"
+#include "BentleyOttman/bentleyOttmann.hpp"
 #include "BentleyOttman/lineSegment.hpp"
 
 

@@ -1,6 +1,6 @@
 //
 //  point2D.hpp
-//  bentleyOttman
+//  bentleyOttmann
 //
 
 #ifndef point2D_hpp

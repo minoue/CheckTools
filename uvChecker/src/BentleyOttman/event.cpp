@@ -1,6 +1,6 @@
 //
 //  event.cpp
-//  bentleyOttman
+//  bentleyOttmann
 //
 
 #include "event.hpp"

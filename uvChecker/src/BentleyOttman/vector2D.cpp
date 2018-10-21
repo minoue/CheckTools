@@ -1,6 +1,6 @@
 //
 //  vector2D.cpp
-//  bentleyOttman
+//  bentleyOttmann
 //
 
 #include "vector2D.hpp"

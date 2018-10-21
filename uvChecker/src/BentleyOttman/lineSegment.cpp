@@ -1,6 +1,6 @@
 //
 //  lineSegment.cpp
-//  bentleyOttman
+//  bentleyOttmann
 //
 
 #include "lineSegment.hpp"

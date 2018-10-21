@@ -1,10 +1,10 @@
 //
-//  bentleyOttman.hpp
-//  bentleyOttman
+//  bentleyOttmann.hpp
+//  bentleyOttmann
 //
 
-#ifndef bentleyOttman_hpp
-#define bentleyOttman_hpp
+#ifndef bentleyOttmann_hpp
+#define bentleyOttmann_hpp
 
 #include "event.hpp"
 #include "lineSegment.hpp"
@@ -40,4 +40,4 @@ private:
     std::multiset<Event> eventQueue;
 };
 
-#endif /* bentleyOttman_hpp */
+#endif /* bentleyOttmann_hpp */

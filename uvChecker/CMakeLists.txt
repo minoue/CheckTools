@@ -17,8 +17,8 @@ set(SOURCE_FILES
     src/BentleyOttman/lineSegment.hpp
     src/BentleyOttman/event.cpp
     src/BentleyOttman/event.hpp
-    src/BentleyOttman/bentleyOttman.cpp
-    src/BentleyOttman/bentleyOttman.hpp
+        src/BentleyOttman/bentleyOttmann.cpp
+        src/BentleyOttman/bentleyOttmann.hpp
     )
 
 # https://www.guyrutenberg.com/2014/01/05/enabling-c11-c0x-in-cmake/

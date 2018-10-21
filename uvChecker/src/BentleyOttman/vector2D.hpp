@@ -1,6 +1,6 @@
 //
 //  vector2D.hpp
-//  bentleyOttman
+//  bentleyOttmann
 //
 
 #ifndef vector2D_hpp

@@ -1,9 +1,9 @@
 //
-//  bentleyOttman.cpp
-//  bentleyOttman
+//  bentleyOttmann.cpp
+//  bentleyOttmann
 //
 
-#include "bentleyOttman.hpp"
+#include "bentleyOttmann.hpp"
 #include <algorithm>
 #include <iostream>
 

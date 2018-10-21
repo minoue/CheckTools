@@ -1,6 +1,6 @@
 //
 //  point2D.cpp
-//  bentleyOttman
+//  bentleyOttmann
 //
 
 #include "point2D.hpp"
