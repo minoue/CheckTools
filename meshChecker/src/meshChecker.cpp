@@ -156,8 +156,14 @@ MStatus MeshChecker::findUnfrozenVertices()
             plug_z.getValue(z);
 
             float temp = x + y + z;
-            if (temp != 0)
+            if (temp != 0) {
                 indexArray.append(i);
+                if (edit) {
+                    plug_x.setValue(0);
+                    plug_y.setValue(0);
+                    plug_z.setValue(0);
+                }
+            }
         }
     }
     return MS::kSuccess;
@@ -193,6 +199,7 @@ MSyntax MeshChecker::newSyntax()
     syntax.addFlag("-c", "-check", MSyntax::kUnsigned);
     syntax.addFlag("-mfa", "-maxFaceArea", MSyntax::kDouble);
     syntax.addFlag("-mel", "-minEdgeLength", MSyntax::kDouble);
+    syntax.addFlag("-e", "-edit", MSyntax::kBoolean);
     return syntax;
 }
 
@@ -230,6 +237,11 @@ MStatus MeshChecker::doIt(const MArgList& args)
         argData.getFlagArgument("-minEdgeLength", 0, minEdgeLength);
     else
         minEdgeLength = 0.000001;
+
+    if (argData.isFlagSet("-edit"))
+        argData.getFlagArgument("-edit", 0, edit);
+    else
+        edit=false;
 
     MSelectionList mList;
     mList.add(argument);

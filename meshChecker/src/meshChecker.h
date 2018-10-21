@@ -57,6 +57,7 @@ private:
     unsigned int checkNumber;
     MStringArray resultArray;
     double minEdgeLength;
+    bool edit;
 };
 
 #endif /* defined(__MESHCHECKER_H__) */
