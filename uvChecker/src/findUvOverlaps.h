@@ -39,8 +39,8 @@ private:
     MTimer timer;
 
     MString getWorkUvSet();
-    void check(BentleyOttman& bto);
-    void check_mt(std::vector<BentleyOttman> &bto, int start, int end);
+    void check(BentleyOttmann& bto);
+    void check_mt(std::vector<BentleyOttmann> &bto, int start, int end);
     void displayTime(std::string message, double time);
 
     // Container to store all UV shells from all selected objects to be tested

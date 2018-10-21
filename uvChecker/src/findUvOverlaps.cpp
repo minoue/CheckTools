@@ -221,7 +221,7 @@ MStatus FindUvOverlaps::redoIt() {
 
     } // Object loop ends
 
-    std::vector<BentleyOttman> btoVector;
+    std::vector<BentleyOttmann> btoVector;
     btoVector.reserve(uvShellArrayMaster.size());
 
     size_t numShells = uvShellArrayMaster.size();
@@ -247,8 +247,8 @@ MStatus FindUvOverlaps::redoIt() {
         shell.vMin = *std::min_element(vVec.begin(), vVec.end());
         shell.vMax = *std::max_element(vVec.begin(), vVec.end());
 
-        // Create BentleyOttman objects
-        BentleyOttman bto(shell.edges, shell.path);
+        // Create BentleyOttmann objects
+        BentleyOttmann bto(shell.edges, shell.path);
         btoVector.emplace_back(bto);
     }
 
@@ -308,9 +308,9 @@ MStatus FindUvOverlaps::redoIt() {
                     }
                 }
 
-                BentleyOttman newBO_a(overlapsA, shellA.path);
-                BentleyOttman newBO_b(overlapsB, shellB.path);
-                BentleyOttman b = newBO_a + newBO_b;
+                BentleyOttmann newBO_a(overlapsA, shellA.path);
+                BentleyOttmann newBO_b(overlapsB, shellB.path);
+                BentleyOttmann b = newBO_a + newBO_b;
                 btoVector.emplace_back(b);
             }
         }
@@ -381,7 +381,7 @@ MStatus FindUvOverlaps::redoIt() {
     std::unordered_set<std::string> resultSet;
     for (size_t i = 0; i < btoVector.size(); i++) {
 
-        BentleyOttman &bto = btoVector[i];
+        BentleyOttmann &bto = btoVector[i];
         std::vector<LineSegment *>::iterator iter;
         std::string path;
         for (iter = bto.resultPtr.begin(); iter != bto.resultPtr.end(); ++iter) {
@@ -409,11 +409,11 @@ MStatus FindUvOverlaps::redoIt() {
     return MS::kSuccess;
 }
 
-void FindUvOverlaps::check(BentleyOttman &bto) {
+void FindUvOverlaps::check(BentleyOttmann &bto) {
     bto.check();
 }
 
-void FindUvOverlaps::check_mt(std::vector<BentleyOttman> &bto, int start, int end) {
+void FindUvOverlaps::check_mt(std::vector<BentleyOttmann> &bto, int start, int end) {
     for (int i=start; i<end; i++) {
         bto[i].check();
     }

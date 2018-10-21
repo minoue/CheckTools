@@ -7,16 +7,16 @@
 #include <algorithm>
 #include <iostream>
 
-BentleyOttman::BentleyOttman() {
+BentleyOttmann::BentleyOttmann() {
 }
 
-BentleyOttman::BentleyOttman(std::vector<LineSegment> &edgeVector) {
+BentleyOttmann::BentleyOttmann(std::vector<LineSegment> &edgeVector) {
     this->edges = edgeVector;
     this->groupId = "";
     this->verbose = false;
 }
 
-BentleyOttman::BentleyOttman(std::vector<LineSegment> &edgeVector, std::string &groupId) {
+BentleyOttmann::BentleyOttmann(std::vector<LineSegment> &edgeVector, std::string &groupId) {
     this->edges = edgeVector;
     this->groupId = groupId;
     this->verbose = false;
@@ -24,30 +24,30 @@ BentleyOttman::BentleyOttman(std::vector<LineSegment> &edgeVector, std::string &
     assignGroupId();
 }
 
-BentleyOttman::~BentleyOttman() {
+BentleyOttmann::~BentleyOttmann() {
 }
 
-BentleyOttman BentleyOttman::operator+(const BentleyOttman &rhs) const {
-    // Create new BentleyOttman object
+BentleyOttmann BentleyOttmann::operator+(const BentleyOttmann &rhs) const {
+    // Create new BentleyOttmann object
     size_t newSize = this->edges.size() + rhs.edges.size();
     std::vector<LineSegment> AB;
     AB.reserve(newSize);
     AB.insert(AB.end(), this->edges.begin(), this->edges.end());
     AB.insert(AB.end(), rhs.edges.begin(), rhs.edges.end());
 
-    BentleyOttman newBO(AB);
+    BentleyOttmann newBO(AB);
 
     return newBO;
 }
 
-void BentleyOttman::assignGroupId() {
+void BentleyOttmann::assignGroupId() {
     std::vector<LineSegment>::iterator iter;
     for (iter = edges.begin(); iter != edges.end(); ++iter) {
         (*iter).groupId = this->groupId;
     }
 }
 
-void BentleyOttman::createNewEvent(LineSegment *lineA, LineSegment *lineB) {
+void BentleyOttmann::createNewEvent(LineSegment *lineA, LineSegment *lineB) {
     float x, y;
     lineUtils::getIntersectionPoint(*lineA, *lineB, x, y);
     Point2D p(x, y, 0);
@@ -55,7 +55,7 @@ void BentleyOttman::createNewEvent(LineSegment *lineA, LineSegment *lineB) {
     eventQueue.insert(crossEvent);
 }
 
-void BentleyOttman::check() {
+void BentleyOttmann::check() {
     std::vector<LineSegment>::iterator edgeIter;
 
     for (edgeIter = edges.begin(); edgeIter != edges.end(); ++edgeIter) {
@@ -91,7 +91,7 @@ void BentleyOttman::check() {
     }
 }
 
-bool BentleyOttman::doBegin(Event &ev) {
+bool BentleyOttmann::doBegin(Event &ev) {
     LineSegment *currentEdgePtr = ev.edgePtrA;
     statusPtrQueue.emplace_back(currentEdgePtr);
 
@@ -150,7 +150,7 @@ bool BentleyOttman::doBegin(Event &ev) {
     return true;
 }
 
-bool BentleyOttman::doEnd(Event &ev) {
+bool BentleyOttmann::doEnd(Event &ev) {
     LineSegment *currentEdgePtr = ev.edgePtrA;
     std::vector<LineSegment *>::iterator foundIter;
     foundIter = std::find(statusPtrQueue.begin(), statusPtrQueue.end(), currentEdgePtr);
@@ -181,7 +181,7 @@ bool BentleyOttman::doEnd(Event &ev) {
     return true;
 }
 
-bool BentleyOttman::doCross(Event &ev) {
+bool BentleyOttmann::doCross(Event &ev) {
     if (statusPtrQueue.size() <= 2) {
         return false;
     }

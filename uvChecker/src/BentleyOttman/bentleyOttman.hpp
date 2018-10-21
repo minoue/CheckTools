@@ -13,12 +13,12 @@
 #include <string>
 #include <vector>
 
-class BentleyOttman {
+class BentleyOttmann {
 public:
-    BentleyOttman();
-    explicit BentleyOttman(std::vector<LineSegment>& edgeVector);
-    BentleyOttman(std::vector<LineSegment>& edgeVector, std::string& groupId);
-    ~BentleyOttman();
+    BentleyOttmann();
+    explicit BentleyOttmann(std::vector<LineSegment>& edgeVector);
+    BentleyOttmann(std::vector<LineSegment>& edgeVector, std::string& groupId);
+    ~BentleyOttmann();
 
     void check();
     std::vector<LineSegment> result;
@@ -26,7 +26,7 @@ public:
     std::vector<LineSegment> edges;
     std::string groupId;
 
-    BentleyOttman operator+(const BentleyOttman& rhs) const;
+    BentleyOttmann operator+(const BentleyOttmann& rhs) const;
 
 private:
     bool verbose;
