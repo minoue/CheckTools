@@ -136,15 +136,31 @@ MStatus MeshChecker::findUnfrozenVertices() {
             plug_y.getValue(y);
             plug_z.getValue(z);
 
-            float temp = x + y + z;
-            if (temp != 0) {
+            if (!(x == 0.0 && y == 0.0 && z == 0.0))
                 indexArray.append(i);
-                if (edit) {
-                    plug_x.setValue(0);
-                    plug_y.setValue(0);
-                    plug_z.setValue(0);
-                }
-            }
+        }
+    }
+    return MS::kSuccess;
+}
+
+MStatus MeshChecker::resetUnfrozenVertices() {
+    MFnDagNode mFnDag(mDagPath);
+    MFnMesh fnMesh(mDagPath);
+
+    MPlug pntsArray = mFnDag.findPlug("pnts");
+
+    unsigned int arraySize = indexArray.length();
+    float x, y, z;
+    for (unsigned int i=0; i<arraySize; i++) {
+        int index = indexArray[i];
+        MPlug compound = pntsArray.elementByLogicalIndex(index);
+        if (compound.isCompound()) {
+            MPlug plug_x = compound.child(0);
+            MPlug plug_y = compound.child(1);
+            MPlug plug_z = compound.child(2);
+            plug_x.setValue(0.0);
+            plug_y.setValue(0.0);
+            plug_z.setValue(0.0);
         }
     }
     return MS::kSuccess;
@@ -275,10 +291,12 @@ MStatus MeshChecker::doIt(const MArgList &args) {
         case MeshChecker::UNFROZEN_VERTICES:
             status = findUnfrozenVertices();
             CHECK_MSTATUS_AND_RETURN_IT(status);
-            // if (unfrozen) {
-            //     resultArray.append(mDagPath.fullPathName());
-            // }
-            resultArray = setResultString("vertex");
+            if (edit) {
+                status = resetUnfrozenVertices();
+                CHECK_MSTATUS_AND_RETURN_IT(status);
+            } else {
+                resultArray = setResultString("vertex");
+            }
             break;
         case MeshChecker::TEST:
             break;
