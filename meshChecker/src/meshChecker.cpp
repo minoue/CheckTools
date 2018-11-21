@@ -143,7 +143,7 @@ MStatus MeshChecker::findUnfrozenVertices() {
     return MS::kSuccess;
 }
 
-MStatus MeshChecker::resetUnfrozenVertices() {
+MStatus MeshChecker::resetVertexPnts() {
     MFnDagNode mFnDag(mDagPath);
     MFnMesh fnMesh(mDagPath);
 
@@ -292,7 +292,7 @@ MStatus MeshChecker::doIt(const MArgList &args) {
             status = findUnfrozenVertices();
             CHECK_MSTATUS_AND_RETURN_IT(status);
             if (edit) {
-                status = resetUnfrozenVertices();
+                status = resetVertexPnts();
                 CHECK_MSTATUS_AND_RETURN_IT(status);
             } else {
                 resultArray = setResultString("vertex");
