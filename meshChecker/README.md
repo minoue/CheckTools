@@ -11,7 +11,7 @@ Mesh/Topology checker for my own
 6. mesh border edges
 7. crease edges
 8. zero length edges
-9. unfronze vertices (vertices with non-zero pnts attribute)
+9. vertex pnts attributes
 
 ## Flags
 | Longname | Shortname | Argument types | Default | Properties |
