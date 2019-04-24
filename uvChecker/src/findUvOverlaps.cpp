@@ -74,7 +74,7 @@ MStatus FindUvOverlaps::doIt(const MArgList &args) {
     return redoIt();
 }
 
-MString FindUvOverlaps::getWorkUvSet() {
+MString FindUvOverlaps::getWorkUvSet(MFnMesh& fnMesh) {
     currentUVSetName = fnMesh.currentUVSetName();
 
     // Check if specified uv set exists
@@ -105,119 +105,131 @@ MString FindUvOverlaps::getWorkUvSet() {
     return workUvSet;
 }
 
+MStatus FindUvOverlaps::initializeObject(MDagPath& dagPath) {
+
+	MStatus status;
+
+	std::string dagPathStr = dagPath.fullPathName().asChar();
+	MFnMesh fnMesh(dagPath);
+
+	MString workUvSet = getWorkUvSet(fnMesh);
+	MString *uvSetPtr = &workUvSet;
+
+	// Check if specified object is geometry or not
+	status = dagPath.extendToShape();
+	if (status != MS::kSuccess) {
+		if (verbose)
+			MGlobal::displayInfo("Failed to extend to shape node.");
+		return MS::kFailure;
+	}
+
+	if (dagPath.apiType() != MFn::kMesh) {
+		if (verbose)
+			MGlobal::displayInfo("Selected node : " + dagPath.fullPathName() + " is not mesh. Skipped");
+		return MS::kFailure;
+	}
+
+	MIntArray uvShellIds;
+	unsigned int nbUvShells;
+	fnMesh.getUvShellsIds(uvShellIds, nbUvShells, uvSetPtr);
+
+	// Switch back to the origianl UV set
+	fnMesh.setCurrentUVSetName(currentUVSetName);
+
+	// Setup uv shell objects
+	for (unsigned int index = 0; index < nbUvShells; index++) {
+		UvShell shell(index);
+		shell.path = dagPathStr;
+		uvShellArrayMaster.emplace_back(shell);
+	}
+
+	MIntArray uvCounts; // Num of UVs per face eg. [4, 4, 4, 4, ...]
+	MIntArray uvIds;
+	int uvCounter = 0;
+	int nextCounter;
+	fnMesh.getAssignedUVs(uvCounts, uvIds, uvSetPtr);
+	size_t uvCountSize = uvCounts.length();
+
+	std::vector<std::pair<int, int>> idPairVec;
+	idPairVec.reserve(uvCountSize * 4);
+
+	for (unsigned int j = 0; j < uvCountSize; j++) {
+		int numFaceUVs = uvCounts[j];
+		for (int u = 0; u < numFaceUVs; u++) {
+			if (u == numFaceUVs - 1) {
+				nextCounter = uvCounter - numFaceUVs + 1;
+			}
+			else {
+				nextCounter = uvCounter + 1;
+			}
+
+			int idA = uvIds[uvCounter];
+			int idB = uvIds[nextCounter];
+
+			std::pair<int, int> idPair;
+
+			if (idA < idB) {
+				idPair = std::make_pair(idA, idB);
+			}
+			else {
+				idPair = std::make_pair(idB, idA);
+			}
+
+			idPairVec.emplace_back(idPair);
+			uvCounter++;
+		}
+	}
+
+	// // Remove duplicate elements
+	std::sort(idPairVec.begin(), idPairVec.end());
+	idPairVec.erase(std::unique(idPairVec.begin(), idPairVec.end()), idPairVec.end());
+
+	// // Temp countainer for lineSegments for each UVShell
+	std::vector<std::vector<LineSegment> > edgeVector;
+	edgeVector.resize(nbUvShells);
+	std::vector<std::pair<int, int>>::iterator pairIter;
+
+	MFloatArray uArray;
+	MFloatArray vArray;
+	fnMesh.getUVs(uArray, vArray, uvSetPtr);
+
+	for (pairIter = idPairVec.begin(); pairIter != idPairVec.end(); ++pairIter) {
+
+		int idA = (*pairIter).first;
+		int idB = (*pairIter).second;
+		Point2D p1(uArray[idA], vArray[idA], idA);
+		Point2D p2(uArray[idB], vArray[idB], idB);
+
+		// Create new lineSegment object
+		LineSegment line(p1, p2, dagPathStr);
+
+		int shellIndex = uvShellIds[idA];
+		edgeVector[shellIndex].emplace_back(line);
+	}
+
+	for (size_t j = 0; j < edgeVector.size(); j++) {
+		// Copy lineSegment vectors from temp vector to master shell Array
+		uvShellArrayMaster[j + uvShellCounter].edges = edgeVector[j];
+	}
+
+	uvShellCounter += nbUvShells;
+
+	return MS::kSuccess;
+}
+
 MStatus FindUvOverlaps::redoIt() {
 
     MStatus status;
 
-    // INITILIZATION PROCESS
+    // BEGIN INITILIZATION PROCESS
     timer.beginTimer();
 
     unsigned int numSelected = mSel.length();
+
     for (unsigned int i = 0; i < numSelected; i++) {
+
         mSel.getDagPath(i, dagPath);
-        fnMesh.setObject(dagPath);
-        std::string dagPathStr = dagPath.fullPathName().asChar();
-
-        MString workUvSet = getWorkUvSet();
-        MString *uvSetPtr = &workUvSet;
-
-        // Check if specified object is geometry or not
-        status = dagPath.extendToShape();
-        if (status != MS::kSuccess) {
-            if (verbose)
-                MGlobal::displayInfo("Failed to extend to shape node.");
-			continue;
-        }
-
-        if (dagPath.apiType() != MFn::kMesh) {
-            if (verbose)
-                MGlobal::displayInfo("Selected node : " + dagPath.fullPathName() + " is not mesh. Skipped");
-            continue;
-        }
-
-        MIntArray uvShellIds;
-        unsigned int nbUvShells;
-
-        fnMesh.getUvShellsIds(uvShellIds, nbUvShells, uvSetPtr);
-
-        // Switch back to the origianl UV set
-        fnMesh.setCurrentUVSetName(currentUVSetName);
-
-        // Setup uv shell objects
-        for (unsigned int index = 0; index < nbUvShells; index++) {
-            UvShell shell(index);
-            shell.path = dagPathStr;
-            uvShellArrayMaster.emplace_back(shell);
-        }
-
-        MIntArray uvCounts; // Num of UVs per face eg. [4, 4, 4, 4, ...]
-        MIntArray uvIds;
-        int uvCounter = 0;
-        int nextCounter;
-        fnMesh.getAssignedUVs(uvCounts, uvIds, uvSetPtr);
-        size_t uvCountSize = uvCounts.length();
-
-        std::vector<std::pair<int, int>> idPairVec;
-        idPairVec.reserve(uvCountSize * 4);
-
-        for (unsigned int j = 0; j < uvCountSize; j++) {
-            int numFaceUVs = uvCounts[j];
-            for (int u = 0; u < numFaceUVs; u++) {
-                if (u == numFaceUVs - 1) {
-                    nextCounter = uvCounter - numFaceUVs + 1;
-                } else {
-                    nextCounter = uvCounter + 1;
-                }
-
-                int idA = uvIds[uvCounter];
-                int idB = uvIds[nextCounter];
-
-                std::pair<int, int> idPair;
-
-                if (idA < idB) {
-                    idPair = std::make_pair(idA, idB);
-                } else {
-                    idPair = std::make_pair(idB, idA);
-                }
-
-                idPairVec.emplace_back(idPair);
-                uvCounter++;
-            }
-        }
-
-        // // Remove duplicate elements
-        std::sort(idPairVec.begin(), idPairVec.end());
-        idPairVec.erase(std::unique(idPairVec.begin(), idPairVec.end()), idPairVec.end());
-
-        // // Temp countainer for lineSegments for each UVShell
-        std::vector<std::vector<LineSegment> > edgeVector;
-        edgeVector.resize(nbUvShells);
-        std::vector<std::pair<int, int>>::iterator pairIter;
-
-        MFloatArray uArray;
-        MFloatArray vArray;
-        fnMesh.getUVs(uArray, vArray, uvSetPtr);
-
-        for (pairIter = idPairVec.begin(); pairIter != idPairVec.end(); ++pairIter) {
-
-            int idA = (*pairIter).first;
-            int idB = (*pairIter).second;
-            Point2D p1(uArray[idA], vArray[idA], idA);
-            Point2D p2(uArray[idB], vArray[idB], idB);
-
-            // Create new lineSegment object
-            LineSegment line(p1, p2, dagPathStr);
-
-            int shellIndex = uvShellIds[idA];
-            edgeVector[shellIndex].emplace_back(line);
-        }
-
-        for (size_t j = 0; j < edgeVector.size(); j++) {
-            // Copy lineSegment vectors from temp vector to master shell Array
-            uvShellArrayMaster[j + uvShellCounter].edges = edgeVector[j];
-        }
-
-        uvShellCounter += nbUvShells;
+		initializeObject(dagPath);
 
     } // Object loop ends
 

@@ -31,14 +31,14 @@ private:
     int uvShellCounter;
     bool verbose;
     MDagPath dagPath;
-    MFnMesh fnMesh;
     MString uvSet;
     bool multithread;
     MString currentUVSetName;
     MSelectionList mSel;
     MTimer timer;
 
-    MString getWorkUvSet();
+    MString getWorkUvSet(MFnMesh& fnMesh);
+	MStatus initializeObject(MDagPath& dagPath);
     void check(BentleyOttmann& bto);
     void check_mt(std::vector<BentleyOttmann> &bto, int start, int end);
     void displayTime(std::string message, double time);
