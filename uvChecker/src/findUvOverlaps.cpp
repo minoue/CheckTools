@@ -126,13 +126,13 @@ MStatus FindUvOverlaps::redoIt() {
         if (status != MS::kSuccess) {
             if (verbose)
                 MGlobal::displayInfo("Failed to extend to shape node.");
-            return MS::kFailure;
+			continue;
         }
 
         if (dagPath.apiType() != MFn::kMesh) {
             if (verbose)
-                MGlobal::displayInfo("Selected node : " + dagPath.fullPathName() + " is not mesh.");
-            return MS::kFailure;
+                MGlobal::displayInfo("Selected node : " + dagPath.fullPathName() + " is not mesh. Skipped");
+            continue;
         }
 
         MIntArray uvShellIds;
