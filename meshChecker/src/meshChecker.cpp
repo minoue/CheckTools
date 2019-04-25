@@ -9,6 +9,8 @@
 #include <maya/MString.h>
 #include <maya/MSyntax.h>
 #include <maya/MUintArray.h>
+#include <maya/MDataHandle.h>
+#include <maya/MArrayDataHandle.h>
 
 MeshChecker::MeshChecker() {
 }
@@ -143,26 +145,21 @@ MStatus MeshChecker::findUnfrozenVertices() {
     return MS::kSuccess;
 }
 
-MStatus MeshChecker::resetVertexPnts() {
-    MFnDagNode mFnDag(mDagPath);
-    MFnMesh fnMesh(mDagPath);
+MStatus MeshChecker::resetVertexPntsAttr() {
+    MFnDagNode dagNode(mDagPath);
+    MPlug pntsArray = dagNode.findPlug("pnts");
+	MDataHandle dataHandle = pntsArray.asMDataHandle();
+	MArrayDataHandle arrayDataHandle(dataHandle);
 
-    MPlug pntsArray = mFnDag.findPlug("pnts");
+	MDataHandle outputHandle;
+	unsigned int elementCount = arrayDataHandle.elementCount();
+	for (unsigned int i = 0; i < elementCount; i++) {
+		outputHandle = arrayDataHandle.outputValue();
+		outputHandle.set(0.0, 0.0, 0.0);
+		arrayDataHandle.next();
+	}
+	pntsArray.setMDataHandle(dataHandle);
 
-    unsigned int arraySize = indexArray.length();
-    float x, y, z;
-    for (unsigned int i=0; i<arraySize; i++) {
-        int index = indexArray[i];
-        MPlug compound = pntsArray.elementByLogicalIndex(index);
-        if (compound.isCompound()) {
-            MPlug plug_x = compound.child(0);
-            MPlug plug_y = compound.child(1);
-            MPlug plug_z = compound.child(2);
-            plug_x.setValue(0.0);
-            plug_y.setValue(0.0);
-            plug_z.setValue(0.0);
-        }
-    }
     return MS::kSuccess;
 }
 
@@ -292,7 +289,7 @@ MStatus MeshChecker::doIt(const MArgList &args) {
             status = findUnfrozenVertices();
             CHECK_MSTATUS_AND_RETURN_IT(status);
             if (edit) {
-                status = resetVertexPnts();
+                status = resetVertexPntsAttr();
                 CHECK_MSTATUS_AND_RETURN_IT(status);
             } else {
                 resultArray = setResultString("vertex");
