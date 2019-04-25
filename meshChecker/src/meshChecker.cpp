@@ -191,7 +191,7 @@ MSyntax MeshChecker::newSyntax() {
     syntax.addFlag("-c", "-check", MSyntax::kUnsigned);
     syntax.addFlag("-mfa", "-maxFaceArea", MSyntax::kDouble);
     syntax.addFlag("-mel", "-minEdgeLength", MSyntax::kDouble);
-    syntax.addFlag("-e", "-edit", MSyntax::kBoolean);
+    syntax.addFlag("-fix", "-doFix", MSyntax::kBoolean);
     return syntax;
 }
 
@@ -234,10 +234,10 @@ MStatus MeshChecker::doIt(const MArgList &args) {
     else
         minEdgeLength = 0.000001;
 
-    if (argData.isFlagSet("-edit"))
-        argData.getFlagArgument("-edit", 0, edit);
+    if (argData.isFlagSet("-fix"))
+        argData.getFlagArgument("-fix", 0, fix);
     else
-        edit = false;
+        fix = false;
 
     switch (checkNumber) {
         case MeshChecker::TRIANGLES:
@@ -288,7 +288,7 @@ MStatus MeshChecker::doIt(const MArgList &args) {
         case MeshChecker::UNFROZEN_VERTICES:
             status = findUnfrozenVertices();
             CHECK_MSTATUS_AND_RETURN_IT(status);
-            if (edit) {
+            if (fix) {
                 status = resetVertexPntsAttr();
                 CHECK_MSTATUS_AND_RETURN_IT(status);
             } else {
