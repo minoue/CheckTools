@@ -145,22 +145,45 @@ MStatus MeshChecker::findUnfrozenVertices() {
     return MS::kSuccess;
 }
 
-MStatus MeshChecker::resetVertexPntsAttr() {
+bool MeshChecker::hasVertexPntsAttr() {
+	mDagPath.extendToShape();
     MFnDagNode dagNode(mDagPath);
     MPlug pntsArray = dagNode.findPlug("pnts");
 	MDataHandle dataHandle = pntsArray.asMDataHandle();
 	MArrayDataHandle arrayDataHandle(dataHandle);
 
 	MDataHandle outputHandle;
-	unsigned int elementCount = arrayDataHandle.elementCount();
-	for (unsigned int i = 0; i < elementCount; i++) {
-		outputHandle = arrayDataHandle.outputValue();
-		outputHandle.set(0.0, 0.0, 0.0);
-		arrayDataHandle.next();
-	}
-	pntsArray.setMDataHandle(dataHandle);
 
-    return MS::kSuccess;
+	unsigned int elementCount = arrayDataHandle.elementCount();
+	if (!fix) {
+		// Check only.
+		// MGlobal::displayInfo("Check Only");
+		for (unsigned int i = 0; i < elementCount; i++) {
+
+			outputHandle = arrayDataHandle.outputValue();
+			float3& xyz = outputHandle.asFloat3();
+			if (xyz[0] != 0.0)
+				return true;
+			if (xyz[1] != 0.0)
+				return true;
+			if (xyz[2] != 0.0)
+				return true;
+
+			arrayDataHandle.next();
+		}
+	}
+	else {
+		// Do fix. Reset all vertices pnts attr to 0
+		// MGlobal::displayInfo("Reset all");
+		for (unsigned int i = 0; i < elementCount; i++) {
+			outputHandle = arrayDataHandle.outputValue();
+			outputHandle.set(0.0, 0.0, 0.0);
+			arrayDataHandle.next();
+		}
+		pntsArray.setMDataHandle(dataHandle);
+	}
+
+	return false;
 }
 
 MStringArray MeshChecker::setResultString(std::string componentType) {
@@ -286,14 +309,11 @@ MStatus MeshChecker::doIt(const MArgList &args) {
             resultArray = setResultString("edge");
             break;
         case MeshChecker::UNFROZEN_VERTICES:
-            status = findUnfrozenVertices();
-            CHECK_MSTATUS_AND_RETURN_IT(status);
-            if (fix) {
-                status = resetVertexPntsAttr();
-                CHECK_MSTATUS_AND_RETURN_IT(status);
-            } else {
-                resultArray = setResultString("vertex");
-            }
+			if (hasVertexPntsAttr())
+				MPxCommand::setResult(true);
+			else
+				MPxCommand::setResult(false);
+			return MS::kSuccess;
             break;
         case MeshChecker::TEST:
             break;

@@ -34,7 +34,7 @@ public:
     MStatus findCreaseEDges();
     MStatus findZeroLengthEdges();
     MStatus findUnfrozenVertices();
-    MStatus resetVertexPntsAttr();
+    bool hasVertexPntsAttr();
 
     MStringArray setResultString(std::string componentType);
 
