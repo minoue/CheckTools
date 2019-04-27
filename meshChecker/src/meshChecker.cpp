@@ -146,20 +146,18 @@ MStatus MeshChecker::findUnfrozenVertices() {
 }
 
 bool MeshChecker::hasVertexPntsAttr() {
+	MStatus status;
+
 	mDagPath.extendToShape();
     MFnDagNode dagNode(mDagPath);
     MPlug pntsArray = dagNode.findPlug("pnts");
 	MDataHandle dataHandle = pntsArray.asMDataHandle();
 	MArrayDataHandle arrayDataHandle(dataHandle);
-
 	MDataHandle outputHandle;
 
-	unsigned int elementCount = arrayDataHandle.elementCount();
 	if (!fix) {
 		// Check only.
-		// MGlobal::displayInfo("Check Only");
-		for (unsigned int i = 0; i < elementCount; i++) {
-
+		while (true) {
 			outputHandle = arrayDataHandle.outputValue();
 			float3& xyz = outputHandle.asFloat3();
 			if (xyz[0] != 0.0)
@@ -168,17 +166,21 @@ bool MeshChecker::hasVertexPntsAttr() {
 				return true;
 			if (xyz[2] != 0.0)
 				return true;
-
-			arrayDataHandle.next();
+			status = arrayDataHandle.next();
+			if (status != MS::kSuccess) {
+				break;
+			}
 		}
 	}
 	else {
 		// Do fix. Reset all vertices pnts attr to 0
-		// MGlobal::displayInfo("Reset all");
-		for (unsigned int i = 0; i < elementCount; i++) {
+		while (true) {
 			outputHandle = arrayDataHandle.outputValue();
-			outputHandle.set(0.0, 0.0, 0.0);
-			arrayDataHandle.next();
+			outputHandle.set3Double(0.0, 0.0, 0.0);
+			status = arrayDataHandle.next();
+			if (status != MS::kSuccess) {
+				break;
+			}
 		}
 		pntsArray.setMDataHandle(dataHandle);
 	}
