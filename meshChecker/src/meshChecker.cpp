@@ -146,46 +146,64 @@ MStatus MeshChecker::findUnfrozenVertices() {
 }
 
 bool MeshChecker::hasVertexPntsAttr() {
-	MStatus status;
+    MStatus status;
 
-	mDagPath.extendToShape();
+    mDagPath.extendToShape();
     MFnDagNode dagNode(mDagPath);
     MPlug pntsArray = dagNode.findPlug("pnts");
-	MDataHandle dataHandle = pntsArray.asMDataHandle();
-	MArrayDataHandle arrayDataHandle(dataHandle);
-	MDataHandle outputHandle;
+    MDataHandle dataHandle = pntsArray.asMDataHandle();
+    MArrayDataHandle arrayDataHandle(dataHandle);
+    MDataHandle outputHandle;
 
-	if (!fix) {
-		// Check only.
-		while (true) {
-			outputHandle = arrayDataHandle.outputValue();
-			float3& xyz = outputHandle.asFloat3();
-			if (xyz[0] != 0.0)
-				return true;
-			if (xyz[1] != 0.0)
-				return true;
-			if (xyz[2] != 0.0)
-				return true;
-			status = arrayDataHandle.next();
-			if (status != MS::kSuccess) {
-				break;
-			}
-		}
-	}
-	else {
-		// Do fix. Reset all vertices pnts attr to 0
-		while (true) {
-			outputHandle = arrayDataHandle.outputValue();
-			outputHandle.set3Double(0.0, 0.0, 0.0);
-			status = arrayDataHandle.next();
-			if (status != MS::kSuccess) {
-				break;
-			}
-		}
-		pntsArray.setMDataHandle(dataHandle);
-	}
+    if (!fix) {
+        // Check only.
+        while (true) {
+            outputHandle = arrayDataHandle.outputValue();
+            float3& xyz = outputHandle.asFloat3();
+            if (xyz[0] != 0.0)
+                return true;
+            if (xyz[1] != 0.0)
+                return true;
+            if (xyz[2] != 0.0)
+                return true;
+            status = arrayDataHandle.next();
+            if (status != MS::kSuccess) {
+                break;
+            }
+        }
+    }
+    else {
+        // Do fix. Reset all vertices pnts attr to 0
+        MObject pntx = dagNode.attribute("pntx");
+        MObject pnty = dagNode.attribute("pnty");
+        MObject pntz = dagNode.attribute("pntz");
+        MDataHandle xHandle;
+        MDataHandle yHandle;
+        MDataHandle zHandle;
 
-	return false;
+        while (true) {
+            outputHandle = arrayDataHandle.outputValue();
+
+            // outputHandle.set3Double(0.0, 0.0, 0.0);
+
+            // setting 3 values at the same time kills maya in
+            // some environments somehow. So here setting values separately
+            xHandle = outputHandle.child(pntx);
+            yHandle = outputHandle.child(pnty);
+            zHandle = outputHandle.child(pntz);
+            xHandle.setFloat(0.0);
+            yHandle.setFloat(0.0);
+            zHandle.setFloat(0.0);
+
+            status = arrayDataHandle.next();
+            if (status != MS::kSuccess) {
+                break;
+            }
+        }
+        pntsArray.setMDataHandle(dataHandle);
+    }
+
+    return false;
 }
 
 MStringArray MeshChecker::setResultString(std::string componentType) {
@@ -311,11 +329,11 @@ MStatus MeshChecker::doIt(const MArgList &args) {
             resultArray = setResultString("edge");
             break;
         case MeshChecker::UNFROZEN_VERTICES:
-			if (hasVertexPntsAttr())
-				MPxCommand::setResult(true);
-			else
-				MPxCommand::setResult(false);
-			return MS::kSuccess;
+            if (hasVertexPntsAttr())
+                MPxCommand::setResult(true);
+            else
+                MPxCommand::setResult(false);
+            return MS::kSuccess;
             break;
         case MeshChecker::TEST:
             break;
