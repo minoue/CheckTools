@@ -2,19 +2,18 @@
 #define __FINDUVOVERLAPS2_H__
 
 #include <maya/MDagPath.h>
+#include <maya/MFnMesh.h>
 #include <maya/MPxCommand.h>
 #include <maya/MSelectionList.h>
 #include <maya/MString.h>
 #include <maya/MStringArray.h>
 #include <maya/MSyntax.h>
 #include <maya/MTimer.h>
-#include <maya/MFnMesh.h>
 
 #include "uvShell.h"
 
 #include <utility>
 #include <vector>
-
 
 class FindUvOverlaps : public MPxCommand {
 public:
@@ -38,9 +37,9 @@ private:
     MTimer timer;
 
     MString getWorkUvSet(MFnMesh& fnMesh);
-	MStatus initializeObject(MDagPath& dagPath);
+    MStatus initializeObject(MDagPath& dagPath);
     void check(BentleyOttmann& bto);
-    void check_mt(std::vector<BentleyOttmann> &bto, int start, int end);
+    void check_mt(std::vector<BentleyOttmann>& bto, int start, int end);
     void displayTime(std::string message, double time);
 
     // Container to store all UV shells from all selected objects to be tested

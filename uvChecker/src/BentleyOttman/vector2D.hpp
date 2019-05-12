@@ -6,7 +6,6 @@
 #ifndef vector2D_hpp
 #define vector2D_hpp
 
-
 class Vector2D {
 public:
     Vector2D();

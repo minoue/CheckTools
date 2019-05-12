@@ -7,22 +7,32 @@
 #include <algorithm>
 #include <iostream>
 
-BentleyOttmann::BentleyOttmann() {
+BentleyOttmann::BentleyOttmann()
+{
 }
 
-BentleyOttmann::BentleyOttmann(std::vector<LineSegment> &edgeVector) : edges(edgeVector), groupId(""), verbose(false) {
+BentleyOttmann::BentleyOttmann(std::vector<LineSegment>& edgeVector)
+    : edges(edgeVector)
+    , groupId("")
+    , verbose(false)
+{
 }
 
-BentleyOttmann::BentleyOttmann(std::vector<LineSegment> &edgeVector, std::string &groupId)
-    : edges(edgeVector), groupId(groupId), verbose(false) {
+BentleyOttmann::BentleyOttmann(std::vector<LineSegment>& edgeVector, std::string& groupId)
+    : edges(edgeVector)
+    , groupId(groupId)
+    , verbose(false)
+{
 
     assignGroupId();
 }
 
-BentleyOttmann::~BentleyOttmann() {
+BentleyOttmann::~BentleyOttmann()
+{
 }
 
-BentleyOttmann BentleyOttmann::operator+(const BentleyOttmann &rhs) const {
+BentleyOttmann BentleyOttmann::operator+(const BentleyOttmann& rhs) const
+{
     // Create new BentleyOttmann object
     size_t newSize = this->edges.size() + rhs.edges.size();
     std::vector<LineSegment> AB;
@@ -35,14 +45,16 @@ BentleyOttmann BentleyOttmann::operator+(const BentleyOttmann &rhs) const {
     return newBO;
 }
 
-void BentleyOttmann::assignGroupId() {
+void BentleyOttmann::assignGroupId()
+{
     std::vector<LineSegment>::iterator iter;
     for (iter = edges.begin(); iter != edges.end(); ++iter) {
         (*iter).groupId = this->groupId;
     }
 }
 
-void BentleyOttmann::createNewEvent(LineSegment *lineA, LineSegment *lineB) {
+void BentleyOttmann::createNewEvent(LineSegment* lineA, LineSegment* lineB)
+{
     float x, y;
     lineUtils::getIntersectionPoint(*lineA, *lineB, x, y);
     Point2D p(x, y, 0);
@@ -50,7 +62,8 @@ void BentleyOttmann::createNewEvent(LineSegment *lineA, LineSegment *lineB) {
     eventQueue.insert(crossEvent);
 }
 
-void BentleyOttmann::check() {
+void BentleyOttmann::check()
+{
     std::vector<LineSegment>::iterator edgeIter;
 
     for (edgeIter = edges.begin(); edgeIter != edges.end(); ++edgeIter) {
@@ -86,8 +99,9 @@ void BentleyOttmann::check() {
     }
 }
 
-bool BentleyOttmann::doBegin(Event &ev) {
-    LineSegment *currentEdgePtr = ev.edgePtrA;
+bool BentleyOttmann::doBegin(Event& ev)
+{
+    LineSegment* currentEdgePtr = ev.edgePtrA;
     statusPtrQueue.emplace_back(currentEdgePtr);
 
     if (statusPtrQueue.size() == 1) {
@@ -96,7 +110,7 @@ bool BentleyOttmann::doBegin(Event &ev) {
 
     // Set crossing point of Y for all edges in the statusQueue and the sweepline
     for (size_t i = 0; i < statusPtrQueue.size(); i++) {
-        LineSegment *ePtr = statusPtrQueue[i];
+        LineSegment* ePtr = statusPtrQueue[i];
         float slope2 = (ePtr->end.y - ePtr->begin.y) / (ePtr->end.x - ePtr->begin.x);
         float b2 = ePtr->begin.y - slope2 * ePtr->begin.x;
         float y2 = slope2 * ev.sweepline + b2;
@@ -105,7 +119,7 @@ bool BentleyOttmann::doBegin(Event &ev) {
     std::sort(statusPtrQueue.begin(), statusPtrQueue.end(), EdgeCrossingComparator());
 
     // StatusQueue was sorted so you have to find the edge added to the queue above and find its index
-    std::vector<LineSegment *>::iterator foundIter = std::find(statusPtrQueue.begin(), statusPtrQueue.end(),
+    std::vector<LineSegment*>::iterator foundIter = std::find(statusPtrQueue.begin(), statusPtrQueue.end(),
         currentEdgePtr);
     if (foundIter == statusPtrQueue.end()) {
         return false;
@@ -115,24 +129,22 @@ bool BentleyOttmann::doBegin(Event &ev) {
     long index = std::distance(statusPtrQueue.begin(), foundIter);
 
     if (foundIter == statusPtrQueue.begin()) {
-        LineSegment *targetEdge = statusPtrQueue[index + 1];
+        LineSegment* targetEdge = statusPtrQueue[index + 1];
         if (*(*foundIter) * *(targetEdge)) {
             resultPtr.emplace_back(*foundIter);
             resultPtr.emplace_back(targetEdge);
             createNewEvent(currentEdgePtr, targetEdge);
         }
-    }
-    else if (foundIter == statusPtrQueue.end() - 1) {
-        LineSegment *targetEdge = statusPtrQueue[index - 1];
+    } else if (foundIter == statusPtrQueue.end() - 1) {
+        LineSegment* targetEdge = statusPtrQueue[index - 1];
         if (*(*foundIter) * *(targetEdge)) {
             resultPtr.emplace_back(*foundIter);
             resultPtr.emplace_back(targetEdge);
             createNewEvent(currentEdgePtr, targetEdge);
         }
-    }
-    else {
-        LineSegment *nextEdgePtr = statusPtrQueue[index + 1];
-        LineSegment *previousEdgePtr = statusPtrQueue[index - 1];
+    } else {
+        LineSegment* nextEdgePtr = statusPtrQueue[index + 1];
+        LineSegment* previousEdgePtr = statusPtrQueue[index - 1];
         if (*(*foundIter) * *(nextEdgePtr)) {
             resultPtr.emplace_back(*foundIter);
             resultPtr.emplace_back(nextEdgePtr);
@@ -147,9 +159,10 @@ bool BentleyOttmann::doBegin(Event &ev) {
     return true;
 }
 
-bool BentleyOttmann::doEnd(Event &ev) {
-    LineSegment *currentEdgePtr = ev.edgePtrA;
-    std::vector<LineSegment *>::iterator foundIter;
+bool BentleyOttmann::doEnd(Event& ev)
+{
+    LineSegment* currentEdgePtr = ev.edgePtrA;
+    std::vector<LineSegment*>::iterator foundIter;
     foundIter = std::find(statusPtrQueue.begin(), statusPtrQueue.end(), currentEdgePtr);
 
     if (foundIter == statusPtrQueue.end()) {
@@ -160,11 +173,10 @@ bool BentleyOttmann::doEnd(Event &ev) {
 
     if (foundIter == statusPtrQueue.begin() || foundIter == statusPtrQueue.end() - 1) {
 
-    }
-    else {
+    } else {
         long index = std::distance(statusPtrQueue.begin(), foundIter);
-        LineSegment *nextEdgePtr = statusPtrQueue[index + 1];
-        LineSegment *previousEdgePtr = statusPtrQueue[index - 1];
+        LineSegment* nextEdgePtr = statusPtrQueue[index + 1];
+        LineSegment* previousEdgePtr = statusPtrQueue[index - 1];
         bool isCrossing = (*nextEdgePtr) * (*previousEdgePtr);
         if (isCrossing) {
             resultPtr.emplace_back(nextEdgePtr);
@@ -179,17 +191,18 @@ bool BentleyOttmann::doEnd(Event &ev) {
     return true;
 }
 
-bool BentleyOttmann::doCross(Event &ev) {
+bool BentleyOttmann::doCross(Event& ev)
+{
     if (statusPtrQueue.size() <= 2) {
         return false;
     }
 
-    LineSegment *edgePtr = ev.edgePtrA;
-    LineSegment *otherEdgePtr = ev.edgePtrB;
+    LineSegment* edgePtr = ev.edgePtrA;
+    LineSegment* otherEdgePtr = ev.edgePtrB;
 
-    std::vector<LineSegment *>::iterator lineAPtrIter = std::find(statusPtrQueue.begin(), statusPtrQueue.end(),
+    std::vector<LineSegment*>::iterator lineAPtrIter = std::find(statusPtrQueue.begin(), statusPtrQueue.end(),
         edgePtr);
-    std::vector<LineSegment *>::iterator lineBPtrIter = std::find(statusPtrQueue.begin(), statusPtrQueue.end(),
+    std::vector<LineSegment*>::iterator lineBPtrIter = std::find(statusPtrQueue.begin(), statusPtrQueue.end(),
         otherEdgePtr);
     if (lineAPtrIter == statusPtrQueue.end() || lineBPtrIter == statusPtrQueue.end()) {
         return false;
@@ -202,8 +215,7 @@ bool BentleyOttmann::doCross(Event &ev) {
     if (lineAIndex > lineBIndex) {
         small = lineBIndex;
         big = lineAIndex;
-    }
-    else {
+    } else {
         small = lineAIndex;
         big = lineBIndex;
     }
@@ -217,31 +229,29 @@ bool BentleyOttmann::doCross(Event &ev) {
             return false;
         }
 
-        LineSegment *lineAPtr = statusPtrQueue[small];
-        LineSegment *lineBPtr = statusPtrQueue[big + 1];
+        LineSegment* lineAPtr = statusPtrQueue[small];
+        LineSegment* lineBPtr = statusPtrQueue[big + 1];
         bool isCrossing = (*lineAPtr) * (*lineBPtr);
         if (isCrossing) {
             resultPtr.emplace_back(lineAPtr);
             resultPtr.emplace_back(lineBPtr);
             createNewEvent(lineAPtr, lineBPtr);
         }
-    }
-    else if (big == statusPtrQueue.size() - 1) {
+    } else if (big == statusPtrQueue.size() - 1) {
         // Check the last edge and the one before the previous edge
 
-        LineSegment *lineAPtr = statusPtrQueue[small - 1];
-        LineSegment *lineBPtr = statusPtrQueue[big];
+        LineSegment* lineAPtr = statusPtrQueue[small - 1];
+        LineSegment* lineBPtr = statusPtrQueue[big];
         bool isCrossing = (*lineAPtr) * (*lineBPtr);
         if (isCrossing) {
             resultPtr.emplace_back(lineAPtr);
             resultPtr.emplace_back(lineBPtr);
             createNewEvent(lineAPtr, lineBPtr);
         }
-    }
-    else {
+    } else {
         // Check the first edge and the one after next(third)
-        LineSegment *lineAPtr = statusPtrQueue[small - 1];
-        LineSegment *lineBPtr = statusPtrQueue[big];
+        LineSegment* lineAPtr = statusPtrQueue[small - 1];
+        LineSegment* lineBPtr = statusPtrQueue[big];
         bool isCrossing = (*lineAPtr) * (*lineBPtr);
         if (isCrossing) {
             resultPtr.emplace_back(lineAPtr);
@@ -249,8 +259,8 @@ bool BentleyOttmann::doCross(Event &ev) {
             createNewEvent(lineAPtr, lineBPtr);
         }
         // Check the second edge and the one after next(forth)
-        LineSegment *lineCPtr = statusPtrQueue[small];
-        LineSegment *lineDPtr = statusPtrQueue[big + 1];
+        LineSegment* lineCPtr = statusPtrQueue[small];
+        LineSegment* lineDPtr = statusPtrQueue[big + 1];
         isCrossing = (*lineCPtr) * (*lineDPtr);
         if (isCrossing) {
             resultPtr.emplace_back(lineCPtr);

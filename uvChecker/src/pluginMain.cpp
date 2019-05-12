@@ -2,9 +2,10 @@
 #include "uvChecker.h"
 #include <maya/MFnPlugin.h>
 
-static const char *const VERSION = "1.6.11";
+static const char* const VERSION = "1.6.12";
 
-MStatus initializePlugin(MObject mObj) {
+MStatus initializePlugin(MObject mObj)
+{
 
     MFnPlugin ovPlugin(mObj, "Michitaka Inoue", VERSION, "Any");
     ovPlugin.registerCommand("findUvOverlaps", FindUvOverlaps::creator, FindUvOverlaps::newSyntax);
@@ -15,7 +16,8 @@ MStatus initializePlugin(MObject mObj) {
     return MS::kSuccess;
 }
 
-MStatus uninitializePlugin(MObject mObj) {
+MStatus uninitializePlugin(MObject mObj)
+{
     MFnPlugin ovPlugin(mObj);
     ovPlugin.deregisterCommand("findUvOverlaps");
     MFnPlugin fnPlugin(mObj);

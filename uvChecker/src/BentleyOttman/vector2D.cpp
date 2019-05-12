@@ -6,16 +6,22 @@
 #include "vector2D.hpp"
 #include <complex>
 
-Vector2D::Vector2D() {
+Vector2D::Vector2D()
+{
 }
 
-Vector2D::Vector2D(float x, float y) : x(x), y(y) {
+Vector2D::Vector2D(float x, float y)
+    : x(x)
+    , y(y)
+{
 }
 
-Vector2D::~Vector2D() {
+Vector2D::~Vector2D()
+{
 }
 
-void Vector2D::normalize() {
+void Vector2D::normalize()
+{
     float m = getLength();
     if (m != 0) {
         this->x = this->x / m;
@@ -23,13 +29,15 @@ void Vector2D::normalize() {
     }
 }
 
-float Vector2D::getLength() {
-    float &x = this->x;
-    float &y = this->y;
+float Vector2D::getLength()
+{
+    float& x = this->x;
+    float& y = this->y;
     return std::sqrt(x * x + y * y);
 }
 
-float Vector2D::operator*(const Vector2D &rhs) const {
+float Vector2D::operator*(const Vector2D& rhs) const
+{
     float dot = (this->x * rhs.x) + (this->y * rhs.y);
     return dot;
 }

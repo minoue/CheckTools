@@ -1,35 +1,38 @@
 #include "findUvOverlaps.h"
-#include "BentleyOttman/point2D.hpp"
-#include "BentleyOttman/lineSegment.hpp"
 #include "BentleyOttman/bentleyOttmann.hpp"
+#include "BentleyOttman/lineSegment.hpp"
+#include "BentleyOttman/point2D.hpp"
 
 #include <maya/MArgDatabase.h>
 #include <maya/MArgList.h>
-#include <maya/MGlobal.h>
 #include <maya/MFloatArray.h>
+#include <maya/MGlobal.h>
+#include <maya/MIntArray.h>
 #include <maya/MItMeshPolygon.h>
 #include <maya/MPointArray.h>
-#include <maya/MIntArray.h>
 
 #include "uvShell.h"
 
 #include <algorithm>
 #include <iostream>
 #include <iterator>
-#include <string>
-#include <set>
 #include <map>
+#include <set>
+#include <string>
 #include <thread>
 #include <unordered_set>
 
-
-FindUvOverlaps::FindUvOverlaps() : uvShellCounter(0) {
+FindUvOverlaps::FindUvOverlaps()
+    : uvShellCounter(0)
+{
 }
 
-FindUvOverlaps::~FindUvOverlaps() {
+FindUvOverlaps::~FindUvOverlaps()
+{
 }
 
-MSyntax FindUvOverlaps::newSyntax() {
+MSyntax FindUvOverlaps::newSyntax()
+{
     MSyntax syntax;
     syntax.addArg(MSyntax::kString);
     syntax.addFlag("-v", "-verbose", MSyntax::kBoolean);
@@ -38,14 +41,16 @@ MSyntax FindUvOverlaps::newSyntax() {
     return syntax;
 }
 
-void FindUvOverlaps::displayTime(std::string message, double time) {
+void FindUvOverlaps::displayTime(std::string message, double time)
+{
     MString timeStr;
     MString ms = message.c_str();
     timeStr.set(time);
     MGlobal::displayInfo(ms + " : " + timeStr + " seconds.");
 }
 
-MStatus FindUvOverlaps::doIt(const MArgList &args) {
+MStatus FindUvOverlaps::doIt(const MArgList& args)
+{
     MStatus status;
 
     MArgDatabase argData(syntax(), args);
@@ -74,7 +79,8 @@ MStatus FindUvOverlaps::doIt(const MArgList &args) {
     return redoIt();
 }
 
-MString FindUvOverlaps::getWorkUvSet(MFnMesh& fnMesh) {
+MString FindUvOverlaps::getWorkUvSet(MFnMesh& fnMesh)
+{
     currentUVSetName = fnMesh.currentUVSetName();
 
     // Check if specified uv set exists
@@ -82,7 +88,7 @@ MString FindUvOverlaps::getWorkUvSet(MFnMesh& fnMesh) {
     MStringArray uvSetNames;
     fnMesh.getUVSetNames(uvSetNames);
     for (unsigned int uv = 0; uv < uvSetNames.length(); uv++) {
-        MString &uvSetName = uvSetNames[uv];
+        MString& uvSetName = uvSetNames[uv];
         if (uvSetName == uvSet) {
             uvSetFound = true;
             break;
@@ -105,119 +111,119 @@ MString FindUvOverlaps::getWorkUvSet(MFnMesh& fnMesh) {
     return workUvSet;
 }
 
-MStatus FindUvOverlaps::initializeObject(MDagPath& dagPath) {
+MStatus FindUvOverlaps::initializeObject(MDagPath& dagPath)
+{
 
-	MStatus status;
+    MStatus status;
 
-	std::string dagPathStr = dagPath.fullPathName().asChar();
-	MFnMesh fnMesh(dagPath);
+    std::string dagPathStr = dagPath.fullPathName().asChar();
+    MFnMesh fnMesh(dagPath);
 
-	MString workUvSet = getWorkUvSet(fnMesh);
-	MString *uvSetPtr = &workUvSet;
+    MString workUvSet = getWorkUvSet(fnMesh);
+    MString* uvSetPtr = &workUvSet;
 
-	// Check if specified object is geometry or not
-	status = dagPath.extendToShape();
-	if (status != MS::kSuccess) {
-		if (verbose)
-			MGlobal::displayInfo("Failed to extend to shape node.");
-		return MS::kFailure;
-	}
+    // Check if specified object is geometry or not
+    status = dagPath.extendToShape();
+    if (status != MS::kSuccess) {
+        if (verbose)
+            MGlobal::displayInfo("Failed to extend to shape node.");
+        return MS::kFailure;
+    }
 
-	if (dagPath.apiType() != MFn::kMesh) {
-		if (verbose)
-			MGlobal::displayInfo("Selected node : " + dagPath.fullPathName() + " is not mesh. Skipped");
-		return MS::kFailure;
-	}
+    if (dagPath.apiType() != MFn::kMesh) {
+        if (verbose)
+            MGlobal::displayInfo("Selected node : " + dagPath.fullPathName() + " is not mesh. Skipped");
+        return MS::kFailure;
+    }
 
-	MIntArray uvShellIds;
-	unsigned int nbUvShells;
-	fnMesh.getUvShellsIds(uvShellIds, nbUvShells, uvSetPtr);
+    MIntArray uvShellIds;
+    unsigned int nbUvShells;
+    fnMesh.getUvShellsIds(uvShellIds, nbUvShells, uvSetPtr);
 
-	// Switch back to the origianl UV set
-	fnMesh.setCurrentUVSetName(currentUVSetName);
+    // Switch back to the origianl UV set
+    fnMesh.setCurrentUVSetName(currentUVSetName);
 
-	// Setup uv shell objects
-	for (unsigned int index = 0; index < nbUvShells; index++) {
-		UvShell shell(index);
-		shell.path = dagPathStr;
-		uvShellArrayMaster.emplace_back(shell);
-	}
+    // Setup uv shell objects
+    for (unsigned int index = 0; index < nbUvShells; index++) {
+        UvShell shell(index);
+        shell.path = dagPathStr;
+        uvShellArrayMaster.emplace_back(shell);
+    }
 
-	MIntArray uvCounts; // Num of UVs per face eg. [4, 4, 4, 4, ...]
-	MIntArray uvIds;
-	int uvCounter = 0;
-	int nextCounter;
-	fnMesh.getAssignedUVs(uvCounts, uvIds, uvSetPtr);
-	size_t uvCountSize = uvCounts.length();
+    MIntArray uvCounts; // Num of UVs per face eg. [4, 4, 4, 4, ...]
+    MIntArray uvIds;
+    int uvCounter = 0;
+    int nextCounter;
+    fnMesh.getAssignedUVs(uvCounts, uvIds, uvSetPtr);
+    size_t uvCountSize = uvCounts.length();
 
-	std::vector<std::pair<int, int>> idPairVec;
-	idPairVec.reserve(uvCountSize * 4);
+    std::vector<std::pair<int, int>> idPairVec;
+    idPairVec.reserve(uvCountSize * 4);
 
-	for (unsigned int j = 0; j < uvCountSize; j++) {
-		int numFaceUVs = uvCounts[j];
-		for (int u = 0; u < numFaceUVs; u++) {
-			if (u == numFaceUVs - 1) {
-				nextCounter = uvCounter - numFaceUVs + 1;
-			}
-			else {
-				nextCounter = uvCounter + 1;
-			}
+    for (unsigned int j = 0; j < uvCountSize; j++) {
+        int numFaceUVs = uvCounts[j];
+        for (int u = 0; u < numFaceUVs; u++) {
+            if (u == numFaceUVs - 1) {
+                nextCounter = uvCounter - numFaceUVs + 1;
+            } else {
+                nextCounter = uvCounter + 1;
+            }
 
-			int idA = uvIds[uvCounter];
-			int idB = uvIds[nextCounter];
+            int idA = uvIds[uvCounter];
+            int idB = uvIds[nextCounter];
 
-			std::pair<int, int> idPair;
+            std::pair<int, int> idPair;
 
-			if (idA < idB) {
-				idPair = std::make_pair(idA, idB);
-			}
-			else {
-				idPair = std::make_pair(idB, idA);
-			}
+            if (idA < idB) {
+                idPair = std::make_pair(idA, idB);
+            } else {
+                idPair = std::make_pair(idB, idA);
+            }
 
-			idPairVec.emplace_back(idPair);
-			uvCounter++;
-		}
-	}
+            idPairVec.emplace_back(idPair);
+            uvCounter++;
+        }
+    }
 
-	// // Remove duplicate elements
-	std::sort(idPairVec.begin(), idPairVec.end());
-	idPairVec.erase(std::unique(idPairVec.begin(), idPairVec.end()), idPairVec.end());
+    // // Remove duplicate elements
+    std::sort(idPairVec.begin(), idPairVec.end());
+    idPairVec.erase(std::unique(idPairVec.begin(), idPairVec.end()), idPairVec.end());
 
-	// // Temp countainer for lineSegments for each UVShell
-	std::vector<std::vector<LineSegment> > edgeVector;
-	edgeVector.resize(nbUvShells);
-	std::vector<std::pair<int, int>>::iterator pairIter;
+    // // Temp countainer for lineSegments for each UVShell
+    std::vector<std::vector<LineSegment>> edgeVector;
+    edgeVector.resize(nbUvShells);
+    std::vector<std::pair<int, int>>::iterator pairIter;
 
-	MFloatArray uArray;
-	MFloatArray vArray;
-	fnMesh.getUVs(uArray, vArray, uvSetPtr);
+    MFloatArray uArray;
+    MFloatArray vArray;
+    fnMesh.getUVs(uArray, vArray, uvSetPtr);
 
-	for (pairIter = idPairVec.begin(); pairIter != idPairVec.end(); ++pairIter) {
+    for (pairIter = idPairVec.begin(); pairIter != idPairVec.end(); ++pairIter) {
 
-		int idA = (*pairIter).first;
-		int idB = (*pairIter).second;
-		Point2D p1(uArray[idA], vArray[idA], idA);
-		Point2D p2(uArray[idB], vArray[idB], idB);
+        int idA = (*pairIter).first;
+        int idB = (*pairIter).second;
+        Point2D p1(uArray[idA], vArray[idA], idA);
+        Point2D p2(uArray[idB], vArray[idB], idB);
 
-		// Create new lineSegment object
-		LineSegment line(p1, p2, dagPathStr);
+        // Create new lineSegment object
+        LineSegment line(p1, p2, dagPathStr);
 
-		int shellIndex = uvShellIds[idA];
-		edgeVector[shellIndex].emplace_back(line);
-	}
+        int shellIndex = uvShellIds[idA];
+        edgeVector[shellIndex].emplace_back(line);
+    }
 
-	for (size_t j = 0; j < edgeVector.size(); j++) {
-		// Copy lineSegment vectors from temp vector to master shell Array
-		uvShellArrayMaster[j + uvShellCounter].edges = edgeVector[j];
-	}
+    for (size_t j = 0; j < edgeVector.size(); j++) {
+        // Copy lineSegment vectors from temp vector to master shell Array
+        uvShellArrayMaster[j + uvShellCounter].edges = edgeVector[j];
+    }
 
-	uvShellCounter += nbUvShells;
+    uvShellCounter += nbUvShells;
 
-	return MS::kSuccess;
+    return MS::kSuccess;
 }
 
-MStatus FindUvOverlaps::redoIt() {
+MStatus FindUvOverlaps::redoIt()
+{
 
     MStatus status;
 
@@ -229,7 +235,7 @@ MStatus FindUvOverlaps::redoIt() {
     for (unsigned int i = 0; i < numSelected; i++) {
 
         mSel.getDagPath(i, dagPath);
-		initializeObject(dagPath);
+        initializeObject(dagPath);
 
     } // Object loop ends
 
@@ -239,7 +245,7 @@ MStatus FindUvOverlaps::redoIt() {
     size_t numShells = uvShellArrayMaster.size();
 
     for (size_t i = 0; i < numShells; i++) {
-        UvShell &shell = uvShellArrayMaster[i];
+        UvShell& shell = uvShellArrayMaster[i];
 
         // Setup bounding box for each shell
         size_t numEdges = shell.edges.size();
@@ -265,7 +271,7 @@ MStatus FindUvOverlaps::redoIt() {
     }
 
     for (int i = 0; i < numShells; i++) {
-        UvShell &shellA = uvShellArrayMaster[i];
+        UvShell& shellA = uvShellArrayMaster[i];
         for (int j = i + 1; j < numShells; j++) {
             UvShell shellB = uvShellArrayMaster[j];
 
@@ -296,9 +302,8 @@ MStatus FindUvOverlaps::redoIt() {
                 std::vector<LineSegment> overlapsA;
                 std::vector<LineSegment> overlapsB;
                 for (size_t k = 0; k < numEdgeA; k++) {
-                    LineSegment &line = shellA.edges[k];
-                    if ((uMin <= line.begin.x && line.begin.x <= uMax) &&
-                        (vMin <= line.begin.y && line.begin.y <= vMax)) {
+                    LineSegment& line = shellA.edges[k];
+                    if ((uMin <= line.begin.x && line.begin.x <= uMax) && (vMin <= line.begin.y && line.begin.y <= vMax)) {
                         overlapsA.emplace_back(line);
                         continue;
                     }
@@ -308,9 +313,8 @@ MStatus FindUvOverlaps::redoIt() {
                     }
                 }
                 for (size_t h = 0; h < numEdgeB; h++) {
-                    LineSegment &line = shellB.edges[h];
-                    if ((uMin <= line.begin.x && line.begin.x <= uMax) &&
-                        (vMin <= line.begin.y && line.begin.y <= vMax)) {
+                    LineSegment& line = shellB.edges[h];
+                    if ((uMin <= line.begin.x && line.begin.x <= uMax) && (vMin <= line.begin.y && line.begin.y <= vMax)) {
                         overlapsB.emplace_back(line);
                         continue;
                     }
@@ -342,7 +346,7 @@ MStatus FindUvOverlaps::redoIt() {
         size_t numTasks = 12;
         if (btoVector.size() <= numTasks) {
             // If number of shells is small enough, create same amount of threas
-            std::thread *threadArray = new std::thread[btoVector.size()];
+            std::thread* threadArray = new std::thread[btoVector.size()];
             for (size_t i = 0; i < btoVector.size(); i++) {
                 threadArray[i] = std::thread(&FindUvOverlaps::check, this, std::ref(btoVector[i]));
             }
@@ -359,7 +363,7 @@ MStatus FindUvOverlaps::redoIt() {
             size_t start = 0;
             size_t end = taskLength;
             size_t last = numTasks - 1;
-            for (int i=0; i<numTasks; i++) {
+            for (int i = 0; i < numTasks; i++) {
                 if (end > numChecks || i == last) {
                     end = numChecks;
                 }
@@ -371,7 +375,7 @@ MStatus FindUvOverlaps::redoIt() {
                 start += taskLength;
                 end += taskLength;
             }
-            for (size_t i=0; i<threadVector.size(); i++) {
+            for (size_t i = 0; i < threadVector.size(); i++) {
                 threadVector[i].join();
             }
         }
@@ -393,12 +397,12 @@ MStatus FindUvOverlaps::redoIt() {
     std::unordered_set<std::string> resultSet;
     for (size_t i = 0; i < btoVector.size(); i++) {
 
-        BentleyOttmann &bto = btoVector[i];
-        std::vector<LineSegment *>::iterator iter;
+        BentleyOttmann& bto = btoVector[i];
+        std::vector<LineSegment*>::iterator iter;
         std::string path;
         for (iter = bto.resultPtr.begin(); iter != bto.resultPtr.end(); ++iter) {
-            LineSegment *linePtr = *iter;
-            const LineSegment &line = *linePtr;
+            LineSegment* linePtr = *iter;
+            const LineSegment& line = *linePtr;
 
             path = line.groupId + ".map[" + std::to_string(line.index.first) + "]";
             resultSet.insert(path);
@@ -421,24 +425,29 @@ MStatus FindUvOverlaps::redoIt() {
     return MS::kSuccess;
 }
 
-void FindUvOverlaps::check(BentleyOttmann &bto) {
+void FindUvOverlaps::check(BentleyOttmann& bto)
+{
     bto.check();
 }
 
-void FindUvOverlaps::check_mt(std::vector<BentleyOttmann> &bto, int start, int end) {
-    for (int i=start; i<end; i++) {
+void FindUvOverlaps::check_mt(std::vector<BentleyOttmann>& bto, int start, int end)
+{
+    for (int i = start; i < end; i++) {
         bto[i].check();
     }
 }
 
-MStatus FindUvOverlaps::undoIt() {
+MStatus FindUvOverlaps::undoIt()
+{
     return MS::kSuccess;
 }
 
-bool FindUvOverlaps::isUndoable() const {
+bool FindUvOverlaps::isUndoable() const
+{
     return false;
 }
 
-void *FindUvOverlaps::creator() {
+void* FindUvOverlaps::creator()
+{
     return new FindUvOverlaps;
 }

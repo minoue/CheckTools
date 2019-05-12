@@ -1,10 +1,9 @@
 #ifndef __UVSHELL_H__
 #define __UVSHELL_H__
 
-#include <vector>
 #include "BentleyOttman/bentleyOttmann.hpp"
 #include "BentleyOttman/lineSegment.hpp"
-
+#include <vector>
 
 class UvShell {
 public:
@@ -28,7 +27,7 @@ public:
     {
         return !(*this == rhs);
     }
-    
+
     bool operator*(const UvShell& rhs) const;
 
 private:
