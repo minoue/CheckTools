@@ -24,3 +24,4 @@ plug-ins/
 cmake-build-debug/
 cmake-build-release/
 !CMakeLists.txt
+.clang
