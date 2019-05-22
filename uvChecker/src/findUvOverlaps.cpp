@@ -99,11 +99,13 @@ MString FindUvOverlaps::getWorkUvSet(MFnMesh& fnMesh)
     if (uvSet == "None") {
         workUvSet = currentUVSetName;
 
-    } else if (!uvSetFound) {
+    }
+    else if (!uvSetFound) {
         MGlobal::displayError("UvSet not found");
         // return MS::kFailure;
 
-    } else {
+    }
+    else {
         workUvSet = uvSet;
         fnMesh.setCurrentUVSetName(uvSet);
     }
@@ -165,7 +167,8 @@ MStatus FindUvOverlaps::initializeObject(MDagPath& dagPath)
         for (int u = 0; u < numFaceUVs; u++) {
             if (u == numFaceUVs - 1) {
                 nextCounter = uvCounter - numFaceUVs + 1;
-            } else {
+            }
+            else {
                 nextCounter = uvCounter + 1;
             }
 
@@ -176,7 +179,8 @@ MStatus FindUvOverlaps::initializeObject(MDagPath& dagPath)
 
             if (idA < idB) {
                 idPair = std::make_pair(idA, idB);
-            } else {
+            }
+            else {
                 idPair = std::make_pair(idB, idA);
             }
 
@@ -354,7 +358,8 @@ MStatus FindUvOverlaps::redoIt()
                 threadArray[i].join();
             }
             delete[] threadArray;
-        } else {
+        }
+        else {
             // If number of shells are larger than tasks, split them into each task
             std::vector<std::thread> threadVector;
             threadVector.reserve(numTasks);
@@ -379,7 +384,8 @@ MStatus FindUvOverlaps::redoIt()
                 threadVector[i].join();
             }
         }
-    } else {
+    }
+    else {
         // Single thread
         for (size_t i = 0; i < btoVector.size(); i++) {
             btoVector[i].check();

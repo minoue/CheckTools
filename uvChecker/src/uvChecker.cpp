@@ -146,7 +146,8 @@ MStatus UvChecker::findUdimIntersections()
 
             if (i == vCount - 1) {
                 mItPoly.getUVIndex(0, nextUVindex);
-            } else {
+            }
+            else {
                 mItPoly.getUVIndex(i + 1, nextUVindex);
             }
 
@@ -154,7 +155,8 @@ MStatus UvChecker::findUdimIntersections()
             fnMesh.getUV(nextUVindex, u2, v2);
 
             if (floor(u1) == floor(u2) && floor(v1) == floor(v2)) {
-            } else {
+            }
+            else {
                 indexSet.insert(currentUVindex);
                 indexSet.insert(nextUVindex);
             }
@@ -211,7 +213,8 @@ MStatus UvChecker::findZeroUvFaces()
     for (MItMeshPolygon itPoly(mDagPath); !itPoly.isDone(); itPoly.next()) {
         hasUVs = itPoly.hasUVs();
         if (hasUVs == false) {
-        } else {
+        }
+        else {
             itPoly.getUVArea(area);
             temp.set(area);
             // MGlobal::displayInfo(temp);
