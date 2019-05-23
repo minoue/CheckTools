@@ -103,24 +103,7 @@ MStatus FindUvOverlaps::redoIt()
 
     for (size_t i = 0; i < numShells; i++) {
         UvShell& shell = uvShellArrayMaster[i];
-
-        // Setup bounding box for each shell
-        size_t numEdges = shell.edges.size();
-        std::vector<float> uVec;
-        std::vector<float> vVec;
-        uVec.reserve(numEdges * 2);
-        vVec.reserve(numEdges * 2);
-        std::vector<LineSegment>::iterator edgeIter;
-        for (edgeIter = shell.edges.begin(); edgeIter != shell.edges.end(); ++edgeIter) {
-            uVec.emplace_back(edgeIter->begin.x);
-            uVec.emplace_back(edgeIter->end.x);
-            vVec.emplace_back(edgeIter->begin.y);
-            vVec.emplace_back(edgeIter->end.y);
-        }
-        shell.uMin = *std::min_element(uVec.begin(), uVec.end());
-        shell.uMax = *std::max_element(uVec.begin(), uVec.end());
-        shell.vMin = *std::min_element(vVec.begin(), vVec.end());
-        shell.vMax = *std::max_element(vVec.begin(), vVec.end());
+        shell.initBBox();
 
         // Create BentleyOttmann objects
         BentleyOttmann bto(shell.edges, shell.path);
