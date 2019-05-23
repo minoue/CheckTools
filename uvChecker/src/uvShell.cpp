@@ -4,8 +4,7 @@ UvShell::UvShell()
 {
 }
 
-UvShell::UvShell(int shellIndex)
-    : shellIndex(shellIndex)
+UvShell::UvShell(int shellIndex) : shellIndex(shellIndex)
 {
 }
 
@@ -33,4 +32,9 @@ bool UvShell::operator*(const UvShell& rhs) const
         return false;
 
     return true;
+}
+
+void UvShell::initBBox()
+{
+
 }

@@ -12,13 +12,8 @@ public:
     ~UvShell();
 
     int shellIndex;
-    float uMax;
-    float uMin;
-    float vMax;
-    float vMin;
+    float uMax, uMin, vMax, vMin;
 
-    std::vector<float> xVector;
-    std::vector<float> yVector;
     std::vector<LineSegment> edges;
     std::string path;
 
@@ -29,6 +24,8 @@ public:
     }
 
     bool operator*(const UvShell& rhs) const;
+
+    void initBBox();
 
 private:
 };
