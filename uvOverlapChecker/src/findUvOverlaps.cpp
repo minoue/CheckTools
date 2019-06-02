@@ -21,11 +21,11 @@
 #include <maya/MSyntax.h>
 #include <maya/MTimer.h>
 
-#include "bentleyOttman/bentleyOttmann.hpp"
-#include "bentleyOttman/lineSegment.hpp"
+#include "bentleyOttmann/bentleyOttmann.hpp"
+#include "bentleyOttmann/lineSegment.hpp"
 
 static const char* pluginName = "findUvOverlaps";
-static const char* pluginVersion = "0.1.0";
+static const char* pluginVersion = "1.7.0";
 static const char* pluginAuthor = "Michitaka Inoue";
 
 class UVShell {
