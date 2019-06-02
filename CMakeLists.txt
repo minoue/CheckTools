@@ -5,3 +5,4 @@ set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/install)
 
 add_subdirectory(meshChecker)
 add_subdirectory(uvChecker)
+add_subdirectory(uvOverlapChecker)

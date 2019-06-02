@@ -43,7 +43,6 @@ endif()
 set(MAYA_VERSION 2018 CACHE STRING "Maya version")
 set(CMAKE_BUILD_TYPE Release CACHE STRING "Default build type")
 
-
 if (WIN32)
     set(INCLUDE_DIR "C:/Program Files/Autodesk/Maya${MAYA_VERSION}/include")
     set(LIBRARY_DIR "C:/Program Files/Autodesk/Maya${MAYA_VERSION}/lib")
@@ -94,4 +93,3 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
     )
 
 install(TARGETS ${PROJECT_NAME} ${MAYA_TARGET_TYPE} DESTINATION ${INSTALL_DIR})
-set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_BINARY_DIR})
