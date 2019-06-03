@@ -25,7 +25,7 @@
 #include "bentleyOttmann/lineSegment.hpp"
 
 static const char* pluginName = "findUvOverlaps";
-static const char* pluginVersion = "1.7.0";
+static const char* pluginVersion = "1.7.1";
 static const char* pluginAuthor = "Michitaka Inoue";
 
 class UVShell {
@@ -172,7 +172,7 @@ private:
     ShellVector allShells;
     std::vector<BentleyOttmann> btoVector;
     void btoCheck(int i);
-    void FindUvOverlaps::timeIt(std::string text, double t);
+    void timeIt(std::string text, double t);
 };
 
 FindUvOverlaps::~FindUvOverlaps() {}
