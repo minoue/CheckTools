@@ -25,7 +25,7 @@
 #include "bentleyOttmann/lineSegment.hpp"
 
 static const char* pluginName = "findUvOverlaps";
-static const char* pluginVersion = "1.7.1";
+static const char* pluginVersion = "1.7.2";
 static const char* pluginAuthor = "Michitaka Inoue";
 
 class UVShell {
