@@ -308,9 +308,25 @@ MStatus FindUvOverlaps::doIt(const MArgList& args)
 
 MStatus FindUvOverlaps::init(int i)
 {
+    MStatus status;
 
     MDagPath dagPath;
     mSel.getDagPath(i, dagPath);
+
+    // Check if specified object is geometry or not
+    status = dagPath.extendToShape();
+    if (status != MS::kSuccess) {
+        if (verbose)
+            MGlobal::displayInfo("Failed to extend to shape node.");
+        return MS::kFailure;
+    }
+
+    if (dagPath.apiType() != MFn::kMesh) {
+        if (verbose)
+            MGlobal::displayInfo("Selected node : " + dagPath.fullPathName() + " is not mesh. Skipped");
+        return MS::kFailure;
+    }
+
     MFnMesh fnMesh(dagPath);
     std::string dagPathStr = dagPath.fullPathName().asChar();
 
