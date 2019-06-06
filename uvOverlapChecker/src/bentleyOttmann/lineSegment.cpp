@@ -24,7 +24,7 @@ LineSegment::LineSegment(Point2D p1, Point2D p2)
     }
 }
 
-LineSegment::LineSegment(Point2D p1, Point2D p2, std::string groupId)
+LineSegment::LineSegment(Point2D p1, Point2D p2, const char* groupId) : groupId(groupId)
 {
     if (p1 < p2) {
         this->begin = p1;
@@ -35,7 +35,6 @@ LineSegment::LineSegment(Point2D p1, Point2D p2, std::string groupId)
         this->end = p1;
         this->index = std::make_pair(p2.index, p1.index);
     }
-    this->groupId = groupId;
 }
 
 LineSegment::~LineSegment()
