@@ -19,11 +19,13 @@ public:
     MStatus findUdimIntersections();
     MStatus findNoUvFaces();
     MStatus findZeroUvFaces();
+    bool hasUnassignedUVs();
 
     enum Check {
         UDIM,
         HAS_UVS,
-        ZERO_AREA
+        ZERO_AREA,
+        UN_ASSIGNED_UVS
     };
 
 private:

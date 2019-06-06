@@ -9,6 +9,8 @@
 #include <maya/MSelectionList.h>
 #include <maya/MStringArray.h>
 #include <set>
+#include <vector>
+#include <algorithm>
 
 UvChecker::UvChecker()
 {
@@ -100,6 +102,14 @@ MStatus UvChecker::redoIt()
         }
         status = findZeroUvFaces();
         CHECK_MSTATUS_AND_RETURN_IT(status);
+        break;
+    case UvChecker::UN_ASSIGNED_UVS:
+        if (verbose) {
+            MGlobal::displayInfo("Checking UnassignedUVs");
+        }
+        bool result;
+        result = hasUnassignedUVs();
+        MPxCommand::setResult(result);
         break;
     default:
         MGlobal::displayError("Invalid check number");
@@ -227,4 +237,32 @@ MStatus UvChecker::findZeroUvFaces()
     }
     MPxCommand::setResult(resultArray);
     return MS::kSuccess;
+}
+
+bool UvChecker::hasUnassignedUVs()
+{
+    MFnMesh fnMesh(mDagPath);
+    int numUVs = fnMesh.numUVs();
+    MIntArray uvCounts;
+    MIntArray uvIds;
+    fnMesh.getAssignedUVs(uvCounts, uvIds);
+    unsigned int numUvIds = uvIds.length();
+
+    std::vector<int> uvIdVec;
+    uvIdVec.reserve(numUvIds);
+    for (int i = 0; i < numUvIds; i++) {
+        uvIdVec.push_back(uvIds[i]);
+    }
+
+    // Remove duplicate elements
+    std::sort(uvIdVec.begin(), uvIdVec.end());
+    uvIdVec.erase(std::unique(uvIdVec.begin(), uvIdVec.end()), uvIdVec.end());
+
+    int numAssignedUVs = uvIdVec.size();
+
+    if (numUVs != numAssignedUVs) {
+        return true;
+    } else {
+        return false;
+    }
 }
