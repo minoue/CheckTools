@@ -5,6 +5,8 @@ Find general uv errors
 0. Udim border intersections
 1. Non-mapped UV faces
 2. Zero-area Uv faces
+3. Unassigned UVs
+4. UVs in negative space
 
 ### Flags
 | Longname | Shortname | Argument types | Default | Properties |
@@ -16,29 +18,7 @@ Find general uv errors
 ### Example
 ```python
 from maya import cmds
+errors = cmds.checkUV("|pSphere1", c=0)
+print errors
+>>> [u'|pSphere1|pSphereShape1.map[19]', u'|pSphere1|pSphereShape1.map[20]', ...]
 ```
-
-## FindUvOverlaps 
-Find overlapped UVs with other shells or itself.
-
-### Flags
-| Longname | Shortname | Argument types | Default | Properties |
-|:---------|----------:|:--------------:|:-------:|:----------:|
-|uvSet|set|string||C|
-|verbose|v|bool|False|C|
-
-### Example
-```python
-from maya import cmds
-r = cmds.findUvOverlaps("|pSphere1")
-print r
-[u'|pPlane1|pPlaneShape1.map[38]', u'|pPlane1|pPlaneShape1.map[39]', ....]
-```
-
-* Single object selected or object path specified as command argment
-
-    <img src="https://github.com/minoue/CheckTools/blob/media/media/uvOverlaps_single.gif" alt="Image" style="width: 300px;"/>
-
-* Multiple object selected
-
-    <img src="https://github.com/minoue/CheckTools/blob/media/media/uvOverlaps_multipleObj.gif" alt="Image" style="width: 300px;"/>
