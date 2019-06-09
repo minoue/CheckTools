@@ -3,6 +3,7 @@ project(findUvOverlaps)
 
 set(SOURCE_FILES
     src/findUvOverlaps.cpp
+    src/findUvOverlaps.h
     src/bentleyOttmann/bentleyOttmann.cpp
     src/bentleyOttmann/bentleyOttmann.hpp
     src/bentleyOttmann/event.hpp

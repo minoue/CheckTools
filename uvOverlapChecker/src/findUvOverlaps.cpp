@@ -1,44 +1,24 @@
 
 #include <algorithm>
-#include <mutex>
 #include <set>
 #include <string>
 #include <thread>
 #include <utility>
 #include <vector>
-
+#include "findUvOverlaps.h"
 #include <maya/MArgDatabase.h>
-#include <maya/MArgList.h>
 #include <maya/MDagPath.h>
 #include <maya/MFloatArray.h>
 #include <maya/MFnMesh.h>
 #include <maya/MFnPlugin.h>
 #include <maya/MGlobal.h>
 #include <maya/MIntArray.h>
-#include <maya/MPxCommand.h>
-#include <maya/MSelectionList.h>
 #include <maya/MStringArray.h>
-#include <maya/MSyntax.h>
 #include <maya/MTimer.h>
 
-#include "bentleyOttmann/bentleyOttmann.hpp"
-#include "bentleyOttmann/lineSegment.hpp"
-
 static const char* pluginName = "findUvOverlaps";
-static const char* pluginVersion = "1.7.3";
+static const char* pluginVersion = "1.7.4";
 static const char* pluginAuthor = "Michitaka Inoue";
-
-class UVShell {
-    int index;
-    float left, right, top, bottom;
-public:
-    UVShell(){};
-    ~UVShell();
-    std::vector<LineSegment> lines;
-    void initAABB();
-    bool operator*(const UVShell& other) const;
-    UVShell operator&&(const UVShell& other) const;
-};
 
 UVShell::~UVShell(){};
 
@@ -134,61 +114,6 @@ UVShell UVShell::operator&&(const UVShell& other) const
     return s;
 }
 
-class ShellVector {
-private:
-    std::mutex mtx;
-public:
-    std::vector<UVShell> shells;
-    void emplace_back(UVShell s)
-    {
-        std::lock_guard<std::mutex> lock(mtx);
-        shells.emplace_back(s);
-    }
-    size_t size()
-    {
-        return shells.size();
-    }
-    UVShell getShell(int i)
-    {
-        return shells[i];
-    }
-};
-
-class MStringVector {
-private:
-    std::mutex mtx;
-    std::vector<MString> elements;
-public:
-    const char* emplace_back(MString path) {
-        std::lock_guard<std::mutex> lock(mtx);
-        elements.emplace_back(path);
-        MString &tempMstring = elements.back();
-        const char* tempChar = tempMstring.asChar();
-        return tempChar;
-    }
-};
-
-class FindUvOverlaps : public MPxCommand {
-public:
-    FindUvOverlaps(){};
-    ~FindUvOverlaps() override;
-
-    MStatus doIt(const MArgList& args) override;
-
-    static void* creator();
-    static MSyntax newSyntax();
-
-private:
-    MString uvSet;
-    bool verbose;
-    MSelectionList mSel;
-    MStatus init(int i);
-    ShellVector allShells;
-    MStringVector paths;
-    std::vector<BentleyOttmann> btoVector;
-    void btoCheck(int i);
-    void timeIt(std::string text, double t);
-};
 
 FindUvOverlaps::~FindUvOverlaps() {}
 
