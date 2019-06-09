@@ -25,7 +25,7 @@
 #include "bentleyOttmann/lineSegment.hpp"
 
 static const char* pluginName = "findUvOverlaps";
-static const char* pluginVersion = "1.7.2";
+static const char* pluginVersion = "1.7.3";
 static const char* pluginAuthor = "Michitaka Inoue";
 
 class UVShell {
@@ -154,6 +154,20 @@ public:
     }
 };
 
+class MStringVector {
+private:
+    std::mutex mtx;
+    std::vector<MString> elements;
+public:
+    const char* emplace_back(MString path) {
+        std::lock_guard<std::mutex> lock(mtx);
+        elements.emplace_back(path);
+        MString &tempMstring = elements.back();
+        const char* tempChar = tempMstring.asChar();
+        return tempChar;
+    }
+};
+
 class FindUvOverlaps : public MPxCommand {
 public:
     FindUvOverlaps(){};
@@ -170,6 +184,7 @@ private:
     MSelectionList mSel;
     MStatus init(int i);
     ShellVector allShells;
+    MStringVector paths;
     std::vector<BentleyOttmann> btoVector;
     void btoCheck(int i);
     void timeIt(std::string text, double t);
@@ -272,7 +287,7 @@ MStatus FindUvOverlaps::doIt(const MArgList& args)
     if (verbose)
         timeIt("Check time : ", elapsedTime);
 
-    // Re-insert ot unordered_set to remove duplicates
+    // Re-insert to set to remove duplicates
     std::set<std::string> resultSet;
     std::string path;
     for (size_t i = 0; i < btoVector.size(); i++) {
@@ -284,10 +299,12 @@ MStatus FindUvOverlaps::doIt(const MArgList& args)
             LineSegment* linePtr = *iter;
             const LineSegment& line = *linePtr;
 
-            path = line.groupId + ".map[" + std::to_string(line.index.first) + "]";
+            std::string groupName(line.groupId);
+
+            path = groupName + ".map[" + std::to_string(line.index.first) + "]";
             resultSet.insert(path);
 
-            path = line.groupId + ".map[" + std::to_string(line.index.second) + "]";
+            path = groupName + ".map[" + std::to_string(line.index.second) + "]";
             resultSet.insert(path);
         }
     }
@@ -328,7 +345,9 @@ MStatus FindUvOverlaps::init(int i)
     }
 
     MFnMesh fnMesh(dagPath);
-    std::string dagPathStr = dagPath.fullPathName().asChar();
+
+    // Send to path vector and get pointer to that
+    const char* dagPathChar = paths.emplace_back(dagPath.fullPathName());
 
     MIntArray uvShellIds;
     unsigned int nbUvShells;
@@ -394,7 +413,7 @@ MStatus FindUvOverlaps::init(int i)
         Point2D p2(uArray[idB], vArray[idB], idB);
 
         // Create new lineSegment object
-        LineSegment line(p1, p2, dagPathStr);
+        LineSegment line(p1, p2, dagPathChar);
 
         int shellIndex = uvShellIds[idA];
         shells[shellIndex].lines.emplace_back(line);
