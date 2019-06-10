@@ -157,14 +157,20 @@ MStatus FindUvOverlaps::doIt(const MArgList& args)
 
     timer.beginTimer();
     // Multithrad obj initialization
-    std::thread* threadArray = new std::thread[mSel.length()];
-    for (size_t i = 0; i < mSel.length(); i++) {
-        threadArray[i] = std::thread(&FindUvOverlaps::init, this, i);
+    // std::thread* threadArray = new std::thread[mSel.length()];
+    // for (size_t i = 0; i < mSel.length(); i++) {
+    //     threadArray[i] = std::thread(&FindUvOverlaps::init, this, i);
+    // }
+    // for (size_t i = 0; i < mSel.length(); i++) {
+    //     threadArray[i].join();
+    // }
+    // delete[] threadArray;
+
+#pragma omp parallel for
+    for (int i = 0; i < mSel.length(); i++) {
+        init(i);
     }
-    for (size_t i = 0; i < mSel.length(); i++) {
-        threadArray[i].join();
-    }
-    delete[] threadArray;
+
     timer.endTimer();
     elapsedTime = timer.elapsedTime();
     if (verbose)
@@ -199,14 +205,20 @@ MStatus FindUvOverlaps::doIt(const MArgList& args)
 
     timer.beginTimer();
     // Multithread bentleyOttman check
-    std::thread* btoThreadArray = new std::thread[numAllShells];
-    for (size_t i = 0; i < numAllShells; i++) {
-        btoThreadArray[i] = std::thread(&FindUvOverlaps::btoCheck, this, i);
+    // std::thread* btoThreadArray = new std::thread[numAllShells];
+    // for (size_t i = 0; i < numAllShells; i++) {
+    //     btoThreadArray[i] = std::thread(&FindUvOverlaps::btoCheck, this, i);
+    // }
+    // for (size_t i = 0; i < numAllShells; i++) {
+    //     btoThreadArray[i].join();
+    // }
+    // delete[] btoThreadArray;
+
+#pragma omp parallel for
+    for (int i = 0; i < btoVector.size(); i++) {
+        btoVector[i].check();
     }
-    for (size_t i = 0; i < numAllShells; i++) {
-        btoThreadArray[i].join();
-    }
-    delete[] btoThreadArray;
+
     timer.endTimer();
     elapsedTime = timer.elapsedTime();
     if (verbose)
