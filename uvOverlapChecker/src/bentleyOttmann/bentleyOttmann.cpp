@@ -13,19 +13,9 @@ BentleyOttmann::BentleyOttmann()
 
 BentleyOttmann::BentleyOttmann(std::vector<LineSegment>& edgeVector)
     : edges(edgeVector)
-    , groupId("")
     , verbose(false)
 {
 }
-
-// BentleyOttmann::BentleyOttmann(std::vector<LineSegment>& edgeVector, std::string& groupId)
-//     : edges(edgeVector)
-//     , groupId(groupId)
-//     , verbose(false)
-// {
-
-//     assignGroupId();
-// }
 
 BentleyOttmann::~BentleyOttmann()
 {
@@ -44,14 +34,6 @@ BentleyOttmann BentleyOttmann::operator+(const BentleyOttmann& rhs) const
 
     return newBO;
 }
-
-// void BentleyOttmann::assignGroupId()
-// {
-//     std::vector<LineSegment>::iterator iter;
-//     for (iter = edges.begin(); iter != edges.end(); ++iter) {
-//         (*iter).groupId = this->groupId;
-//     }
-// }
 
 void BentleyOttmann::createNewEvent(LineSegment* lineA, LineSegment* lineB)
 {
