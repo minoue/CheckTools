@@ -19,13 +19,13 @@ public:
     explicit BentleyOttmann(std::vector<LineSegment>& edgeVector);
     ~BentleyOttmann();
 
-    void check();
-    std::vector<LineSegment*> resultPtr;
+    void check(std::vector<LineSegment> &result);
     std::vector<LineSegment> edges;
 
     BentleyOttmann operator+(const BentleyOttmann& rhs) const;
 
 private:
+    std::vector<LineSegment> *resultPtr;
     bool verbose;
     bool doBegin(Event& ev);
     bool doEnd(Event& ev);
