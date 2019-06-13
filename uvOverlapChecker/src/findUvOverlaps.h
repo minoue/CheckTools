@@ -1,4 +1,3 @@
-
 #ifndef __findUvOverlaps_h__
 #define __findUvOverlaps_h__
 
@@ -17,32 +16,12 @@ class UVShell {
     int index;
     float left, right, top, bottom;
 public:
-    UVShell(){};
+    UVShell() {};
     ~UVShell();
     std::vector<LineSegment> lines;
     void initAABB();
     bool operator*(const UVShell& other) const;
     UVShell operator&&(const UVShell& other) const;
-};
-
-class ShellVector {
-private:
-    std::mutex mtx;
-public:
-    std::vector<UVShell> shells;
-    void emplace_back(UVShell s)
-    {
-        std::lock_guard<std::mutex> lock(mtx);
-        shells.emplace_back(s);
-    }
-    size_t size()
-    {
-        return shells.size();
-    }
-    UVShell getShell(int i)
-    {
-        return shells[i];
-    }
 };
 
 class MStringVector {
@@ -70,14 +49,19 @@ public:
     static MSyntax newSyntax();
 
 private:
+	std::mutex locker;
     MString uvSet;
     bool verbose;
     MSelectionList mSel;
-    MStatus init(int i);
-    ShellVector allShells;
     MStringVector paths;
-    std::vector<BentleyOttmann> btoVector;
-    void btoCheck(int i);
+
+    std::vector<std::vector<LineSegment> > finalResult;
+    std::vector<UVShell> shellVector;
+
+    MStatus init(int i);
+    void btoCheck(UVShell &shell);
+    void pushToLineVector(std::vector<LineSegment> &v);
+    void pushToShellVector(UVShell &shell);
     void timeIt(std::string text, double t);
 };
 

@@ -1,4 +1,3 @@
-
 #include <algorithm>
 #include <set>
 #include <string>
@@ -17,14 +16,13 @@
 #include <maya/MTimer.h>
 
 static const char* pluginName = "findUvOverlaps";
-static const char* pluginVersion = "1.7.4";
+static const char* pluginVersion = "1.8.0";
 static const char* pluginAuthor = "Michitaka Inoue";
 
-UVShell::~UVShell(){};
+UVShell::~UVShell() {};
 
 void UVShell::initAABB()
 {
-    size_t numLines = this->lines.size();
     std::vector<float> uVector;
     std::vector<float> vVector;
     std::vector<LineSegment>::iterator lineIter;
@@ -85,7 +83,7 @@ UVShell UVShell::operator&&(const UVShell& other) const
     size_t numLinesA = this->lines.size();
     size_t numLinesB = other.lines.size();
 
-    for (int i = 0; i < numLinesA; i++) {
+    for (size_t i = 0; i < numLinesA; i++) {
         const LineSegment& line = this->lines[i];
         if ((left <= line.begin.x && line.begin.x <= right) && (bottom <= line.begin.y && line.begin.y <= top)) {
             overlapLines.emplace_back(line);
@@ -130,9 +128,36 @@ MSyntax FindUvOverlaps::newSyntax()
     return syntax;
 }
 
-void FindUvOverlaps::btoCheck(int i)
+void FindUvOverlaps::btoCheck(UVShell &shell)
 {
-    btoVector[i].check();
+    std::vector<LineSegment> result;
+    BentleyOttmann b(shell.lines);
+    b.check(result);
+    pushToLineVector(result);
+}
+
+void FindUvOverlaps::pushToLineVector(std::vector<LineSegment> &v)
+{
+    try {
+        locker.lock();
+        finalResult.push_back(v);
+        locker.unlock();
+    }
+    catch (std::exception e) {
+        std::cerr << e.what() << std::endl;
+    }
+}
+
+void FindUvOverlaps::pushToShellVector(UVShell &shell)
+{
+    try {
+        locker.lock();
+        shellVector.push_back(shell);
+        locker.unlock();
+    }
+    catch (std::exception e) {
+        std::cerr << e.what() << std::endl;
+    }
 }
 
 MStatus FindUvOverlaps::doIt(const MArgList& args)
@@ -166,8 +191,9 @@ MStatus FindUvOverlaps::doIt(const MArgList& args)
     // }
     // delete[] threadArray;
 
-#pragma omp parallel for
-    for (int i = 0; i < mSel.length(); i++) {
+    int numSelected = mSel.length();
+    #pragma omp parallel for
+    for (int i = 0; i < numSelected; i++) {
         init(i);
     }
 
@@ -177,47 +203,39 @@ MStatus FindUvOverlaps::doIt(const MArgList& args)
         timeIt("Init time : ", elapsedTime);
     timer.clear();
 
-    size_t numAllShells = allShells.size();
-    btoVector.reserve(numAllShells);
+    size_t numAllShells = shellVector.size();
 
-    for (int i = 0; i < numAllShells; i++) {
-        UVShell& s = allShells.shells[i];
+    for (size_t i = 0; i < numAllShells; i++) {
+        UVShell& s = shellVector[i];
         s.initAABB();
     }
 
-    for (int i = 0; i < numAllShells; i++) {
-        UVShell& shellA = allShells.shells[i];
+    for (size_t i = 0; i < numAllShells; i++) {
+        UVShell& shellA = shellVector[i];
 
-        // single shell check
-        BentleyOttmann bto(shellA.lines);
-        btoVector.emplace_back(bto);
-
-        for (int j = i + 1; j < numAllShells; j++) {
-            UVShell& shellB = allShells.shells[j];
+        for (size_t j = i + 1; j < numAllShells; j++) {
+            UVShell& shellB = shellVector[j];
 
             if (shellA * shellB) {
                 UVShell intersectedShell = shellA && shellB;
-                BentleyOttmann intersectedBto(intersectedShell.lines);
-                btoVector.emplace_back(intersectedBto);
+                shellVector.emplace_back(intersectedShell);
             }
         }
     }
 
     timer.beginTimer();
-    // Multithread bentleyOttman check
-    // std::thread* btoThreadArray = new std::thread[numAllShells];
-    // for (size_t i = 0; i < numAllShells; i++) {
-    //     btoThreadArray[i] = std::thread(&FindUvOverlaps::btoCheck, this, i);
-    // }
-    // for (size_t i = 0; i < numAllShells; i++) {
-    //     btoThreadArray[i].join();
-    // }
-    // delete[] btoThreadArray;
 
-#pragma omp parallel for
-    for (int i = 0; i < btoVector.size(); i++) {
-        btoVector[i].check();
+    // Multithread bentleyOttman check
+    size_t numAllShells2 = shellVector.size();
+    std::thread* btoThreadArray = new std::thread[numAllShells2];
+    for (size_t i = 0; i < numAllShells2; i++) {
+        UVShell &s = shellVector[i];
+        btoThreadArray[i] = std::thread(&FindUvOverlaps::btoCheck, this, s);
     }
+    for (size_t i = 0; i < numAllShells2; i++) {
+        btoThreadArray[i].join();
+    }
+    delete[] btoThreadArray;
 
     timer.endTimer();
     elapsedTime = timer.elapsedTime();
@@ -227,20 +245,13 @@ MStatus FindUvOverlaps::doIt(const MArgList& args)
     // Re-insert to set to remove duplicates
     std::set<std::string> resultSet;
     std::string path;
-    for (size_t i = 0; i < btoVector.size(); i++) {
-
-        BentleyOttmann& bto = btoVector[i];
-        std::vector<LineSegment*>::iterator iter;
-
-        for (iter = bto.resultPtr.begin(); iter != bto.resultPtr.end(); ++iter) {
-            LineSegment* linePtr = *iter;
-            const LineSegment& line = *linePtr;
-
+    for (size_t i = 0; i < finalResult.size(); i++) {
+        std::vector<LineSegment> &lines = finalResult[i];
+        for (size_t j = 0; j < lines.size(); j++) {
+            LineSegment &line = lines[j];
             std::string groupName(line.groupId);
-
             path = groupName + ".map[" + std::to_string(line.index.first) + "]";
             resultSet.insert(path);
-
             path = groupName + ".map[" + std::to_string(line.index.second) + "]";
             resultSet.insert(path);
         }
@@ -356,8 +367,8 @@ MStatus FindUvOverlaps::init(int i)
         shells[shellIndex].lines.emplace_back(line);
     }
 
-    for (int i = 0; i < shells.size(); i++) {
-        allShells.emplace_back(shells[i]);
+    for (size_t i = 0; i < shells.size(); i++) {
+        pushToShellVector(shells[i]);
     }
 
     return MS::kSuccess;
