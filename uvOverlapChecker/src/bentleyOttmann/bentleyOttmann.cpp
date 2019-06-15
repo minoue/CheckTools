@@ -85,7 +85,7 @@ bool BentleyOttmann::doBegin(Event& ev)
     LineSegment* currentEdgePtr = ev.edgePtrA;
     statusPtrQueue.emplace_back(currentEdgePtr);
 
-    if (statusPtrQueue.size() == 1) {
+    if (statusPtrQueue.size() <= 1) {
         return false;
     }
 
@@ -107,7 +107,7 @@ bool BentleyOttmann::doBegin(Event& ev)
     }
 
     // Get currentEdge object from the statusQueue after sorted
-    long index = std::distance(statusPtrQueue.begin(), foundIter);
+    size_t index = std::distance(statusPtrQueue.begin(), foundIter);
 
     if (foundIter == statusPtrQueue.begin()) {
         LineSegment* targetEdge = statusPtrQueue[index + 1];
@@ -158,7 +158,7 @@ bool BentleyOttmann::doEnd(Event& ev)
 
     }
     else {
-        long index = std::distance(statusPtrQueue.begin(), foundIter);
+        size_t index = std::distance(statusPtrQueue.begin(), foundIter);
         LineSegment* nextEdgePtr = statusPtrQueue[index + 1];
         LineSegment* previousEdgePtr = statusPtrQueue[index - 1];
         bool isCrossing = (*nextEdgePtr) * (*previousEdgePtr);
