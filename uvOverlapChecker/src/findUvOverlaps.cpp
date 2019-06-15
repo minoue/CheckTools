@@ -1,5 +1,4 @@
 #include <algorithm>
-#include <set>
 #include <string>
 #include <thread>
 #include <utility>
@@ -16,7 +15,7 @@
 #include <maya/MTimer.h>
 
 static const char* pluginName = "findUvOverlaps";
-static const char* pluginVersion = "1.8.2";
+static const char* pluginVersion = "1.8.3";
 static const char* pluginAuthor = "Michitaka Inoue";
 
 UVShell::~UVShell() {};
@@ -241,28 +240,42 @@ MStatus FindUvOverlaps::doIt(const MArgList& args)
     elapsedTime = timer.elapsedTime();
     if (verbose)
         timeIt("Check time : ", elapsedTime);
+    timer.clear();
 
+    timer.beginTimer();
     // Re-insert to set to remove duplicates
-    std::set<std::string> resultSet;
+    std::vector<std::string> strVec;
     std::string path;
-    for (size_t i = 0; i < finalResult.size(); i++) {
+    size_t numResults = finalResult.size();
+    for (size_t i = 0; i < numResults; i++) {
         std::vector<LineSegment> &lines = finalResult[i];
-        for (size_t j = 0; j < lines.size(); j++) {
+        size_t numLines = lines.size();
+        for (size_t j = 0; j < numLines; j++) {
             LineSegment &line = lines[j];
             std::string groupName(line.groupId);
             path = groupName + ".map[" + std::to_string(line.index.first) + "]";
-            resultSet.insert(path);
+            strVec.push_back(path);
             path = groupName + ".map[" + std::to_string(line.index.second) + "]";
-            resultSet.insert(path);
+            strVec.push_back(path);
         }
     }
+
+    // Remove duplicates
+    std::sort(strVec.begin(), strVec.end());
+    strVec.erase(std::unique(strVec.begin(), strVec.end()), strVec.end());
+
+    timer.endTimer();
+    elapsedTime = timer.elapsedTime();
+    if (verbose)
+        timeIt("Removed duplicates : ", elapsedTime);
+    timer.clear();
 
     // Insert all results to MStringArray for return
     MString s;
     MStringArray resultStringArray;
-    std::set<std::string>::iterator resultSetIter;
-    for (resultSetIter = resultSet.begin(); resultSetIter != resultSet.end(); ++resultSetIter) {
-        s.set((*resultSetIter).c_str());
+    std::vector<std::string>::iterator resultStrIter;
+    for (resultStrIter = strVec.begin(); resultStrIter != strVec.end(); ++resultStrIter) {
+        s.set((*resultStrIter).c_str());
         resultStringArray.append(s);
     }
 
