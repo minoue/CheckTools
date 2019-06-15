@@ -11,9 +11,7 @@ BentleyOttmann::BentleyOttmann()
 {
 }
 
-BentleyOttmann::BentleyOttmann(std::vector<LineSegment>& edgeVector)
-    : edges(edgeVector)
-    , verbose(false)
+BentleyOttmann::BentleyOttmann(std::vector<LineSegment>& edgeVector) : edges(edgeVector)
 {
 }
 

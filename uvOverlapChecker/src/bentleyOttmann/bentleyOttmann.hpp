@@ -26,7 +26,6 @@ public:
 
 private:
     std::vector<LineSegment> *resultPtr;
-    bool verbose;
     bool doBegin(Event& ev);
     bool doEnd(Event& ev);
     bool doCross(Event& ev);
