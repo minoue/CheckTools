@@ -22,6 +22,18 @@ LineSegment::LineSegment(Point2D p1, Point2D p2, const char* groupId) : groupId(
         this->end = p1;
         this->index = std::make_pair(p2.index, p1.index);
     }
+    if (p1.x == p2.x) {
+        this->isVertical = true;
+        this->isHorizontal = false;
+    } else if (p1.y == p2.y) {
+        this->isVertical = false;
+        this->isHorizontal = true;
+    }
+    else {
+        this->isVertical = false;
+        this->isHorizontal = false;
+    }
+
 }
 
 LineSegment::~LineSegment()

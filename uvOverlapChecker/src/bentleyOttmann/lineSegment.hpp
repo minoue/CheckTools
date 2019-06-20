@@ -29,6 +29,9 @@ public:
 
     bool operator*(const LineSegment& rhs) const;
 
+    bool isHorizontal;
+    bool isVertical;
+
 private:
     float getTriangleArea(float Ax, float Ay, float Bx, float By, float Cx, float Cy) const;
     bool sameSigns(const float x, const float y) const;

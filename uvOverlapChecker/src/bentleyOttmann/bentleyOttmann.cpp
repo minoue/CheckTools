@@ -6,6 +6,7 @@
 #include "bentleyOttmann.hpp"
 #include <algorithm>
 #include <iostream>
+#include <cmath>
 
 BentleyOttmann::BentleyOttmann()
 {
@@ -92,10 +93,20 @@ bool BentleyOttmann::doBegin(Event& ev)
     // Set crossing point of Y for all edges in the statusQueue and the sweepline
     for (size_t i = 0; i < statusPtrQueue.size(); i++) {
         LineSegment* ePtr = statusPtrQueue[i];
-        float slope2 = (ePtr->end.y - ePtr->begin.y) / (ePtr->end.x - ePtr->begin.x);
-        float b2 = ePtr->begin.y - slope2 * ePtr->begin.x;
-        float y2 = slope2 * ev.sweepline + b2;
-        ePtr->crossingPointY = y2;
+        if (ePtr->isHorizontal) {
+            ePtr->crossingPointY = ePtr->begin.y;
+        } else if (ePtr->isVertical) {
+            float mid = (ePtr->begin.y + ePtr->end.y) * 0.5;
+            ePtr->crossingPointY = mid;
+        } else {
+            float slope2 = (ePtr->end.y - ePtr->begin.y) / (ePtr->end.x - ePtr->begin.x);
+            float b2 = ePtr->begin.y - slope2 * ePtr->begin.x;
+            float y2 = slope2 * ev.sweepline + b2;
+            ePtr->crossingPointY = y2;
+            if (std::isnan(ePtr->crossingPointY)) {
+                std::cout << std::endl;
+            }
+        }
     }
     std::sort(statusPtrQueue.begin(), statusPtrQueue.end(), EdgeCrossingComparator());
 
