@@ -13,7 +13,6 @@
 class LineSegment {
 public:
     LineSegment();
-    LineSegment(Point2D p1, Point2D p2);
     LineSegment(Point2D p1, Point2D p2, const char* groupId);
     ~LineSegment();
     Point2D begin;
