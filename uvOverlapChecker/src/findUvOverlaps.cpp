@@ -15,7 +15,7 @@
 #include <maya/MTimer.h>
 
 static const char* pluginName = "findUvOverlaps";
-static const char* pluginVersion = "1.8.7";
+static const char* pluginVersion = "1.8.8";
 static const char* pluginAuthor = "Michitaka Inoue";
 
 UVShell::~UVShell() {};
@@ -209,26 +209,36 @@ MStatus FindUvOverlaps::doIt(const MArgList& args)
         s.initAABB();
     }
 
+    std::vector<UVShell> shells; // temp countainer to store both original and combined shells
+
     for (size_t i = 0; i < numAllShells; i++) {
         UVShell& shellA = shellVector[i];
+        shells.push_back(shellA);
 
         for (size_t j = i + 1; j < numAllShells; j++) {
             UVShell& shellB = shellVector[j];
 
             if (shellA * shellB) {
+                MGlobal::displayInfo("found");
                 UVShell intersectedShell = shellA && shellB;
-                shellVector.emplace_back(intersectedShell);
+                shells.push_back(intersectedShell);
             }
         }
     }
 
     timer.beginTimer();
 
+    if (verbose) {
+        MString numShellsStr;
+        numShellsStr.set(shells.size());
+        MGlobal::displayInfo("Number of UvShells : " + numShellsStr);
+    }
+
     // Multithread bentleyOttman check
-    size_t numAllShells2 = shellVector.size();
+    size_t numAllShells2 = shells.size();
     std::thread* btoThreadArray = new std::thread[numAllShells2];
     for (size_t i = 0; i < numAllShells2; i++) {
-        UVShell &s = shellVector[i];
+        UVShell &s = shells[i];
         btoThreadArray[i] = std::thread(&FindUvOverlaps::btoCheck, this, s);
     }
     for (size_t i = 0; i < numAllShells2; i++) {
