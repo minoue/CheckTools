@@ -6,7 +6,6 @@
 #include "bentleyOttmann.hpp"
 #include <algorithm>
 #include <iostream>
-#include <cmath>
 
 BentleyOttmann::BentleyOttmann()
 {
@@ -103,9 +102,6 @@ bool BentleyOttmann::doBegin(Event& ev)
             float b2 = ePtr->begin.y - slope2 * ePtr->begin.x;
             float y2 = slope2 * ev.sweepline + b2;
             ePtr->crossingPointY = y2;
-            if (std::isnan(ePtr->crossingPointY)) {
-                std::cout << std::endl;
-            }
         }
     }
     std::sort(statusPtrQueue.begin(), statusPtrQueue.end(), EdgeCrossingComparator());

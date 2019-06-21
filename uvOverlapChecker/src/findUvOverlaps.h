@@ -13,7 +13,6 @@
 #include <maya/MSelectionList.h>
 
 class UVShell {
-    int index;
     float left, right, top, bottom;
 public:
     UVShell() {};
