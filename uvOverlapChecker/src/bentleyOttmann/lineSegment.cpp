@@ -77,7 +77,7 @@ bool LineSegment::operator*(const LineSegment& rhs) const
         }
     }
 
-    if (t1 * t2 == 0)
+    if (t1 * t2 == 0 || t3 * t4 == 0)
         return false;
 
     bool ccw1 = sameSigns(t1, t2);
