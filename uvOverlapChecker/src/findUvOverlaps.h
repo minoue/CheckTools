@@ -15,8 +15,6 @@
 class UVShell {
     float left, right, top, bottom;
 public:
-    UVShell() {};
-    ~UVShell();
     std::vector<LineSegment> lines;
     void initAABB();
     bool operator*(const UVShell& other) const;

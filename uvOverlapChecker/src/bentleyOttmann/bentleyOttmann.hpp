@@ -15,7 +15,6 @@
 
 class BentleyOttmann {
 public:
-    BentleyOttmann();
     explicit BentleyOttmann(std::vector<LineSegment>& edgeVector);
     ~BentleyOttmann();
 

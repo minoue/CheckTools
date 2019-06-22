@@ -15,10 +15,8 @@
 #include <maya/MTimer.h>
 
 static const char* pluginName = "findUvOverlaps";
-static const char* pluginVersion = "1.8.8";
+static const char* pluginVersion = "1.8.9";
 static const char* pluginAuthor = "Michitaka Inoue";
-
-UVShell::~UVShell() {};
 
 void UVShell::initAABB()
 {
@@ -219,7 +217,6 @@ MStatus FindUvOverlaps::doIt(const MArgList& args)
             UVShell& shellB = shellVector[j];
 
             if (shellA * shellB) {
-                MGlobal::displayInfo("found");
                 UVShell intersectedShell = shellA && shellB;
                 shells.push_back(intersectedShell);
             }

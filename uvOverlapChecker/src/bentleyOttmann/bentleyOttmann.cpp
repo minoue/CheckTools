@@ -7,10 +7,6 @@
 #include <algorithm>
 #include <iostream>
 
-BentleyOttmann::BentleyOttmann()
-{
-}
-
 BentleyOttmann::BentleyOttmann(std::vector<LineSegment>& edgeVector) : edges(edgeVector)
 {
 }
@@ -93,11 +89,16 @@ bool BentleyOttmann::doBegin(Event& ev)
     for (size_t i = 0; i < statusPtrQueue.size(); i++) {
         LineSegment* ePtr = statusPtrQueue[i];
         if (ePtr->isHorizontal) {
+            // If the edge is horizontal, y of corrsing point is always y
+            // as sweepline moves from left to right
             ePtr->crossingPointY = ePtr->begin.y;
         } else if (ePtr->isVertical) {
-            float mid = (ePtr->begin.y + ePtr->end.y) * 0.5;
+            // if the edge is vertical, the edge and sweepline are collinear, so
+            // use y of a mid point instread
+            float mid = (ePtr->begin.y + ePtr->end.y) * 0.5F;
             ePtr->crossingPointY = mid;
         } else {
+            // otherwise, find y value of crossing point of the edge and sweepline
             float slope2 = (ePtr->end.y - ePtr->begin.y) / (ePtr->end.x - ePtr->begin.x);
             float b2 = ePtr->begin.y - slope2 * ePtr->begin.x;
             float y2 = slope2 * ev.sweepline + b2;
