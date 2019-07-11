@@ -57,6 +57,11 @@ MStatus UvChecker::doIt(const MArgList& args)
     else
         minUVArea = 0.000001;
 
+    if (argData.isFlagSet("-uvBorder"))
+        argData.getFlagArgument("-uvBorder", 0, ignoreUvBorder);
+    else
+        ignoreUvBorder = 0.0002;
+
     sel.getDagPath(0, mDagPath);
 
     if (verbose == true) {
@@ -156,9 +161,12 @@ MStatus UvChecker::findUdimIntersections()
 
             if (floor(u1) == floor(u2) && floor(v1) == floor(v2)) {
             }
-            else {
-                indexSet.insert(currentUVindex);
-                indexSet.insert(nextUVindex);
+            else if ((fabs(rint(u1)-fabs(u1)) > ignoreUvBorder)
+                    && (fabs(rint(v1)-fabs(v1)) > ignoreUvBorder)
+                    && (fabs(rint(u2)-fabs(u2)) > ignoreUvBorder)
+                    && (fabs(rint(v2)-fabs(v2)) > ignoreUvBorder)) {
+                    indexSet.insert(currentUVindex);
+                    indexSet.insert(nextUVindex);
             }
         }
     }
