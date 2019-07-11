@@ -31,7 +31,7 @@ MSyntax UvChecker::newSyntax()
     syntax.addFlag("-v", "-verbose", MSyntax::kBoolean);
     syntax.addFlag("-c", "-check", MSyntax::kUnsigned);
     syntax.addFlag("-uva", "-uvArea", MSyntax::kDouble);
-    syntax.addFlag("-muvd", "-maxUvBorderDistance", MSyntax::kDouble);
+    syntax.addFlag("-muv", "-maxUvBorderDistance", MSyntax::kDouble);
     return syntax;
 }
 
