@@ -30,7 +30,7 @@ private:
     MDagPath mDagPath;
     bool verbose;
     double minUVArea;
-    double ignoreUvBorder;
+    double maxUvBorderDistance;
     unsigned int checkNumber;
 };
 

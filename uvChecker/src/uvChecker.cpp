@@ -25,6 +25,7 @@ MSyntax UvChecker::newSyntax()
     syntax.addFlag("-v", "-verbose", MSyntax::kBoolean);
     syntax.addFlag("-c", "-check", MSyntax::kUnsigned);
     syntax.addFlag("-uva", "-uvArea", MSyntax::kDouble);
+    syntax.addFlag("-muvd", "-maxUvBorderDistance", MSyntax::kDouble);
     return syntax;
 }
 
@@ -57,10 +58,10 @@ MStatus UvChecker::doIt(const MArgList& args)
     else
         minUVArea = 0.000001;
 
-    if (argData.isFlagSet("-uvBorder"))
-        argData.getFlagArgument("-uvBorder", 0, ignoreUvBorder);
+    if (argData.isFlagSet("-maxUvBorderDistance"))
+        argData.getFlagArgument("-maxUvBorderDistance", 0, maxUvBorderDistance);
     else
-        ignoreUvBorder = 0.0002;
+        maxUvBorderDistance = 0.0002;
 
     sel.getDagPath(0, mDagPath);
 
@@ -161,10 +162,10 @@ MStatus UvChecker::findUdimIntersections()
 
             if (floor(u1) == floor(u2) && floor(v1) == floor(v2)) {
             }
-            else if ((fabs(rint(u1)-fabs(u1)) > ignoreUvBorder)
-                    && (fabs(rint(v1)-fabs(v1)) > ignoreUvBorder)
-                    && (fabs(rint(u2)-fabs(u2)) > ignoreUvBorder)
-                    && (fabs(rint(v2)-fabs(v2)) > ignoreUvBorder)) {
+            else if ((fabs(rint(u1)-fabs(u1)) > maxUvBorderDistance)
+                    && (fabs(rint(v1)-fabs(v1)) > maxUvBorderDistance)
+                    && (fabs(rint(u2)-fabs(u2)) > maxUvBorderDistance)
+                    && (fabs(rint(v2)-fabs(v2)) > maxUvBorderDistance)) {
                     indexSet.insert(currentUVindex);
                     indexSet.insert(nextUVindex);
             }
