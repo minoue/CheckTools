@@ -5,20 +5,6 @@ set(SOURCE_FILES
     src/pluginMain.cpp
     src/uvChecker.cpp
     src/uvChecker.h
-    src/uvShell.cpp
-    src/uvShell.h
-    src/findUvOverlaps.cpp
-    src/findUvOverlaps.h
-    src/BentleyOttman/point2D.cpp
-    src/BentleyOttman/point2D.hpp
-    src/BentleyOttman/vector2D.cpp
-    src/BentleyOttman/vector2D.hpp
-    src/BentleyOttman/lineSegment.cpp
-    src/BentleyOttman/lineSegment.hpp
-    src/BentleyOttman/event.cpp
-    src/BentleyOttman/event.hpp
-        src/BentleyOttman/bentleyOttmann.cpp
-        src/BentleyOttman/bentleyOttmann.hpp
     )
 
 # https://www.guyrutenberg.com/2014/01/05/enabling-c11-c0x-in-cmake/
@@ -39,15 +25,15 @@ else()
     message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 endif()
 
+set(MAYA_VERSION 2018 CACHE STRING "Maya version")
+set(CMAKE_BUILD_TYPE Release CACHE STRING "Default build type")
+
 find_package(OpenMP)
 if (OPENMP_FOUND)
     set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
     set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif()
-
-set(MAYA_VERSION 2018 CACHE STRING "Maya version")
-set(CMAKE_BUILD_TYPE Release CACHE STRING "Default build type")
 
 if (WIN32)
     set(INCLUDE_DIR "C:/Program Files/Autodesk/Maya${MAYA_VERSION}/include")

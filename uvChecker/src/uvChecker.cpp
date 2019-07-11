@@ -1,14 +1,20 @@
 #include "uvChecker.h"
+#include <cstddef>
 #include <math.h>
 #include <maya/MArgDatabase.h>
 #include <maya/MArgList.h>
 #include <maya/MFnMesh.h>
 #include <maya/MGlobal.h>
+#include <maya/MString.h>
 #include <maya/MIntArray.h>
+#include <maya/MFloatArray.h>
 #include <maya/MItMeshPolygon.h>
 #include <maya/MSelectionList.h>
 #include <maya/MStringArray.h>
 #include <set>
+#include <vector>
+#include <algorithm>
+#include <string>
 
 UvChecker::UvChecker()
 {
@@ -105,6 +111,20 @@ MStatus UvChecker::redoIt()
             MGlobal::displayInfo("Checking Zero UV faces");
         }
         status = findZeroUvFaces();
+        CHECK_MSTATUS_AND_RETURN_IT(status);
+        break;
+    case UvChecker::UN_ASSIGNED_UVS:
+        if (verbose) {
+            MGlobal::displayInfo("Checking UnassignedUVs");
+        }
+        bool result;
+        result = hasUnassignedUVs();
+        MPxCommand::setResult(result);
+        break;
+    case UvChecker::NEGATIVE_SPACE_UVS:
+        if (verbose)
+            MGlobal::displayInfo("Checking UVs in negative space");
+        status = findNegativeSpaceUVs();
         CHECK_MSTATUS_AND_RETURN_IT(status);
         break;
     default:
@@ -234,6 +254,75 @@ MStatus UvChecker::findZeroUvFaces()
             }
         }
     }
+    MPxCommand::setResult(resultArray);
+    return MS::kSuccess;
+}
+
+bool UvChecker::hasUnassignedUVs()
+{
+    MFnMesh fnMesh(mDagPath);
+    int numUVs = fnMesh.numUVs();
+    MIntArray uvCounts;
+    MIntArray uvIds;
+    fnMesh.getAssignedUVs(uvCounts, uvIds);
+    unsigned int numUvIds = uvIds.length();
+
+    std::vector<int> uvIdVec;
+    uvIdVec.reserve(numUvIds);
+    for (int i = 0; i < numUvIds; i++) {
+        uvIdVec.push_back(uvIds[i]);
+    }
+
+    // Remove duplicate elements
+    std::sort(uvIdVec.begin(), uvIdVec.end());
+    uvIdVec.erase(std::unique(uvIdVec.begin(), uvIdVec.end()), uvIdVec.end());
+
+    int numAssignedUVs = uvIdVec.size();
+
+    if (numUVs != numAssignedUVs) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+MStatus UvChecker::findNegativeSpaceUVs()
+{
+    MFnMesh fnMesh(mDagPath);
+    MFloatArray uArray, vArray;
+    fnMesh.getUVs(uArray, vArray);
+
+    std::vector<int> indices;
+
+    int numUVs = fnMesh.numUVs();
+
+    for (int i = 0; i < numUVs; i++) {
+        float u = uArray[i];
+        if (u < 0.0) {
+            indices.push_back(i);
+            continue;
+        }
+        float v = vArray[i];
+        if (v < 0.0) {
+            indices.push_back(i);
+            continue;
+        }
+    }
+
+        // Remove duplicate elements
+    std::sort(indices.begin(), indices.end());
+    indices.erase(std::unique(indices.begin(), indices.end()), indices.end());
+
+    std::string path;
+    MString mPath;
+    MStringArray resultArray;
+    for (size_t i = 0; i < indices.size(); i++) {
+        path = mDagPath.fullPathName().asChar();
+        path = path + ".map[" + std::to_string(indices[i]) + "]";
+        mPath = path.c_str();
+        resultArray.append(mPath);
+    }
+
     MPxCommand::setResult(resultArray);
     return MS::kSuccess;
 }
