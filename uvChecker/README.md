@@ -9,11 +9,12 @@ Find general uv errors
 4. UVs in negative space
 
 ### Flags
-| Longname | Shortname | Argument types | Default | Properties |
-|:---------|----------:|:--------------:|:-------:|:----------:|
-|check|c|integer||C|
-|uvArea|uva|double|0.000001|C|
-|verbose|v|bool|False|C|
+| Longname | Shortname | Argument types | Default | Properties | Description |
+|:---------|----------:|:--------------:|:-------:|:----------:|:-----------:|
+|check|c|integer||C||
+|uvArea|uva|double|0.000001|C||
+|uvSet|us|string|current uv set|C|Set what uv set you want to us|
+|verbose|v|bool|False|C||
 
 ### Example
 ```python

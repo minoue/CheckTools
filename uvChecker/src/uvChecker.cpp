@@ -31,6 +31,7 @@ MSyntax UvChecker::newSyntax()
     syntax.addFlag("-v", "-verbose", MSyntax::kBoolean);
     syntax.addFlag("-c", "-check", MSyntax::kUnsigned);
     syntax.addFlag("-uva", "-uvArea", MSyntax::kDouble);
+    syntax.addFlag("-us", "-uvSet", MSyntax::kString);
     return syntax;
 }
 
@@ -48,6 +49,9 @@ MStatus UvChecker::doIt(const MArgList& args)
         return MStatus::kFailure;
     }
 
+    sel.getDagPath(0, mDagPath);
+    MFnMesh fnMesh(mDagPath);
+
     if (argData.isFlagSet("-verbose"))
         argData.getFlagArgument("-verbose", 0, verbose);
     else
@@ -63,7 +67,10 @@ MStatus UvChecker::doIt(const MArgList& args)
     else
         minUVArea = 0.000001;
 
-    sel.getDagPath(0, mDagPath);
+    if (argData.isFlagSet("-uvSet"))
+        argData.getFlagArgument("-uvSet", 0, uvSet);
+    else
+        fnMesh.getCurrentUVSetName(uvSet);
 
     if (verbose == true) {
         MString objectPath = "Selected mesh : " + mDagPath.fullPathName();
@@ -162,17 +169,17 @@ MStatus UvChecker::findUdimIntersections()
         float u1, v1, u2, v2;
 
         for (int i = 0; i < vCount; i++) {
-            mItPoly.getUVIndex(i, currentUVindex);
+            mItPoly.getUVIndex(i, currentUVindex, &uvSet);
 
             if (i == vCount - 1) {
-                mItPoly.getUVIndex(0, nextUVindex);
+                mItPoly.getUVIndex(0, nextUVindex, &uvSet);
             }
             else {
-                mItPoly.getUVIndex(i + 1, nextUVindex);
+                mItPoly.getUVIndex(i + 1, nextUVindex, &uvSet);
             }
 
-            fnMesh.getUV(currentUVindex, u1, v1);
-            fnMesh.getUV(nextUVindex, u2, v2);
+            fnMesh.getUV(currentUVindex, u1, v1, &uvSet);
+            fnMesh.getUV(nextUVindex, u2, v2, &uvSet);
 
             if (floor(u1) == floor(u2) && floor(v1) == floor(v2)) {
             }
@@ -207,7 +214,7 @@ MStatus UvChecker::findNoUvFaces()
 
     bool hasUVs;
     for (MItMeshPolygon itPoly(mDagPath); !itPoly.isDone(); itPoly.next()) {
-        hasUVs = itPoly.hasUVs();
+        hasUVs = itPoly.hasUVs(uvSet);
         if (hasUVs == false) {
             MString index;
             index.set(itPoly.index());
@@ -231,11 +238,11 @@ MStatus UvChecker::findZeroUvFaces()
     MGlobal::displayInfo(temp);
 
     for (MItMeshPolygon itPoly(mDagPath); !itPoly.isDone(); itPoly.next()) {
-        hasUVs = itPoly.hasUVs();
+        hasUVs = itPoly.hasUVs(uvSet);
         if (hasUVs == false) {
         }
         else {
-            itPoly.getUVArea(area);
+            itPoly.getUVArea(area, &uvSet);
             temp.set(area);
             // MGlobal::displayInfo(temp);
             if (area < minUVArea) {
@@ -252,10 +259,10 @@ MStatus UvChecker::findZeroUvFaces()
 bool UvChecker::hasUnassignedUVs()
 {
     MFnMesh fnMesh(mDagPath);
-    int numUVs = fnMesh.numUVs();
+    int numUVs = fnMesh.numUVs(uvSet);
     MIntArray uvCounts;
     MIntArray uvIds;
-    fnMesh.getAssignedUVs(uvCounts, uvIds);
+    fnMesh.getAssignedUVs(uvCounts, uvIds, &uvSet);
     unsigned int numUvIds = uvIds.length();
 
     std::vector<int> uvIdVec;
@@ -281,11 +288,11 @@ MStatus UvChecker::findNegativeSpaceUVs()
 {
     MFnMesh fnMesh(mDagPath);
     MFloatArray uArray, vArray;
-    fnMesh.getUVs(uArray, vArray);
+    fnMesh.getUVs(uArray, vArray, &uvSet);
 
     std::vector<int> indices;
 
-    int numUVs = fnMesh.numUVs();
+    int numUVs = fnMesh.numUVs(uvSet);
 
     for (int i = 0; i < numUVs; i++) {
         float u = uArray[i];
