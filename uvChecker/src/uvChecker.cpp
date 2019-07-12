@@ -67,7 +67,7 @@ MStatus UvChecker::doIt(const MArgList& args)
     if (argData.isFlagSet("-maxUvBorderDistance"))
         argData.getFlagArgument("-maxUvBorderDistance", 0, maxUvBorderDistance);
     else
-        maxUvBorderDistance = 0.0002;
+        maxUvBorderDistance = 0.0;
 
     sel.getDagPath(0, mDagPath);
 
@@ -182,10 +182,11 @@ MStatus UvChecker::findUdimIntersections()
 
             if (floor(u1) == floor(u2) && floor(v1) == floor(v2)) {
             }
-            else if ((fabs(rint(u1)-fabs(u1)) > maxUvBorderDistance)
-                    && (fabs(rint(v1)-fabs(v1)) > maxUvBorderDistance)
-                    && (fabs(rint(u2)-fabs(u2)) > maxUvBorderDistance)
-                    && (fabs(rint(v2)-fabs(v2)) > maxUvBorderDistance)) {
+            else if ((maxUvBorderDistance == 0.0)
+                    || ((fabs(rint(u1)-fabs(u1)) > maxUvBorderDistance)
+                         && (fabs(rint(v1)-fabs(v1)) > maxUvBorderDistance)
+                         && (fabs(rint(u2)-fabs(u2)) > maxUvBorderDistance)
+                         && (fabs(rint(v2)-fabs(v2)) > maxUvBorderDistance))) {
                     indexSet.insert(currentUVindex);
                     indexSet.insert(nextUVindex);
             }
