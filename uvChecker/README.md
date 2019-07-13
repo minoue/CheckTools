@@ -13,6 +13,7 @@ Find general uv errors
 |:---------|----------:|:--------------:|:-------:|:----------:|:-----------:|
 |check|c|integer||C||
 |uvArea|uva|double|0.000001|C||
+|uvSet|us|string|current uv set|C|Set what uv set you want to us|
 |maxUvBorderDistance|muvd|double|0.0|C|Ignore UVs close to udims borders for "Udim border intersections" check|
 |verbose|v|bool|False|C||
 
