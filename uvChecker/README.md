@@ -9,11 +9,12 @@ Find general uv errors
 4. UVs in negative space
 
 ### Flags
-| Longname | Shortname | Argument types | Default | Properties |
-|:---------|----------:|:--------------:|:-------:|:----------:|
-|check|c|integer||C|
-|uvArea|uva|double|0.000001|C|
-|verbose|v|bool|False|C|
+| Longname | Shortname | Argument types | Default | Properties | Description |
+|:---------|----------:|:--------------:|:-------:|:----------:|:-----------:|
+|check|c|integer||C||
+|uvArea|uva|double|0.000001|C||
+|maxUvBorderDistance|muvd|double|0.0|C|Ignore UVs close to udims borders for "Udim border intersections" check|
+|verbose|v|bool|False|C||
 
 ### Example
 ```python
