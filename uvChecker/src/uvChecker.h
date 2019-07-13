@@ -36,6 +36,7 @@ private:
     bool verbose;
     double minUVArea;
     MString uvSet;
+    double maxUvBorderDistance;
     unsigned int checkNumber;
 };
 
