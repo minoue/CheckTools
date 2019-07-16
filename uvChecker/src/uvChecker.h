@@ -4,6 +4,7 @@
 #include <maya/MDagPath.h>
 #include <maya/MPxCommand.h>
 #include <maya/MSyntax.h>
+#include <maya/MString.h>
 
 class UvChecker : public MPxCommand {
 public:
@@ -34,6 +35,8 @@ private:
     MDagPath mDagPath;
     bool verbose;
     double minUVArea;
+    MString uvSet;
+    double maxUvBorderDistance;
     unsigned int checkNumber;
 };
 
