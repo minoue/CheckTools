@@ -160,12 +160,17 @@ bool MeshChecker::hasVertexPntsAttr() {
         while (true) {
             outputHandle = arrayDataHandle.outputValue();
             float3& xyz = outputHandle.asFloat3();
-            if (xyz[0] != 0.0)
-                return true;
-            if (xyz[1] != 0.0)
-                return true;
-            if (xyz[2] != 0.0)
-                return true;
+            if (xyz) {
+                if (xyz[0] != 0.0)
+                    pntsArray.destructHandle(dataHandle);
+                    return true;
+                if (xyz[1] != 0.0)
+                    pntsArray.destructHandle(dataHandle);
+                    return true;
+                if (xyz[2] != 0.0)
+                    pntsArray.destructHandle(dataHandle);
+                    return true;
+            }
             status = arrayDataHandle.next();
             if (status != MS::kSuccess) {
                 break;
@@ -202,6 +207,7 @@ bool MeshChecker::hasVertexPntsAttr() {
         }
         pntsArray.setMDataHandle(dataHandle);
     }
+    pntsArray.destructHandle(dataHandle);
 
     return false;
 }
