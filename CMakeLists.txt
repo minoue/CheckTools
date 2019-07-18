@@ -52,7 +52,7 @@ else()
     message(FATAL_ERROR "Header: MPxCommand.h - NOT FOUND")
 endif()
 
-target_include_directories(Maya INTERFACE SYSTEM ${MAYA_INCLUDE_DIR})
+target_include_directories(Maya SYSTEM INTERFACE ${MAYA_INCLUDE_DIR})
 
 # find libs
 set(MAYA_LIBS
