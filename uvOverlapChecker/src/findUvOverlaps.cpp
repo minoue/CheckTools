@@ -189,7 +189,6 @@ MStatus FindUvOverlaps::doIt(const MArgList& args)
     // delete[] threadArray;
 
     int numSelected = mSel.length();
-    #pragma omp parallel for
     for (int i = 0; i < numSelected; i++) {
         init(i);
     }
