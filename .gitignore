@@ -25,3 +25,5 @@ cmake-build-debug/
 cmake-build-release/
 !CMakeLists.txt
 .clang
+.vs
+CMakeSettings.json
