@@ -370,6 +370,7 @@ bool MeshChecker::hasVertexPntsAttr(const MFnMesh& mesh, bool fix)
 MStatus MeshChecker::doIt(const MArgList &args) {
 
     MStatus status;
+    MArgDatabase argData(syntax(), args);
 
     // if argument is not provided use selection list
     MSelectionList selection;
@@ -379,13 +380,11 @@ MStatus MeshChecker::doIt(const MArgList &args) {
     }
     else
     {
-        MString argument = args.asString(0, &status);
-        if (status != MS::kSuccess)
-        {
+        status = argData.getCommandArgument(0, selection);
+        CHECK_MSTATUS_AND_RETURN_IT(status);
+        if (status != MS::kSuccess) {
             return MStatus::kFailure;
         }
-        CHECK_MSTATUS_AND_RETURN_IT(status);
-        selection.add(argument);
     }
 
     // mesh construction
@@ -409,7 +408,7 @@ MStatus MeshChecker::doIt(const MArgList &args) {
 
     // argument parsing
     MeshCheckType check_type;
-    MArgDatabase argData(syntax(), args);
+
     if (argData.isFlagSet("-check"))
     {
         unsigned int check_value;
@@ -519,6 +518,7 @@ void* MeshChecker::creator()
 MSyntax MeshChecker::newSyntax()
 {
     MSyntax syntax;
+    syntax.addArg(MSyntax::kString);
     syntax.addFlag("-c", "-check", MSyntax::kUnsigned);
     syntax.addFlag("-mfa", "-maxFaceArea", MSyntax::kDouble);
     syntax.addFlag("-mel", "-minEdgeLength", MSyntax::kDouble);
