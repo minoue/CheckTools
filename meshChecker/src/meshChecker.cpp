@@ -391,6 +391,14 @@ MStatus MeshChecker::doIt(const MArgList &args) {
     // mesh construction
     MDagPath path;
     selection.getDagPath(0, path);
+
+    // Check if selected object is geometry
+    status = path.extendToShape();
+    if (status != MS::kSuccess) {
+        MGlobal::displayError("Failed to extend to shape node. Not mesh");
+        return MS::kFailure;
+    }
+
     if(path.apiType() != MFn::kMesh)
     {
         MGlobal::displayError("MeshCheker works on meshes.");
