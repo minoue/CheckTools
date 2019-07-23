@@ -1,66 +1,56 @@
 #ifndef __MESHCHECKER_H__
 #define __MESHCHECKER_H__
 
-#include <maya/MDagPath.h>
-#include <maya/MIntArray.h>
-#include <maya/MItMeshEdge.h>
-#include <maya/MItMeshPolygon.h>
-#include <maya/MItMeshVertex.h>
+#include <maya/MApiNamespace.h>
 #include <maya/MPxCommand.h>
-#include <maya/MStringArray.h>
-#include <maya/MSelectionList.h>
 
-#include <string>
+#include <vector>
 
-class MeshChecker : public MPxCommand {
+enum class MeshCheckType
+{
+    TRIANGLES = 0,
+    NGONS,
+    NON_MANIFOLD_EDGES,
+    LAMINA_FACES,
+    BI_VALENT_FACES,
+    ZERO_AREA_FACES,
+    MESH_BORDER,
+    CREASE_EDGE,
+    ZERO_LENGTH_EDGES,
+    UNFROZEN_VERTICES,
+    TEST
+};
+
+class MeshChecker final : public MPxCommand
+{
 public:
-    MeshChecker();
-    virtual ~MeshChecker();
-    MStatus doIt(const MArgList& argList);
-    MStatus undoIt();
-    MStatus redoIt();
-    bool isUndoable() const;
     static void* creator();
     static MSyntax newSyntax();
 
-    // check functions
-    MStatus findTriangles();
-    MStatus findNgons();
-    MStatus findNonManifoldEdges();
-    MStatus findLaminaFaces();
-    MStatus findBiValentFaces();
-    MStatus findZeroAreaFaces(double& maxFaceArea);
-    MStatus findMeshBorderEdges();
-    MStatus findCreaseEDges();
-    MStatus findZeroLengthEdges();
-    MStatus findUnfrozenVertices();
-    bool hasVertexPntsAttr();
+    // command interface
+    MStatus doIt(const MArgList& argList) final;
+    MStatus undoIt() final;
+    MStatus redoIt() final;
+    bool isUndoable() const final;
 
-    MStringArray setResultString(std::string componentType);
+    //
+    using Index = int;
+    using IndexArray = std::vector<Index>;
 
-    enum Check {
-        TRIANGLES,
-        NGONS,
-        NON_MANIFOLD_EDGES,
-        LAMINA_FACES,
-        BI_VALENT_FACES,
-        ZERO_AREA_FACES,
-        MESH_BORDER,
-        CREASE_EDGE,
-        ZERO_LENGTH_EDGES,
-        UNFROZEN_VERTICES,
-        TEST
-    };
+    static IndexArray findTriangles(const MFnMesh&);
+    static IndexArray findNgons(const MFnMesh&);
+    static IndexArray findNonManifoldEdges(const MFnMesh&);
+    static IndexArray findLaminaFaces(const MFnMesh&);
+    static IndexArray findBiValentFaces(const MFnMesh&);
+    static IndexArray findZeroAreaFaces(const MFnMesh&, double maxFaceArea);
+    static IndexArray findMeshBorderEdges(const MFnMesh&);
+    static IndexArray findCreaseEdges(const MFnMesh&);
+    static IndexArray findZeroLengthEdges(const MFnMesh&, double minEdgeLength);
+    static IndexArray findUnfrozenVertices(const MFnMesh&);
+    static bool hasVertexPntsAttr(const MFnMesh&, bool fix);
 
 private:
-    MSelectionList mList;
-    MDagPath mDagPath;
-    double maxFaceArea;
-    MIntArray indexArray;
-    unsigned int checkNumber;
-    MStringArray resultArray;
-    double minEdgeLength;
-    bool fix;
+    MeshChecker();
 };
 
 #endif /* defined(__MESHCHECKER_H__) */
