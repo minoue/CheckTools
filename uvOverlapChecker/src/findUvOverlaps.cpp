@@ -236,7 +236,7 @@ MStatus FindUvOverlaps::doIt(const MArgList& args)
     std::thread* btoThreadArray = new std::thread[numAllShells2];
     for (size_t i = 0; i < numAllShells2; i++) {
         UVShell &s = shells[i];
-        btoThreadArray[i] = std::thread(&FindUvOverlaps::btoCheck, this, s);
+        btoThreadArray[i] = std::thread(&FindUvOverlaps::btoCheck, this, std::ref(s));
     }
     for (size_t i = 0; i < numAllShells2; i++) {
         btoThreadArray[i].join();
