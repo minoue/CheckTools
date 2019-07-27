@@ -188,9 +188,9 @@ MStatus FindUvOverlaps::doIt(const MArgList& args)
     // }
     // delete[] threadArray;
 
-    int numSelected = mSel.length();
+    unsigned int numSelected = mSel.length();
     #pragma omp parallel for
-    for (int i = 0; i < numSelected; i++) {
+    for (unsigned int i = 0; i < numSelected; i++) {
         init(i);
     }
 
@@ -291,7 +291,7 @@ MStatus FindUvOverlaps::doIt(const MArgList& args)
     return MS::kSuccess;
 }
 
-MStatus FindUvOverlaps::init(int i)
+MStatus FindUvOverlaps::init(unsigned int i)
 {
     MStatus status;
 
@@ -325,15 +325,15 @@ MStatus FindUvOverlaps::init(int i)
     MIntArray uvIds;
     fnMesh.getAssignedUVs(uvCounts, uvIds);
 
-    size_t uvCountSize = uvCounts.length(); // is same as number of faces
-    std::vector<std::pair<int, int>> idPairs;
+    unsigned int uvCountSize = uvCounts.length(); // is same as number of faces
+    std::vector<std::pair<unsigned int, unsigned int>> idPairs;
     idPairs.reserve(uvCountSize * 4);
-    int uvCounter = 0;
-    int nextCounter;
+    unsigned int uvCounter = 0;
+    unsigned int nextCounter;
     // Loop over each face and its edges, then create a pair of indices
     for (unsigned int j = 0; j < uvCountSize; j++) {
-        int numFaceUVs = uvCounts[j];
-        for (int localIndex = 0; localIndex < numFaceUVs; localIndex++) {
+        unsigned int numFaceUVs = static_cast<unsigned int>(uvCounts[j]);
+        for (unsigned int localIndex = 0; localIndex < numFaceUVs; localIndex++) {
             if (localIndex == numFaceUVs - 1) {
                 // Set the nextCounter to the localIndex of zero of the face
                 nextCounter = uvCounter - numFaceUVs + 1;
@@ -344,7 +344,7 @@ MStatus FindUvOverlaps::init(int i)
             int idA = uvIds[uvCounter];
             int idB = uvIds[nextCounter];
 
-            std::pair<int, int> idPair;
+            std::pair<unsigned int, unsigned int> idPair;
 
             if (idA < idB)
                 idPair = std::make_pair(idA, idB);
@@ -372,18 +372,18 @@ MStatus FindUvOverlaps::init(int i)
     std::vector<UVShell> shells(nbUvShells);
 
     // Loop over all id pairs and create lineSegment objects
-    std::vector<std::pair<int, int>>::iterator pairIter;
+    std::vector<std::pair<unsigned int, unsigned int>>::iterator pairIter;
     for (pairIter = idPairs.begin(); pairIter != idPairs.end(); ++pairIter) {
 
-        int idA = (*pairIter).first;
-        int idB = (*pairIter).second;
-        Point2D p1(uArray[idA], vArray[idA], idA);
-        Point2D p2(uArray[idB], vArray[idB], idB);
+        unsigned int idA = (*pairIter).first;
+        unsigned int idB = (*pairIter).second;
+        Point2D p1(uArray[idA], vArray[idA], static_cast<int>(idA));
+        Point2D p2(uArray[idB], vArray[idB], static_cast<int>(idB));
 
         // Create new lineSegment object
         LineSegment line(p1, p2, dagPathChar);
 
-        int shellIndex = uvShellIds[idA];
+        unsigned int shellIndex = static_cast<unsigned int>(uvShellIds[idA]);
         shells[shellIndex].lines.emplace_back(line);
     }
 

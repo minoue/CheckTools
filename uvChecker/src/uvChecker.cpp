@@ -171,7 +171,7 @@ MStatus UvChecker::findUdimIntersections()
 
     for (MItMeshPolygon mItPoly(mDagPath); !mItPoly.isDone(); mItPoly.next()) {
 
-        int vCount = mItPoly.polygonVertexCount();
+        int vCount = static_cast<int>(mItPoly.polygonVertexCount());
         int currentUVindex;
         int nextUVindex;
         float u1, v1, u2, v2;
@@ -279,7 +279,7 @@ bool UvChecker::hasUnassignedUVs()
 
     std::vector<int> uvIdVec;
     uvIdVec.reserve(numUvIds);
-    for (int i = 0; i < numUvIds; i++) {
+    for (unsigned int i = 0; i < numUvIds; i++) {
         uvIdVec.push_back(uvIds[i]);
     }
 
@@ -287,7 +287,7 @@ bool UvChecker::hasUnassignedUVs()
     std::sort(uvIdVec.begin(), uvIdVec.end());
     uvIdVec.erase(std::unique(uvIdVec.begin(), uvIdVec.end()), uvIdVec.end());
 
-    int numAssignedUVs = uvIdVec.size();
+    int numAssignedUVs = static_cast<int>(uvIdVec.size());
 
     if (numUVs != numAssignedUVs) {
         return true;
@@ -307,12 +307,12 @@ MStatus UvChecker::findNegativeSpaceUVs()
     int numUVs = fnMesh.numUVs(uvSet);
 
     for (int i = 0; i < numUVs; i++) {
-        float u = uArray[i];
+        float u = uArray[static_cast<unsigned int>(i)];
         if (u < 0.0) {
             indices.push_back(i);
             continue;
         }
-        float v = vArray[i];
+        float v = vArray[static_cast<unsigned int>(i)];
         if (v < 0.0) {
             indices.push_back(i);
             continue;

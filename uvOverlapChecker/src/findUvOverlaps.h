@@ -55,7 +55,7 @@ private:
     std::vector<std::vector<LineSegment> > finalResult;
     std::vector<UVShell> shellVector;
 
-    MStatus init(int i);
+    MStatus init(unsigned int i);
     void btoCheck(UVShell &shell);
     void pushToLineVector(std::vector<LineSegment> &v);
     void pushToShellVector(UVShell &shell);
