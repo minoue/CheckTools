@@ -15,7 +15,7 @@
 #include <maya/MTimer.h>
 
 static const char* pluginName = "findUvOverlaps";
-static const char* pluginVersion = "1.8.9";
+static const char* pluginVersion = "1.8.10";
 static const char* pluginAuthor = "Michitaka Inoue";
 
 void UVShell::initAABB()
@@ -54,27 +54,27 @@ bool UVShell::operator*(const UVShell& other) const
 
 UVShell UVShell::operator&&(const UVShell& other) const
 {
-    float left, right, top, bottom;
+    float L, R, T, B;
 
     if (this->left < other.left)
-        left = other.left;
+        L = other.left;
     else
-        left = this->left;
+        L = this->left;
 
     if (this->right < other.right)
-        right = this->right;
+        R = this->right;
     else
-        right = other.right;
+        R = other.right;
 
     if (this->top < other.top)
-        top = this->top;
+        T = this->top;
     else
-        top = other.top;
+        T = other.top;
 
     if (this->bottom < other.bottom)
-        bottom = other.bottom;
+        B = other.bottom;
     else
-        bottom = this->bottom;
+        B = this->bottom;
 
     std::vector<LineSegment> overlapLines;
     size_t numLinesA = this->lines.size();
@@ -82,11 +82,11 @@ UVShell UVShell::operator&&(const UVShell& other) const
 
     for (size_t i = 0; i < numLinesA; i++) {
         const LineSegment& line = this->lines[i];
-        if ((left <= line.begin.x && line.begin.x <= right) && (bottom <= line.begin.y && line.begin.y <= top)) {
+        if ((L <= line.begin.x && line.begin.x <= R) && (B <= line.begin.y && line.begin.y <= T)) {
             overlapLines.emplace_back(line);
             continue;
         }
-        if ((left <= line.end.x && line.end.x <= right) && (bottom <= line.end.y && line.end.y <= top)) {
+        if ((L <= line.end.x && line.end.x <= R) && (B <= line.end.y && line.end.y <= T)) {
             overlapLines.emplace_back(line);
             continue;
         }
@@ -94,11 +94,11 @@ UVShell UVShell::operator&&(const UVShell& other) const
 
     for (size_t j = 0; j < numLinesB; j++) {
         const LineSegment& line = other.lines[j];
-        if ((left <= line.begin.x && line.begin.x <= right) && (bottom <= line.begin.y && line.begin.y <= top)) {
+        if ((L <= line.begin.x && line.begin.x <= R) && (B <= line.begin.y && line.begin.y <= T)) {
             overlapLines.emplace_back(line);
             continue;
         }
-        if ((left <= line.end.x && line.end.x <= right) && (bottom <= line.end.y && line.end.y <= top)) {
+        if ((L <= line.end.x && line.end.x <= R) && (B <= line.end.y && line.end.y <= T)) {
             overlapLines.emplace_back(line);
             continue;
         }
@@ -188,9 +188,9 @@ MStatus FindUvOverlaps::doIt(const MArgList& args)
     // }
     // delete[] threadArray;
 
-    unsigned int numSelected = mSel.length();
+    int numSelected = mSel.length();
     #pragma omp parallel for
-    for (unsigned int i = 0; i < numSelected; i++) {
+    for (int i = 0; i < numSelected; i++) {
         init(i);
     }
 
@@ -227,7 +227,7 @@ MStatus FindUvOverlaps::doIt(const MArgList& args)
 
     if (verbose) {
         MString numShellsStr;
-        numShellsStr.set(shells.size());
+        numShellsStr.set(static_cast<int>(shells.size()));
         MGlobal::displayInfo("Number of UvShells : " + numShellsStr);
     }
 
@@ -291,12 +291,12 @@ MStatus FindUvOverlaps::doIt(const MArgList& args)
     return MS::kSuccess;
 }
 
-MStatus FindUvOverlaps::init(unsigned int i)
+MStatus FindUvOverlaps::init(int i)
 {
     MStatus status;
 
     MDagPath dagPath;
-    mSel.getDagPath(i, dagPath);
+    mSel.getDagPath(static_cast<unsigned int>(i), dagPath);
 
     // Check if specified object is geometry or not
     status = dagPath.extendToShape();
@@ -387,8 +387,8 @@ MStatus FindUvOverlaps::init(unsigned int i)
         shells[shellIndex].lines.emplace_back(line);
     }
 
-    for (size_t i = 0; i < shells.size(); i++) {
-        pushToShellVector(shells[i]);
+    for (size_t j = 0; j < shells.size(); j++) {
+        pushToShellVector(shells[j]);
     }
 
     return MS::kSuccess;
