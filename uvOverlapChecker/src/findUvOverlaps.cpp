@@ -3,6 +3,7 @@
 #include <thread>
 #include <utility>
 #include <vector>
+#include <unordered_set>
 #include "findUvOverlaps.h"
 #include <maya/MArgDatabase.h>
 #include <maya/MDagPath.h>
@@ -15,7 +16,7 @@
 #include <maya/MTimer.h>
 
 static const char* pluginName = "findUvOverlaps";
-static const char* pluginVersion = "1.8.10";
+static const char* pluginVersion = "1.8.11";
 static const char* pluginAuthor = "Michitaka Inoue";
 
 void UVShell::initAABB()
@@ -251,26 +252,19 @@ MStatus FindUvOverlaps::doIt(const MArgList& args)
 
     timer.beginTimer();
     // Re-insert to set to remove duplicates
-    std::vector<std::string> strVec;
-    std::string path;
-    size_t numResults = finalResult.size();
-    for (size_t i = 0; i < numResults; i++) {
-        std::vector<LineSegment> &lines = finalResult[i];
-        size_t numLines = lines.size();
-        for (size_t j = 0; j < numLines; j++) {
-            LineSegment &line = lines[j];
+    std::string temp_path;
+    std::unordered_set<std::string> temp;
+    for (auto&& lines : finalResult) {
+        for (auto&& line : lines) {
             std::string groupName(line.groupId);
-            path = groupName + ".map[" + std::to_string(line.index.first) + "]";
-            strVec.push_back(path);
-            path = groupName + ".map[" + std::to_string(line.index.second) + "]";
-            strVec.push_back(path);
+            temp_path = groupName + ".map[" + std::to_string(line.index.first) + "]";
+            temp.insert(temp_path);
+            temp_path = groupName + ".map[" + std::to_string(line.index.second) + "]";
+            temp.insert(temp_path);
         }
     }
 
     // Remove duplicates
-    std::sort(strVec.begin(), strVec.end());
-    strVec.erase(std::unique(strVec.begin(), strVec.end()), strVec.end());
-
     timer.endTimer();
     elapsedTime = timer.elapsedTime();
     if (verbose)
@@ -280,9 +274,9 @@ MStatus FindUvOverlaps::doIt(const MArgList& args)
     // Insert all results to MStringArray for return
     MString s;
     MStringArray resultStringArray;
-    std::vector<std::string>::iterator resultStrIter;
-    for (resultStrIter = strVec.begin(); resultStrIter != strVec.end(); ++resultStrIter) {
-        s.set((*resultStrIter).c_str());
+
+    for (auto fullpath : temp) {
+        s.set(fullpath.c_str());
         resultStringArray.append(s);
     }
 
