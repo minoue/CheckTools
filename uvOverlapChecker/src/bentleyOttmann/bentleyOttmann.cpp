@@ -41,9 +41,8 @@ void BentleyOttmann::createNewEvent(LineSegment* lineA, LineSegment* lineB)
 void BentleyOttmann::check(std::vector<LineSegment> &result)
 {
     resultPtr = &result;
-    std::vector<LineSegment>::iterator edgeIter;
 
-    for (edgeIter = edges.begin(); edgeIter != edges.end(); ++edgeIter) {
+    for (auto edgeIter = edges.begin(); edgeIter != edges.end(); ++edgeIter) {
         Event ev1(0, &(*edgeIter), (*edgeIter).begin);
         Event ev2(1, &(*edgeIter), (*edgeIter).end);
         eventQueue.insert(ev1);
@@ -108,7 +107,7 @@ bool BentleyOttmann::doBegin(Event& ev)
     std::sort(statusPtrQueue.begin(), statusPtrQueue.end(), EdgeCrossingComparator());
 
     // StatusQueue was sorted so you have to find the edge added to the queue above and find its index
-    std::vector<LineSegment*>::iterator foundIter = std::find(statusPtrQueue.begin(), statusPtrQueue.end(),
+    auto foundIter = std::find(statusPtrQueue.begin(), statusPtrQueue.end(),
         currentEdgePtr);
     if (foundIter == statusPtrQueue.end()) {
         return false;
@@ -153,8 +152,7 @@ bool BentleyOttmann::doBegin(Event& ev)
 bool BentleyOttmann::doEnd(Event& ev)
 {
     LineSegment* currentEdgePtr = ev.edgePtrA;
-    std::vector<LineSegment*>::iterator foundIter;
-    foundIter = std::find(statusPtrQueue.begin(), statusPtrQueue.end(), currentEdgePtr);
+    auto foundIter = std::find(statusPtrQueue.begin(), statusPtrQueue.end(), currentEdgePtr);
 
     if (foundIter == statusPtrQueue.end()) {
         // if iter not found
@@ -192,9 +190,9 @@ bool BentleyOttmann::doCross(Event& ev)
     LineSegment* edgePtr = ev.edgePtrA;
     LineSegment* otherEdgePtr = ev.edgePtrB;
 
-    std::vector<LineSegment*>::iterator lineAPtrIter = std::find(statusPtrQueue.begin(), statusPtrQueue.end(),
+    auto lineAPtrIter = std::find(statusPtrQueue.begin(), statusPtrQueue.end(),
         edgePtr);
-    std::vector<LineSegment*>::iterator lineBPtrIter = std::find(statusPtrQueue.begin(), statusPtrQueue.end(),
+    auto lineBPtrIter = std::find(statusPtrQueue.begin(), statusPtrQueue.end(),
         otherEdgePtr);
     if (lineAPtrIter == statusPtrQueue.end() || lineBPtrIter == statusPtrQueue.end()) {
         return false;

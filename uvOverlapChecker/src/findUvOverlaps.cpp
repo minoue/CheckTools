@@ -16,15 +16,14 @@
 #include <maya/MTimer.h>
 
 static const char* pluginName = "findUvOverlaps";
-static const char* pluginVersion = "1.8.13";
+static const char* pluginVersion = "1.8.14";
 static const char* pluginAuthor = "Michitaka Inoue";
 
 void UVShell::initAABB()
 {
     std::vector<float> uVector;
     std::vector<float> vVector;
-    std::vector<LineSegment>::iterator lineIter;
-    for (lineIter = this->lines.begin(); lineIter != this->lines.end(); ++lineIter) {
+    for (auto lineIter = this->lines.begin(); lineIter != this->lines.end(); ++lineIter) {
         uVector.emplace_back(lineIter->begin.x);
         uVector.emplace_back(lineIter->end.x);
         vVector.emplace_back(lineIter->begin.y);
@@ -315,8 +314,7 @@ MStatus FindUvOverlaps::init(int i)
     std::vector<UVShell> shells(nbUvShells);
 
     // Loop over all id pairs and create lineSegment objects
-    std::vector<std::pair<unsigned int, unsigned int>>::iterator pairIter;
-    for (pairIter = idPairs.begin(); pairIter != idPairs.end(); ++pairIter) {
+    for (auto pairIter = idPairs.begin(); pairIter != idPairs.end(); ++pairIter) {
 
         unsigned int idA = (*pairIter).first;
         unsigned int idB = (*pairIter).second;
