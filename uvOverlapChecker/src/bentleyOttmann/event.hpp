@@ -17,12 +17,11 @@ public:
     Event(int eventType, LineSegment* edgePtrA, LineSegment* edgePtrB, Point2D point);
     ~Event();
 
-    Point2D eventPoint;
     int eventType;
+    LineSegment *edgePtrA, *edgePtrB;
+    Point2D eventPoint;
     int index;
     float sweepline;
-    LineSegment* edgePtrA;
-    LineSegment* edgePtrB;
 
     bool operator<(const Event& rhs) const;
 

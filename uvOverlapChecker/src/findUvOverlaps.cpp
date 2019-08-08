@@ -16,7 +16,7 @@
 #include <maya/MTimer.h>
 
 static const char* pluginName = "findUvOverlaps";
-static const char* pluginVersion = "1.8.12";
+static const char* pluginVersion = "1.8.13";
 static const char* pluginAuthor = "Michitaka Inoue";
 
 void UVShell::initAABB()
@@ -138,7 +138,7 @@ MStatus FindUvOverlaps::doIt(const MArgList& args)
     // }
     // delete[] threadArray;
 
-    int numSelected = mSel.length();
+    int numSelected = static_cast<int>(mSel.length());
 #pragma omp parallel for
     for (int i = 0; i < numSelected; i++) {
         init(i);
