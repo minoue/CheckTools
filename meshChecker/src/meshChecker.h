@@ -6,8 +6,7 @@
 
 #include <vector>
 
-enum class MeshCheckType
-{
+enum class MeshCheckType {
     TRIANGLES = 0,
     NGONS,
     NON_MANIFOLD_EDGES,
@@ -21,8 +20,7 @@ enum class MeshCheckType
     TEST
 };
 
-class MeshChecker final : public MPxCommand
-{
+class MeshChecker final : public MPxCommand {
 public:
     static void* creator();
     static MSyntax newSyntax();

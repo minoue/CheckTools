@@ -1,32 +1,30 @@
 #include "meshChecker.h"
 #include <maya/MArgDatabase.h>
 #include <maya/MArgList.h>
+#include <maya/MArrayDataHandle.h>
+#include <maya/MDagPath.h>
+#include <maya/MDataHandle.h>
 #include <maya/MDoubleArray.h>
 #include <maya/MFnDagNode.h>
 #include <maya/MFnMesh.h>
 #include <maya/MGlobal.h>
-#include <maya/MPlug.h>
-#include <maya/MString.h>
-#include <maya/MSyntax.h>
-#include <maya/MUintArray.h>
-#include <maya/MDataHandle.h>
-#include <maya/MSelectionList.h>
-#include <maya/MArrayDataHandle.h>
 #include <maya/MItMeshEdge.h>
 #include <maya/MItMeshPolygon.h>
 #include <maya/MItMeshVertex.h>
-#include <maya/MDagPath.h>
+#include <maya/MPlug.h>
+#include <maya/MSelectionList.h>
+#include <maya/MString.h>
+#include <maya/MSyntax.h>
+#include <maya/MUintArray.h>
 
-#include <limits>
 #include <cmath>
+#include <limits>
 
 using IndexArray = MeshChecker::IndexArray;
 
-namespace
-{
+namespace {
 
-enum class ResultType
-{
+enum class ResultType {
     Face,
     Vertex,
     Edge,
@@ -39,38 +37,31 @@ MStringArray create_result_string(const MDagPath& path, const IndexArray& indice
     std::vector<MString> result;
     result.reserve(indices.size());
 
-    for(auto index : indices)
-    {
-        switch(type)
-        {
-            case ResultType::Face:
-            {
-                result.emplace_back(full_path + ".f[" + index + "]");
-                break;
-            }
-            case ResultType::Vertex:
-            {
-                result.emplace_back(full_path + ".vtx[" + index + "]");
-                break;
-            }
+    for (auto index : indices) {
+        switch (type) {
+        case ResultType::Face: {
+            result.emplace_back(full_path + ".f[" + index + "]");
+            break;
+        }
+        case ResultType::Vertex: {
+            result.emplace_back(full_path + ".vtx[" + index + "]");
+            break;
+        }
 
-            case ResultType::Edge:
-            {
-                result.emplace_back(full_path + ".e[" + index + "]");
-                break;
-            }
-            case ResultType::UV:
-            {
-                result.emplace_back(full_path + ".map[" + index + "]");
-                break;
-            }
+        case ResultType::Edge: {
+            result.emplace_back(full_path + ".e[" + index + "]");
+            break;
+        }
+        case ResultType::UV: {
+            result.emplace_back(full_path + ".map[" + index + "]");
+            break;
+        }
         }
     }
-    return {&result[0], static_cast<unsigned int>(indices.size())};
+    return { &result[0], static_cast<unsigned int>(indices.size()) };
 }
 
 } // namespace
-
 
 MeshChecker::MeshChecker()
     : MPxCommand()
@@ -84,10 +75,8 @@ IndexArray MeshChecker::findTriangles(const MFnMesh& mesh)
     IndexArray indices;
     indices.reserve(static_cast<size_t>(num_polygons));
 
-    for(Index poly_index{}; poly_index<num_polygons; ++poly_index)
-    {
-        if(mesh.polygonVertexCount(poly_index) == 3)
-        {
+    for (Index poly_index{}; poly_index < num_polygons; ++poly_index) {
+        if (mesh.polygonVertexCount(poly_index) == 3) {
             indices.push_back(poly_index);
         }
     }
@@ -101,10 +90,8 @@ IndexArray MeshChecker::findNgons(const MFnMesh& mesh)
     IndexArray indices;
     indices.reserve(static_cast<size_t>(num_polygons));
 
-    for(Index poly_index{}; poly_index<num_polygons; ++poly_index)
-    {
-        if(mesh.polygonVertexCount(poly_index) >= 5)
-        {
+    for (Index poly_index{}; poly_index < num_polygons; ++poly_index) {
+        if (mesh.polygonVertexCount(poly_index) >= 5) {
             indices.push_back(poly_index);
         }
     }
@@ -119,12 +106,10 @@ IndexArray MeshChecker::findNonManifoldEdges(const MFnMesh& mesh)
     IndexArray indices;
     indices.reserve(static_cast<size_t>(mesh.numEdges()));
 
-    for (MItMeshEdge edge_it(path); !edge_it.isDone(); edge_it.next())
-    {
+    for (MItMeshEdge edge_it(path); !edge_it.isDone(); edge_it.next()) {
         int face_count;
         edge_it.numConnectedFaces(face_count);
-        if (face_count > 2)
-        {
+        if (face_count > 2) {
             indices.push_back(edge_it.index());
         }
     }
@@ -139,10 +124,8 @@ IndexArray MeshChecker::findLaminaFaces(const MFnMesh& mesh)
     IndexArray indices;
     indices.reserve(static_cast<size_t>(mesh.numPolygons()));
 
-    for (MItMeshPolygon poly_it(path); !poly_it.isDone(); poly_it.next())
-    {
-        if (poly_it.isLamina())
-        {
+    for (MItMeshPolygon poly_it(path); !poly_it.isDone(); poly_it.next()) {
+        if (poly_it.isLamina()) {
             indices.push_back(static_cast<Index>(poly_it.index()));
         }
     }
@@ -160,19 +143,16 @@ IndexArray MeshChecker::findBiValentFaces(const MFnMesh& mesh)
     MIntArray connectedFaces;
     MIntArray connectedEdges;
 
-    for (MItMeshVertex vertex_it(path); !vertex_it.isDone(); vertex_it.next())
-    {
+    for (MItMeshVertex vertex_it(path); !vertex_it.isDone(); vertex_it.next()) {
         vertex_it.getConnectedFaces(connectedFaces);
         vertex_it.getConnectedEdges(connectedEdges);
 
-        if (connectedFaces.length() == 2 && connectedEdges.length() == 2)
-        {
+        if (connectedFaces.length() == 2 && connectedEdges.length() == 2) {
             indices.push_back(vertex_it.index());
         }
     }
     return indices;
 }
-
 
 IndexArray MeshChecker::findZeroAreaFaces(const MFnMesh& mesh, double maxFaceArea)
 {
@@ -182,18 +162,15 @@ IndexArray MeshChecker::findZeroAreaFaces(const MFnMesh& mesh, double maxFaceAre
     IndexArray indices;
     indices.reserve(static_cast<size_t>(mesh.numPolygons()));
 
-    for (MItMeshPolygon poly_it(path); !poly_it.isDone(); poly_it.next())
-    {
+    for (MItMeshPolygon poly_it(path); !poly_it.isDone(); poly_it.next()) {
         double area;
         poly_it.getArea(area);
-        if (area < maxFaceArea)
-        {
+        if (area < maxFaceArea) {
             indices.push_back(static_cast<Index>(poly_it.index()));
         }
     }
     return indices;
 }
-
 
 IndexArray MeshChecker::findMeshBorderEdges(const MFnMesh& mesh)
 {
@@ -203,10 +180,8 @@ IndexArray MeshChecker::findMeshBorderEdges(const MFnMesh& mesh)
     IndexArray indices;
     indices.reserve(static_cast<size_t>(mesh.numEdges()));
 
-    for (MItMeshEdge edge_it(path); !edge_it.isDone(); edge_it.next())
-    {
-        if (edge_it.onBoundary())
-        {
+    for (MItMeshEdge edge_it(path); !edge_it.isDone(); edge_it.next()) {
+        if (edge_it.onBoundary()) {
             indices.push_back(edge_it.index());
         }
     }
@@ -222,10 +197,8 @@ IndexArray MeshChecker::findCreaseEdges(const MFnMesh& mesh)
     IndexArray indices;
     indices.reserve(static_cast<size_t>(edgeIds.length()));
 
-    for (unsigned int i{}; i < edgeIds.length(); i++)
-    {
-        if (creaseData[i] != 0)
-        {
+    for (unsigned int i{}; i < edgeIds.length(); i++) {
+        if (creaseData[i] != 0) {
             indices.push_back(static_cast<Index>(edgeIds[i]));
         }
     }
@@ -240,18 +213,15 @@ IndexArray MeshChecker::findZeroLengthEdges(const MFnMesh& mesh, double minEdgeL
     IndexArray indices;
     indices.reserve(static_cast<size_t>(mesh.numEdges()));
 
-    for (MItMeshEdge edge_it(path); !edge_it.isDone(); edge_it.next())
-    {
+    for (MItMeshEdge edge_it(path); !edge_it.isDone(); edge_it.next()) {
         double length;
         edge_it.getLength(length);
-        if (length < minEdgeLength)
-        {
+        if (length < minEdgeLength) {
             indices.push_back(edge_it.index());
         }
     }
     return indices;
 }
-
 
 IndexArray MeshChecker::findUnfrozenVertices(const MFnMesh& mesh)
 {
@@ -259,29 +229,23 @@ IndexArray MeshChecker::findUnfrozenVertices(const MFnMesh& mesh)
     mesh.getPath(path);
 
     path.extendToShape();
-    MFnDagNode dag_node{path};
+    MFnDagNode dag_node{ path };
     MPlug pnts_plug = dag_node.findPlug("pnts");
 
     auto num_vertices = mesh.numVertices();
     IndexArray indices;
     indices.reserve(static_cast<size_t>(num_vertices));
 
-    for(Index i{}; i<num_vertices; ++i)
-    {
+    for (Index i{}; i < num_vertices; ++i) {
         MPlug xyz_plug = pnts_plug.elementByLogicalIndex(static_cast<unsigned int>(i));
-        if (xyz_plug.isCompound())
-        {
+        if (xyz_plug.isCompound()) {
             float xyz[3];
-            for(unsigned int j{}; j<3; ++j)
-            {
+            for (unsigned int j{}; j < 3; ++j) {
                 xyz_plug.child(j).getValue(xyz[j]);
             }
 
             auto eps = std::numeric_limits<float>::epsilon();
-            if(!(std::abs(xyz[0]) <= eps &&
-                 std::abs(xyz[1]) <= eps &&
-                 std::abs(xyz[2]) <= eps))
-            {
+            if (!(std::abs(xyz[0]) <= eps && std::abs(xyz[1]) <= eps && std::abs(xyz[2]) <= eps)) {
                 indices.push_back(i);
             }
         }
@@ -289,7 +253,6 @@ IndexArray MeshChecker::findUnfrozenVertices(const MFnMesh& mesh)
 
     return indices;
 }
-
 
 bool MeshChecker::hasVertexPntsAttr(const MFnMesh& mesh, bool fix)
 {
@@ -311,7 +274,6 @@ bool MeshChecker::hasVertexPntsAttr(const MFnMesh& mesh, bool fix)
         while (true) {
             outputHandle = arrayDataHandle.outputValue();
 
-
             float3& xyz = outputHandle.asFloat3();
             if (xyz) {
                 if (xyz[0] != 0.0) {
@@ -332,8 +294,7 @@ bool MeshChecker::hasVertexPntsAttr(const MFnMesh& mesh, bool fix)
                 break;
             }
         }
-    }
-    else {
+    } else {
         // Do fix. Reset all vertices pnts attr to 0
         MObject pntx = dagNode.attribute("pntx");
         MObject pnty = dagNode.attribute("pnty");
@@ -367,19 +328,17 @@ bool MeshChecker::hasVertexPntsAttr(const MFnMesh& mesh, bool fix)
     return false;
 }
 
-MStatus MeshChecker::doIt(const MArgList &args) {
+MStatus MeshChecker::doIt(const MArgList& args)
+{
 
     MStatus status;
     MArgDatabase argData(syntax(), args);
 
     // if argument is not provided use selection list
     MSelectionList selection;
-    if (args.length() == 0)
-    {
+    if (args.length() == 0) {
         MGlobal::getActiveSelectionList(selection);
-    }
-    else
-    {
+    } else {
         status = argData.getCommandArgument(0, selection);
         CHECK_MSTATUS_AND_RETURN_IT(status);
         if (status != MS::kSuccess) {
@@ -398,96 +357,72 @@ MStatus MeshChecker::doIt(const MArgList &args) {
         return MS::kFailure;
     }
 
-    if(path.apiType() != MFn::kMesh)
-    {
+    if (path.apiType() != MFn::kMesh) {
         MGlobal::displayError("MeshCheker works on meshes.");
         return MS::kFailure;
     }
 
-    MFnMesh mesh{path};
+    MFnMesh mesh{ path };
 
     // argument parsing
     MeshCheckType check_type;
 
-    if (argData.isFlagSet("-check"))
-    {
+    if (argData.isFlagSet("-check")) {
         unsigned int check_value;
         argData.getFlagArgument("-check", 0, check_value);
 
         check_type = static_cast<MeshCheckType>(check_value);
 
         // TODO check if exeds value
-    }
-    else
-    {
+    } else {
         MGlobal::displayError("Check type required.");
         return MS::kFailure;
     }
 
     // execute operation
-    if(check_type == MeshCheckType::TRIANGLES)
-    {
+    if (check_type == MeshCheckType::TRIANGLES) {
         auto indices = findTriangles(mesh);
         setResult(create_result_string(path, indices, ResultType::Face));
-    }
-    else if(check_type == MeshCheckType::NGONS)
-    {
+    } else if (check_type == MeshCheckType::NGONS) {
         auto indices = findNgons(mesh);
         setResult(create_result_string(path, indices, ResultType::Face));
-    }
-    else if(check_type == MeshCheckType::NON_MANIFOLD_EDGES)
-    {
+    } else if (check_type == MeshCheckType::NON_MANIFOLD_EDGES) {
         auto indices = findNonManifoldEdges(mesh);
         setResult(create_result_string(path, indices, ResultType::Edge));
-    }
-    else if(check_type == MeshCheckType::LAMINA_FACES)
-    {
+    } else if (check_type == MeshCheckType::LAMINA_FACES) {
         auto indices = findLaminaFaces(mesh);
         setResult(create_result_string(path, indices, ResultType::Face));
-    }
-    else if(check_type == MeshCheckType::BI_VALENT_FACES)
-    {
+    } else if (check_type == MeshCheckType::BI_VALENT_FACES) {
         auto indices = findBiValentFaces(mesh);
         setResult(create_result_string(path, indices, ResultType::Vertex));
-    }
-    else if(check_type == MeshCheckType::ZERO_AREA_FACES)
-    {
-        double maxFaceArea{0.000001};
-        if (argData.isFlagSet("-maxFaceArea")) argData.getFlagArgument("-maxFaceArea", 0, maxFaceArea);
+    } else if (check_type == MeshCheckType::ZERO_AREA_FACES) {
+        double maxFaceArea{ 0.000001 };
+        if (argData.isFlagSet("-maxFaceArea"))
+            argData.getFlagArgument("-maxFaceArea", 0, maxFaceArea);
 
         auto indices = findZeroAreaFaces(mesh, maxFaceArea);
         setResult(create_result_string(path, indices, ResultType::Face));
-    }
-    else if(check_type == MeshCheckType::MESH_BORDER)
-    {
+    } else if (check_type == MeshCheckType::MESH_BORDER) {
         auto indices = findMeshBorderEdges(mesh);
         setResult(create_result_string(path, indices, ResultType::Edge));
-    }
-    else if(check_type == MeshCheckType::CREASE_EDGE)
-    {
+    } else if (check_type == MeshCheckType::CREASE_EDGE) {
         auto indices = findCreaseEdges(mesh);
         setResult(create_result_string(path, indices, ResultType::Edge));
-    }
-    else if(check_type == MeshCheckType::ZERO_LENGTH_EDGES)
-    {
+    } else if (check_type == MeshCheckType::ZERO_LENGTH_EDGES) {
         double minEdgeLength = 0.000001;
-        if (argData.isFlagSet("-minEdgeLength")) argData.getFlagArgument("-minEdgeLength", 0, minEdgeLength);
+        if (argData.isFlagSet("-minEdgeLength"))
+            argData.getFlagArgument("-minEdgeLength", 0, minEdgeLength);
 
         auto indices = findZeroLengthEdges(mesh, minEdgeLength);
         setResult(create_result_string(path, indices, ResultType::Edge));
-    }
-    else if(check_type == MeshCheckType::UNFROZEN_VERTICES)
-    {
+    } else if (check_type == MeshCheckType::UNFROZEN_VERTICES) {
         bool fix = false;
-        if (argData.isFlagSet("-fix")) argData.getFlagArgument("-fix", 0, fix);
+        if (argData.isFlagSet("-fix"))
+            argData.getFlagArgument("-fix", 0, fix);
 
         setResult(hasVertexPntsAttr(mesh, fix));
-    }
-    else if(check_type == MeshCheckType::TEST)
-    {
-    }
-    else
-    {
+    } else if (check_type == MeshCheckType::TEST) {
+    } else {
         MGlobal::displayError("Invalid check number");
         return MS::kFailure;
     }
