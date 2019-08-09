@@ -3,10 +3,19 @@
 
 #include <maya/MDagPath.h>
 #include <maya/MPxCommand.h>
-#include <maya/MSyntax.h>
 #include <maya/MString.h>
+#include <maya/MSyntax.h>
+#include <vector>
 
-class UvChecker : public MPxCommand {
+enum class UVCheckType {
+    UDIM = 0,
+    HAS_UVS,
+    ZERO_AREA,
+    UN_ASSIGNED_UVS,
+    NEGATIVE_SPACE_UVS
+};
+
+class UvChecker final : public MPxCommand {
 public:
     UvChecker();
     virtual ~UvChecker();
@@ -17,11 +26,14 @@ public:
     static void* creator();
     static MSyntax newSyntax();
 
-    MStatus findUdimIntersections();
-    MStatus findNoUvFaces();
-    MStatus findZeroUvFaces();
-    bool hasUnassignedUVs();
-    MStatus findNegativeSpaceUVs();
+    using Index = int;
+    using IndexArray = std::vector<Index>;
+
+    IndexArray findUdimIntersections(const MFnMesh&);
+    IndexArray findNoUvFaces(const MFnMesh&);
+    IndexArray findZeroUvFaces(const MFnMesh&);
+    IndexArray findNegativeSpaceUVs(const MFnMesh&);
+    bool hasUnassignedUVs(const MFnMesh&);
 
     enum Check {
         UDIM,
