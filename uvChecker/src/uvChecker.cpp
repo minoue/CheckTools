@@ -4,18 +4,16 @@
 #include <math.h>
 #include <maya/MArgDatabase.h>
 #include <maya/MArgList.h>
-#include <maya/MFloatArray.h>
 #include <maya/MDagPath.h>
+#include <maya/MFloatArray.h>
 #include <maya/MGlobal.h>
 #include <maya/MIntArray.h>
 #include <maya/MItMeshPolygon.h>
 #include <maya/MSelectionList.h>
 #include <maya/MString.h>
 #include <maya/MStringArray.h>
-#include <set>
 #include <string>
 #include <unordered_set>
-#include <vector>
 
 using IndexArray = UvChecker::IndexArray;
 
@@ -76,7 +74,6 @@ MSyntax UvChecker::newSyntax()
     return syntax;
 }
 
-
 MStringArray create_result_string(const MDagPath& path, const IndexArray& indices)
 {
     MString full_path = path.fullPathName();
@@ -103,13 +100,14 @@ MStatus UvChecker::doIt(const MArgList& args)
         return MStatus::kFailure;
     }
 
-    MDagPath mDagPath;
-    sel.getDagPath(0, mDagPath);
-    MFnMesh mesh(mDagPath);
-    status = mDagPath.extendToShape();
+    MDagPath path;
+    sel.getDagPath(0, path);
+    MFnMesh mesh(path);
+    status = path.extendToShape();
     CHECK_MSTATUS_AND_RETURN_IT(status);
 
-    if (mDagPath.apiType() != MFn::kMesh) {
+    // Check if mesh or not
+    if (path.apiType() != MFn::kMesh) {
         MGlobal::displayError("Selected object is not mesh.");
         return MStatus::kFailure;
     }
@@ -150,7 +148,7 @@ MStatus UvChecker::doIt(const MArgList& args)
         maxUvBorderDistance = 0.0;
 
     if (verbose == true) {
-        MString objectPath = "Selected mesh : " + mDagPath.fullPathName();
+        MString objectPath = "Selected mesh : " + path.fullPathName();
         MGlobal::displayInfo(objectPath);
     }
 
@@ -158,30 +156,26 @@ MStatus UvChecker::doIt(const MArgList& args)
 
     switch (check_type) {
     case UVCheckType::UDIM:
-        if (verbose == true) {
+        if (verbose)
             MGlobal::displayInfo("Checking UDIM borders");
-        }
         indices = findUdimIntersections(mesh);
-        setResult(create_result_string(mDagPath, indices, ResultType::UV));
+        setResult(create_result_string(path, indices, ResultType::UV));
         break;
     case UVCheckType::HAS_UVS:
-        if (verbose == true) {
+        if (verbose)
             MGlobal::displayInfo("Checking Non UVed faces");
-        }
         indices = findNoUvFaces(mesh);
-        setResult(create_result_string(mDagPath, indices, ResultType::Face));
+        setResult(create_result_string(path, indices, ResultType::Face));
         break;
     case UVCheckType::ZERO_AREA:
-        if (verbose == true) {
+        if (verbose)
             MGlobal::displayInfo("Checking Zero UV faces");
-        }
         indices = findZeroUvFaces(mesh);
-        setResult(create_result_string(mDagPath, indices, ResultType::Face));
+        setResult(create_result_string(path, indices, ResultType::Face));
         break;
     case UVCheckType::UN_ASSIGNED_UVS:
-        if (verbose) {
+        if (verbose)
             MGlobal::displayInfo("Checking UnassignedUVs");
-        }
         bool result;
         result = hasUnassignedUVs(mesh);
         MPxCommand::setResult(result);
@@ -190,7 +184,7 @@ MStatus UvChecker::doIt(const MArgList& args)
         if (verbose)
             MGlobal::displayInfo("Checking UVs in negative space");
         indices = findNegativeSpaceUVs(mesh);
-        setResult(create_result_string(mDagPath, indices, ResultType::UV));
+        setResult(create_result_string(path, indices, ResultType::UV));
         break;
     default:
         MGlobal::displayError("Invalid check number");
@@ -252,9 +246,9 @@ IndexArray UvChecker::findUdimIntersections(const MFnMesh& fnMesh)
             if (floor(u1) == floor(u2) && floor(v1) == floor(v2)) {
             } else if ((maxUvBorderDistance == 0.0)
                 || ((fabs(rint(u1) - fabs(u1)) > maxUvBorderDistance)
-                       && (fabs(rint(v1) - fabs(v1)) > maxUvBorderDistance)
-                       && (fabs(rint(u2) - fabs(u2)) > maxUvBorderDistance)
-                       && (fabs(rint(v2) - fabs(v2)) > maxUvBorderDistance))) {
+                    && (fabs(rint(v1) - fabs(v1)) > maxUvBorderDistance)
+                    && (fabs(rint(u2) - fabs(u2)) > maxUvBorderDistance)
+                    && (fabs(rint(v2) - fabs(v2)) > maxUvBorderDistance))) {
                 indexSet.insert(currentUVindex);
                 indexSet.insert(nextUVindex);
             }
@@ -310,17 +304,12 @@ bool UvChecker::hasUnassignedUVs(const MFnMesh& mesh)
     mesh.getAssignedUVs(uvCounts, uvIds, &uvSet);
     unsigned int numUvIds = uvIds.length();
 
-    std::vector<int> uvIdVec;
-    uvIdVec.reserve(numUvIds);
+    std::unordered_set<int> uvIdSet;
     for (unsigned int i = 0; i < numUvIds; i++) {
-        uvIdVec.push_back(uvIds[i]);
+        uvIdSet.insert(uvIds[i]);
     }
 
-    // Remove duplicate elements
-    std::sort(uvIdVec.begin(), uvIdVec.end());
-    uvIdVec.erase(std::unique(uvIdVec.begin(), uvIdVec.end()), uvIdVec.end());
-
-    int numAssignedUVs = static_cast<int>(uvIdVec.size());
+    int numAssignedUVs = static_cast<int>(uvIdSet.size());
 
     if (numUVs != numAssignedUVs) {
         return true;
