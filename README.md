@@ -7,10 +7,17 @@ Mesh/Topology checker
 ## [uvChecker](https://github.com/minoue/CheckTools/blob/master/uvChecker/)
 General UV checker
 
-## [findUvOverlaps](https://github.com/minoue/CheckTools/blob/master/uvChecker/)
-UV overlap checker by the Bentley–Ottmann algorithm
+## [findUvOverlaps](https://github.com/minoue/CheckTools/blob/master/uvOverlapChecker/)
+UV overlap checker based on the Bentley–Ottmann algorithm
+
+ ⚠️ **Warning** ⚠️
+* Be sure to check if a mesh has no **unassigned UVs**, otherwise maya clashes.
 
 ## Build
+
+### Build requirements
+C++11
+
 ### Linux/MacOS
 ```
 >git clone https://github.com/minoue/CheckTools
