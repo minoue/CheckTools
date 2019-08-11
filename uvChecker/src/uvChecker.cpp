@@ -5,7 +5,7 @@
 #include <maya/MArgDatabase.h>
 #include <maya/MArgList.h>
 #include <maya/MFloatArray.h>
-#include <maya/MFnMesh.h>
+#include <maya/MDagPath.h>
 #include <maya/MGlobal.h>
 #include <maya/MIntArray.h>
 #include <maya/MItMeshPolygon.h>
@@ -16,6 +16,45 @@
 #include <string>
 #include <unordered_set>
 #include <vector>
+
+using IndexArray = UvChecker::IndexArray;
+
+enum class ResultType {
+    Face,
+    Vertex,
+    Edge,
+    UV
+};
+
+MStringArray create_result_string(const MDagPath& path, const IndexArray& indices, ResultType type)
+{
+    MString full_path = path.fullPathName();
+    std::vector<MString> result;
+    result.reserve(indices.size());
+
+    for (auto index : indices) {
+        switch (type) {
+        case ResultType::Face: {
+            result.emplace_back(full_path + ".f[" + index + "]");
+            break;
+        }
+        case ResultType::Vertex: {
+            result.emplace_back(full_path + ".vtx[" + index + "]");
+            break;
+        }
+
+        case ResultType::Edge: {
+            result.emplace_back(full_path + ".e[" + index + "]");
+            break;
+        }
+        case ResultType::UV: {
+            result.emplace_back(full_path + ".map[" + index + "]");
+            break;
+        }
+        }
+    }
+    return { &result[0], static_cast<unsigned int>(indices.size()) };
+}
 
 UvChecker::UvChecker()
 {
@@ -37,7 +76,6 @@ MSyntax UvChecker::newSyntax()
     return syntax;
 }
 
-using IndexArray = UvChecker::IndexArray;
 
 MStringArray create_result_string(const MDagPath& path, const IndexArray& indices)
 {
@@ -65,18 +103,36 @@ MStatus UvChecker::doIt(const MArgList& args)
         return MStatus::kFailure;
     }
 
+    MDagPath mDagPath;
     sel.getDagPath(0, mDagPath);
-    MFnMesh fnMesh(mDagPath);
+    MFnMesh mesh(mDagPath);
+    status = mDagPath.extendToShape();
+    CHECK_MSTATUS_AND_RETURN_IT(status);
+
+    if (mDagPath.apiType() != MFn::kMesh) {
+        MGlobal::displayError("Selected object is not mesh.");
+        return MStatus::kFailure;
+    }
+
+    // argument parsing
+    UVCheckType check_type;
+
+    if (argData.isFlagSet("-check")) {
+        unsigned int check_value;
+        argData.getFlagArgument("-check", 0, check_value);
+
+        check_type = static_cast<UVCheckType>(check_value);
+
+        // TODO check if exeds value
+    } else {
+        MGlobal::displayError("Check type required.");
+        return MS::kFailure;
+    }
 
     if (argData.isFlagSet("-verbose"))
         argData.getFlagArgument("-verbose", 0, verbose);
     else
         verbose = false;
-
-    if (argData.isFlagSet("-check"))
-        argData.getFlagArgument("-check", 0, checkNumber);
-    else
-        checkNumber = 99;
 
     if (argData.isFlagSet("-uvArea"))
         argData.getFlagArgument("-uvArea", 0, minUVArea);
@@ -86,62 +142,43 @@ MStatus UvChecker::doIt(const MArgList& args)
     if (argData.isFlagSet("-uvSet"))
         argData.getFlagArgument("-uvSet", 0, uvSet);
     else
-        fnMesh.getCurrentUVSetName(uvSet);
+        mesh.getCurrentUVSetName(uvSet);
 
     if (argData.isFlagSet("-maxUvBorderDistance"))
         argData.getFlagArgument("-maxUvBorderDistance", 0, maxUvBorderDistance);
     else
         maxUvBorderDistance = 0.0;
 
-    sel.getDagPath(0, mDagPath);
-
     if (verbose == true) {
         MString objectPath = "Selected mesh : " + mDagPath.fullPathName();
         MGlobal::displayInfo(objectPath);
     }
 
-    status = mDagPath.extendToShape();
-    CHECK_MSTATUS_AND_RETURN_IT(status);
-
-    if (mDagPath.apiType() != MFn::kMesh) {
-        MGlobal::displayError("Selected object is not mesh.");
-        return MStatus::kFailure;
-    }
-
-    return redoIt();
-}
-
-MStatus UvChecker::redoIt()
-{
-    MStatus status;
-
-    MFnMesh mesh(mDagPath);
-
     IndexArray indices;
 
-    switch (checkNumber) {
-    case UvChecker::UDIM:
+    switch (check_type) {
+    case UVCheckType::UDIM:
         if (verbose == true) {
             MGlobal::displayInfo("Checking UDIM borders");
         }
         indices = findUdimIntersections(mesh);
-        setResult(create_result_string(mDagPath, indices));
+        setResult(create_result_string(mDagPath, indices, ResultType::UV));
         break;
-    case UvChecker::HAS_UVS:
+    case UVCheckType::HAS_UVS:
         if (verbose == true) {
             MGlobal::displayInfo("Checking Non UVed faces");
         }
         indices = findNoUvFaces(mesh);
-        setResult(create_result_string(mDagPath, indices));
+        setResult(create_result_string(mDagPath, indices, ResultType::Face));
         break;
-    case UvChecker::ZERO_AREA:
+    case UVCheckType::ZERO_AREA:
         if (verbose == true) {
             MGlobal::displayInfo("Checking Zero UV faces");
         }
         indices = findZeroUvFaces(mesh);
-        setResult(create_result_string(mDagPath, indices));
+        setResult(create_result_string(mDagPath, indices, ResultType::Face));
         break;
-    case UvChecker::UN_ASSIGNED_UVS:
+    case UVCheckType::UN_ASSIGNED_UVS:
         if (verbose) {
             MGlobal::displayInfo("Checking UnassignedUVs");
         }
@@ -149,11 +186,11 @@ MStatus UvChecker::redoIt()
         result = hasUnassignedUVs(mesh);
         MPxCommand::setResult(result);
         break;
-    case UvChecker::NEGATIVE_SPACE_UVS:
+    case UVCheckType::NEGATIVE_SPACE_UVS:
         if (verbose)
             MGlobal::displayInfo("Checking UVs in negative space");
         indices = findNegativeSpaceUVs(mesh);
-        setResult(create_result_string(mDagPath, indices));
+        setResult(create_result_string(mDagPath, indices, ResultType::UV));
         break;
     default:
         MGlobal::displayError("Invalid check number");
@@ -161,6 +198,11 @@ MStatus UvChecker::redoIt()
         break;
     }
 
+    return redoIt();
+}
+
+MStatus UvChecker::redoIt()
+{
     return MS::kSuccess;
 }
 
@@ -229,7 +271,9 @@ IndexArray UvChecker::findNoUvFaces(const MFnMesh& mesh)
 {
     IndexArray indices;
     bool hasUVs;
-    for (MItMeshPolygon itPoly(mDagPath); !itPoly.isDone(); itPoly.next()) {
+    MDagPath path;
+    mesh.getPath(path);
+    for (MItMeshPolygon itPoly(path); !itPoly.isDone(); itPoly.next()) {
         hasUVs = itPoly.hasUVs(uvSet);
         if (hasUVs == false) {
             indices.emplace_back(itPoly.index());
@@ -238,13 +282,14 @@ IndexArray UvChecker::findNoUvFaces(const MFnMesh& mesh)
     return indices;
 }
 
-IndexArray UvChecker::findZeroUvFaces(const MFnMesh& fnMesh)
+IndexArray UvChecker::findZeroUvFaces(const MFnMesh& mesh)
 {
     double area;
     bool hasUVs;
     IndexArray indices;
-
-    for (MItMeshPolygon itPoly(mDagPath); !itPoly.isDone(); itPoly.next()) {
+    MDagPath path;
+    mesh.getPath(path);
+    for (MItMeshPolygon itPoly(path); !itPoly.isDone(); itPoly.next()) {
         hasUVs = itPoly.hasUVs(uvSet);
         if (hasUVs == false) {
         } else {
@@ -257,12 +302,12 @@ IndexArray UvChecker::findZeroUvFaces(const MFnMesh& fnMesh)
     return indices;
 }
 
-bool UvChecker::hasUnassignedUVs(const MFnMesh& fnMesh)
+bool UvChecker::hasUnassignedUVs(const MFnMesh& mesh)
 {
-    int numUVs = fnMesh.numUVs(uvSet);
+    int numUVs = mesh.numUVs(uvSet);
     MIntArray uvCounts;
     MIntArray uvIds;
-    fnMesh.getAssignedUVs(uvCounts, uvIds, &uvSet);
+    mesh.getAssignedUVs(uvCounts, uvIds, &uvSet);
     unsigned int numUvIds = uvIds.length();
 
     std::vector<int> uvIdVec;
@@ -284,13 +329,13 @@ bool UvChecker::hasUnassignedUVs(const MFnMesh& fnMesh)
     }
 }
 
-IndexArray UvChecker::findNegativeSpaceUVs(const MFnMesh& fnMesh)
+IndexArray UvChecker::findNegativeSpaceUVs(const MFnMesh& mesh)
 {
     IndexArray indices;
     MFloatArray uArray, vArray;
-    fnMesh.getUVs(uArray, vArray, &uvSet);
+    mesh.getUVs(uArray, vArray, &uvSet);
 
-    int numUVs = fnMesh.numUVs(uvSet);
+    int numUVs = mesh.numUVs(uvSet);
 
     for (int i = 0; i < numUVs; i++) {
         float u = uArray[static_cast<unsigned int>(i)];
