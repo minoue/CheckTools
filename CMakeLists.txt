@@ -57,13 +57,13 @@ target_include_directories(Maya SYSTEM INTERFACE ${MAYA_INCLUDE_DIR})
 
 # find libs
 set(MAYA_LIBS
-        Foundation
-        OpenMaya
-        OpenMayaAnim
-        OpenMayaFX
-        OpenMayaRender
-        OpenMayaUI
-        )
+    Foundation
+    OpenMaya
+    OpenMayaAnim
+    OpenMayaFX
+    OpenMayaRender
+    OpenMayaUI
+)
 
 foreach(MAYA_LIB ${MAYA_LIBS})
     find_library(LIB-${MAYA_LIB} ${MAYA_LIB}

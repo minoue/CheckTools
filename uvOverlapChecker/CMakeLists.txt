@@ -1,7 +1,5 @@
 project(findUvOverlaps CXX)
 
-find_package(OpenMP REQUIRED)
-
 add_maya_library(NAME ${PROJECT_NAME}
         PRIVATE_SOURCE
         src/findUvOverlaps.cpp
@@ -18,9 +16,13 @@ add_maya_library(NAME ${PROJECT_NAME}
         src/bentleyOttmann/vector2D.cpp
         )
 
-target_link_libraries(${PROJECT_NAME}
+if (NOT APPLE)
+    find_package(OpenMP REQUIRED)
+    target_link_libraries(
+        ${PROJECT_NAME}
         PRIVATE
         OpenMP::OpenMP_CXX
-        )
+    )
+endif()
 
 install(TARGETS ${PROJECT_NAME} DESTINATION plug-ins)
