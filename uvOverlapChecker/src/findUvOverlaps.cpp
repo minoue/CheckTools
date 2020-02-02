@@ -15,9 +15,9 @@
 #include <maya/MStringArray.h>
 #include <maya/MTimer.h>
 
-static const char* pluginName = "findUvOverlaps";
-static const char* pluginVersion = "1.8.14";
-static const char* pluginAuthor = "Michitaka Inoue";
+static const char* const pluginCommandName = "findUvOverlaps";
+static const char* const pluginVersion = "1.8.15";
+static const char* const pluginAuthor = "Michitaka Inoue";
 
 void UVShell::initAABB()
 {
@@ -351,9 +351,15 @@ void FindUvOverlaps::timeIt(std::string text, double t)
 MStatus initializePlugin(MObject obj)
 {
     MStatus status;
-    MFnPlugin plugin(obj, pluginAuthor, pluginVersion, "Any");
 
-    status = plugin.registerCommand(pluginName, FindUvOverlaps::creator, FindUvOverlaps::newSyntax);
+    std::string version_str(pluginVersion);
+    std::string compile_date_str(__DATE__);
+    std::string compile_time_str(__TIME__);
+    std::string version(version_str + " / " + compile_date_str + " / " + compile_time_str);
+
+    MFnPlugin plugin(obj, pluginAuthor, version.c_str(), "Any");
+
+    status = plugin.registerCommand(pluginCommandName, FindUvOverlaps::creator, FindUvOverlaps::newSyntax);
     if (!status) {
         status.perror("registerCommand");
         return status;
@@ -367,7 +373,7 @@ MStatus uninitializePlugin(MObject obj)
     MStatus status;
     MFnPlugin plugin(obj);
 
-    status = plugin.deregisterCommand(pluginName);
+    status = plugin.deregisterCommand(pluginCommandName);
     if (!status) {
         status.perror("deregisterCommand");
         return status;
