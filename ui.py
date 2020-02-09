@@ -1,17 +1,22 @@
 from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
 from PySide2 import QtCore, QtWidgets
 from maya import OpenMaya
-# from maya import OpenMayaUI
 from maya import cmds
-# import shiboken2
+from enum import Enum
 from functools import partial
 
 
-CHECKS = [
-    "Triangles",
-    "N-gons",
-    "Non-manifold edges",
-    "Lamina faces"]
+class Checks(Enum):
+    triangles = 0
+    nsided = 1
+    nonManifoldEdges = 2
+    laminaFaces = 3
+    biValentFaces = 4
+    zeroAreaFaces = 5
+    meshBorderEdges = 6
+    creaseEdges = 7
+    zeroLengthEdges = 8
+    vertexPntsAttribute = 9
 
 
 def init():
@@ -43,16 +48,34 @@ class MeshChecker(QtWidgets.QWidget):
         super(MeshChecker, self).__init__(parent)
 
         triBtn = QtWidgets.QPushButton("Triangles")
-        triBtn.clicked.connect(partial(self.run, 0))
+        triBtn.clicked.connect(partial(self.run, Checks.triangles))
 
         ngonBtn = QtWidgets.QPushButton("N-gons")
-        ngonBtn.clicked.connect(partial(self.run, 1))
+        ngonBtn.clicked.connect(partial(self.run, Checks.nsided))
 
         manifoldBtn = QtWidgets.QPushButton("Non-manifold edges")
-        manifoldBtn.clicked.connect(partial(self.run, 2))
+        manifoldBtn.clicked.connect(partial(self.run, Checks.nonManifoldEdges))
 
         laminaBtn = QtWidgets.QPushButton("Lamina faces")
-        laminaBtn.clicked.connect(partial(self.run, 3))
+        laminaBtn.clicked.connect(partial(self.run, Checks.laminaFaces))
+
+        vbfBtn = QtWidgets.QPushButton("Bi-valent faces")
+        vbfBtn.clicked.connect(partial(self.run, Checks.biValentFaces))
+
+        zafBtn = QtWidgets.QPushButton("Zero area faces")
+        zafBtn.clicked.connect(partial(self.run, Checks.zeroAreaFaces))
+
+        mbeBtn = QtWidgets.QPushButton("Mesh border edges")
+        mbeBtn.clicked.connect(partial(self.run, Checks.meshBorderEdges))
+
+        ceBtn = QtWidgets.QPushButton("Crease edges")
+        ceBtn.clicked.connect(partial(self.run, Checks.creaseEdges))
+
+        zleBtn = QtWidgets.QPushButton("Zero Length edges")
+        zleBtn.clicked.connect(partial(self.run, Checks.zeroLengthEdges))
+
+        vpaBtn = QtWidgets.QPushButton("Vertex pnts attribute")
+        vpaBtn.clicked.connect(partial(self.run, Checks.vertexPntsAttribute))
 
         layout = QtWidgets.QBoxLayout(QtWidgets.QBoxLayout.TopToBottom)
         layout.setAlignment(QtCore.Qt.AlignTop)
@@ -60,24 +83,40 @@ class MeshChecker(QtWidgets.QWidget):
         layout.addWidget(ngonBtn)
         layout.addWidget(manifoldBtn)
         layout.addWidget(laminaBtn)
+        layout.addWidget(vbfBtn)
+        layout.addWidget(zafBtn)
+        layout.addWidget(mbeBtn)
+        layout.addWidget(ceBtn)
+        layout.addWidget(zleBtn)
+        layout.addWidget(vpaBtn)
 
         self.setLayout(layout)
 
-    def run(self, checkNum):
+    def run(self, checkType):
         """ run check command """
 
+        checkNum = checkType.value
+        checkName = checkType.name
+
         sel = cmds.ls(sl=True, fl=True, long=True)
+
         if not len(sel) == 0:
             result = cmds.checkMesh(sel[0], c=checkNum)
 
-            if len(result) == 0:
+            if result is True:
+                # vertex pnts attr check
+                OpenMaya.MGlobal.displayWarning(
+                    "{} are found".format(checkName))
+                return
+
+            if result is False or len(result) == 0:
                 OpenMaya.MGlobal.displayInfo(
-                    "Good. No {} are found".format(CHECKS[checkNum]))
+                    "Good. No {} are found".format(checkName))
             else:
                 cmds.select(result, r=True)
                 numErrors = len(result)
                 OpenMaya.MGlobal.displayWarning(
-                    "{} {} are found".format(numErrors, CHECKS[checkNum]))
+                    "{} {} are found".format(numErrors, checkName))
 
 
 class UVChecker(QtWidgets.QWidget):
@@ -159,7 +198,7 @@ class MainWindow(MayaQWidgetDockableMixin, QtWidgets.QMainWindow):
         QtWidgets.QMessageBox.about(
             self,
             'About ',
-            'Awesome window\n')
+            'test\n')
 
     def run(self):
         try:
