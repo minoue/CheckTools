@@ -1,3 +1,7 @@
+"""
+
+module docstring here
+"""
 
 from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
 from PySide2 import QtCore, QtWidgets
@@ -9,6 +13,11 @@ reload(checker)
 
 
 def init():
+    """
+    Initialize plugins
+
+    """
+
     if not cmds.pluginInfo("meshChecker", q=True, loaded=True):
         try:
             cmds.loadPlugin("meshChecker")
@@ -29,7 +38,6 @@ def init():
 
 
 class CheckerWidget(QtWidgets.QWidget):
-
 
     RED = """QPushButton{
                 background: red;
@@ -87,14 +95,25 @@ class CheckerWidget(QtWidgets.QWidget):
                 self.setColor(self.GREEN)
 
     def errorSelected(self, *args):
-        e = args[0]
-        cmds.select(e.components, r=True)
+        """
+        Select error components
+
+        """
+
+        err = args[0]
+        cmds.select(err.components, r=True)
 
     def setColor(self, col):
+        """
+        Change button color
+
+        """
+
         self.checkButton.setStyleSheet(col)
 
 
 class ModelSanityChecker(QtWidgets.QWidget):
+    """ Main sanity checker class """
 
     def __init__(self, parent=None):
         super(ModelSanityChecker, self).__init__(parent)
@@ -103,6 +122,10 @@ class ModelSanityChecker(QtWidgets.QWidget):
         self.createUI()
 
     def createUI(self):
+        """
+        GUI method
+
+        """
 
         mainLayout = QtWidgets.QVBoxLayout()
 
@@ -110,13 +133,13 @@ class ModelSanityChecker(QtWidgets.QWidget):
         scroll.setWidgetResizable(1)
 
         scrollLayout = QtWidgets.QVBoxLayout()
-        for w in self.checkers:
-            scrollLayout.addWidget(w)
+        for widget in self.checkers:
+            scrollLayout.addWidget(widget)
 
         content = QtWidgets.QWidget()
         content.setLayout(scrollLayout)
 
-        scroll.setWidget(content) 
+        scroll.setWidget(content)
 
         checkAllButton = QtWidgets.QPushButton("Check All")
         checkAllButton.clicked.connect(self.checkAll)
@@ -128,8 +151,13 @@ class ModelSanityChecker(QtWidgets.QWidget):
         self.setLayout(mainLayout)
 
     def checkAll(self):
-        for w in self.checkers:
-            w.check()
+        """
+        Check all
+
+        """
+
+        for widget in self.checkers:
+            widget.check()
 
 
 class CentralWidget(QtWidgets.QWidget):
@@ -159,6 +187,10 @@ class CentralWidget(QtWidgets.QWidget):
 
 
 class MainWindow(MayaQWidgetDockableMixin, QtWidgets.QMainWindow):
+    """
+    Main window
+
+    """
 
     def __init__(self, parent=None):
         """ init """
@@ -166,18 +198,18 @@ class MainWindow(MayaQWidgetDockableMixin, QtWidgets.QMainWindow):
         super(MainWindow, self).__init__(parent)
 
         self.thisObjectName = "sanityCheckerWindow"
-        self.WindowTitle = "Sanity Checker"
+        self.windowTitle = "Sanity Checker"
         self.workspaceControlName = self.thisObjectName + "WorkspaceControl"
 
         self.setObjectName(self.thisObjectName)
-        self.setWindowTitle(self.WindowTitle)
+        self.setWindowTitle(self.windowTitle)
 
         self.setWindowFlags(QtCore.Qt.Window)
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 
         # Create and set central widget
-        self.cw = CentralWidget()
-        self.setCentralWidget(self.cw)
+        self.cWidget = CentralWidget()
+        self.setCentralWidget(self.cWidget)
 
         self.setupMenu()
 
@@ -192,11 +224,13 @@ class MainWindow(MayaQWidgetDockableMixin, QtWidgets.QMainWindow):
         aboutAction.triggered.connect(self.showAbout)
 
         menu.addAction("File")
-        help_menu = menu.addMenu("&Help")
-        help_menu.addAction(aboutAction)
+        helpMenu = menu.addMenu("&Help")
+        helpMenu.addAction(aboutAction)
 
     def showAbout(self):
-        """ about message """
+        """
+        About message
+        """
 
         QtWidgets.QMessageBox.about(
             self,
