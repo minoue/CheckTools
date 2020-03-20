@@ -3,13 +3,13 @@
 module docstring here
 """
 
-from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
 from PySide2 import QtCore, QtWidgets
-from maya import OpenMaya
+from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
 from maya import cmds
-
 from . import checker
+from . import framelayout
 reload(checker)
+reload(framelayout)
 
 
 def init():
@@ -37,17 +37,8 @@ def init():
             raise RuntimeError("Failed to load plugin")
 
 
+
 class CheckerWidget(QtWidgets.QWidget):
-
-    RED = """QPushButton{
-                background: red;
-          }
-          """
-
-    GREEN = """QPushButton{
-                background: green;
-          }
-          """
 
     def __init__(self, chk):
         # type: (checker.BaseChecker) -> (None)
@@ -56,43 +47,69 @@ class CheckerWidget(QtWidgets.QWidget):
         self.checker = chk
         self.createUI()
 
-        self.setMinimumHeight(100)
+        # self.setMinimumHeight(50)
 
     def createUI(self):
         layout = QtWidgets.QBoxLayout(QtWidgets.QBoxLayout.LeftToRight)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+        layout.setAlignment(QtCore.Qt.AlignTop)
 
-        self.checkButton = QtWidgets.QPushButton(self.checker.checkLabel)
-        self.checkButton.setSizePolicy(
-            QtWidgets.QSizePolicy.Maximum,
-            QtWidgets.QSizePolicy.Expanding)
-        self.checkButton.setMinimumWidth(150)
+        self.frame = framelayout.FrameLayout(self.checker.name)
+        if not self.checker.isEnabled:
+            self.setEnabled(False)
+
+        self.checkButton = QtWidgets.QPushButton("Check")
+        # self.checkButton.setSizePolicy(
+        #     QtWidgets.QSizePolicy.Maximum,
+        #     QtWidgets.QSizePolicy.Expanding)
+        # self.checkButton.setMinimumWidth(130)
         self.checkButton.clicked.connect(self.check)
+        self.fixButton = QtWidgets.QPushButton("Fix")
+        self.fixButton.setEnabled(False)
+
+        buttonLayout = QtWidgets.QHBoxLayout()
+        buttonLayout.addWidget(self.checkButton)
+        buttonLayout.addWidget(self.fixButton)
 
         self.errorList = QtWidgets.QListWidget()
         self.errorList.itemClicked.connect(self.errorSelected)
 
-        layout.addWidget(self.checkButton)
-        layout.addWidget(self.errorList)
+        self.frame.addWidget(self.errorList)
+        self.frame.addLayout(buttonLayout)
+
+        layout.addWidget(self.frame)
 
         self.setLayout(layout)
 
     def check(self):
+        if not self.checker.isEnabled:
+            return
+
         sel = cmds.ls(sl=True, fl=True, long=True)
 
-        if len(sel) == 0:
+        if not sel:
             cmds.warning("Nothing is selected")
             return
+
+        children = cmds.listRelatives(
+            sel[0], children=True, ad=True, fullPath=True, type="transform") or []
+        children.append(sel[0])
 
         # Clear list items
         self.errorList.clear()
 
-        errsWidgets = self.checker.checkIt(sel)
-        for e in errsWidgets:
-            if not e.isClean:
-                self.errorList.addItem(e)
-                self.setColor(self.RED)
-            else:
-                self.setColor(self.GREEN)
+        errs = self.checker.checkIt(children)
+
+        if errs:
+            for err in errs:
+                self.errorList.addItem(err)
+                if self.checker.isWarning:
+                    self.frame.setStatusIcon("warning")
+                else:
+                    self.frame.setStatusIcon("bad")
+        else:
+            self.frame.setStatusIcon("good")
 
     def errorSelected(self, *args):
         """
@@ -101,15 +118,10 @@ class CheckerWidget(QtWidgets.QWidget):
         """
 
         err = args[0]
-        cmds.select(err.components, r=True)
-
-    def setColor(self, col):
-        """
-        Change button color
-
-        """
-
-        self.checkButton.setStyleSheet(col)
+        if err.components is None:
+            cmds.select(err.longName, r=True)
+        else:
+            cmds.select(err.components, r=True)
 
 
 class ModelSanityChecker(QtWidgets.QWidget):
@@ -128,6 +140,7 @@ class ModelSanityChecker(QtWidgets.QWidget):
         """
 
         mainLayout = QtWidgets.QVBoxLayout()
+        mainLayout.setContentsMargins(0, 0, 0, 0)
 
         scroll = QtWidgets.QScrollArea()
         scroll.setWidgetResizable(1)
@@ -181,6 +194,7 @@ class CentralWidget(QtWidgets.QWidget):
         """ Layout widgets """
 
         mainLayout = QtWidgets.QBoxLayout(QtWidgets.QBoxLayout.TopToBottom)
+        mainLayout.setContentsMargins(5, 5, 5, 5)
         mainLayout.addWidget(self.tabWidget)
 
         self.setLayout(mainLayout)
@@ -198,11 +212,11 @@ class MainWindow(MayaQWidgetDockableMixin, QtWidgets.QMainWindow):
         super(MainWindow, self).__init__(parent)
 
         self.thisObjectName = "sanityCheckerWindow"
-        self.windowTitle = "Sanity Checker"
+        self.winTitle = "Sanity Checker"
         self.workspaceControlName = self.thisObjectName + "WorkspaceControl"
 
         self.setObjectName(self.thisObjectName)
-        self.setWindowTitle(self.windowTitle)
+        self.setWindowTitle(self.winTitle)
 
         self.setWindowFlags(QtCore.Qt.Window)
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
