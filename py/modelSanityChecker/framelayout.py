@@ -1,6 +1,6 @@
 """ qt framelayout sample """
 
-from PySide2 import QtWidgets, QtCore, QtGui
+from PySide2 import QtWidgets, QtCore
 from . import icon
 reload(icon)
 
@@ -31,6 +31,8 @@ class FrameLayout(QtWidgets.QWidget):
         self.title = self.rightArrow + title
 
         self.titleLabel = TitleLabel(self.title)
+        self.titleLabel.setSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         self.titleLabel.clicked.connect(self.titleClicked)
         self.statusIconLabel = QtWidgets.QLabel()
         self.statusIconLabel.setPixmap(icon.neutralIconPixmap)
@@ -41,8 +43,8 @@ class FrameLayout(QtWidgets.QWidget):
 
         self.childrenWidget.setLayout(self.childrenLayout)
 
+        titleLayout.addWidget(self.statusIconLabel)
         titleLayout.addWidget(self.titleLabel)
-        titleLayout.addWidget(self.statusIconLabel, 0, QtCore.Qt.AlignRight)
 
         layout = QtWidgets.QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
@@ -55,7 +57,6 @@ class FrameLayout(QtWidgets.QWidget):
 
     def titleClicked(self):
         # type: () -> None
-
         """ asdf """
 
         newTitle = ""
@@ -71,7 +72,6 @@ class FrameLayout(QtWidgets.QWidget):
 
     def addWidget(self, widget):
         # type: (QtWidgets) -> None
-
         """ Add widgets """
 
         self.childrenLayout.addWidget(widget)

@@ -3,7 +3,7 @@
 module docstring here
 """
 
-from PySide2 import QtCore, QtWidgets
+from PySide2 import QtCore, QtWidgets, QtGui
 from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
 from maya import cmds
 from . import checker
@@ -36,6 +36,28 @@ def init():
         except RuntimeError:
             raise RuntimeError("Failed to load plugin")
 
+
+class Separator(QtWidgets.QWidget):
+
+    def __init__(self, category="", parent=None):
+        super(Separator, self).__init__(parent)
+
+        line = QtWidgets.QFrame()
+        line.setFrameShape(QtWidgets.QFrame.HLine)
+        line.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                           QtWidgets.QSizePolicy.Expanding)
+        label = QtWidgets.QLabel("  " + category)
+        font = QtGui.QFont()
+        font.setItalic(True)
+        font.setCapitalization(QtGui.QFont.AllUppercase)
+        font.setBold(True)
+        label.setFont(font)
+        layout = QtWidgets.QHBoxLayout()
+        layout.addWidget(line)
+        layout.addWidget(label)
+        layout.setSpacing(0)
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(layout)
 
 
 class CheckerWidget(QtWidgets.QWidget):
@@ -130,7 +152,9 @@ class ModelSanityChecker(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(ModelSanityChecker, self).__init__(parent)
 
-        self.checkers = [CheckerWidget(i()) for i in checker.CHECKERS]
+        checkerObjs = [i() for i in checker.CHECKERS]
+        checkerObjs.sort()
+        self.checkerWidgets = [CheckerWidget(i) for i in checkerObjs]
         self.createUI()
 
     def createUI(self):
@@ -146,7 +170,13 @@ class ModelSanityChecker(QtWidgets.QWidget):
         scroll.setWidgetResizable(1)
 
         scrollLayout = QtWidgets.QVBoxLayout()
-        for widget in self.checkers:
+        currentCategory = self.checkerWidgets[0].checker.category
+        scrollLayout.addWidget(Separator(currentCategory))
+        for widget in self.checkerWidgets:
+            if currentCategory != widget.checker.category:
+                cat = widget.checker.category
+                currentCategory = cat
+                scrollLayout.addWidget(Separator(cat))
             scrollLayout.addWidget(widget)
 
         content = QtWidgets.QWidget()
@@ -169,7 +199,7 @@ class ModelSanityChecker(QtWidgets.QWidget):
 
         """
 
-        for widget in self.checkers:
+        for widget in self.checkerWidgets:
             widget.check()
 
 

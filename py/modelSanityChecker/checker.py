@@ -26,12 +26,22 @@ class BaseChecker:
     """ Base abstract class for each checker """
 
     __metaclass__ = ABCMeta
+    __category__ = ""
     __name__ = ""
     isWarning = False
     isEnabled = True
 
     def __init__(self):
         pass
+
+    def __eq__(self, other):
+        return self.name == self.name
+
+    def __ne__(self, other):
+        return not (self == other)
+
+    def __lt__(self, other):
+        return (self.category < other.category)
 
     @abstractmethod
     def checkIt(self, objs):
@@ -51,11 +61,16 @@ class BaseChecker:
 
         return self.__name__
 
+    @property
+    def category(self):
+        return self.__category__
+
 
 class TriangleChecker(BaseChecker):
     """ Triangle checker class """
 
     __name__ = "Triangles"
+    __category__ = "Topology"
     isWarning = True
 
     def checkIt(self, objs):
@@ -80,6 +95,7 @@ class TriangleChecker(BaseChecker):
 class NgonChecker(BaseChecker):
 
     __name__ = "N-gons"
+    __category__ = "Topology"
 
     def checkIt(self, objs):
         # type: (list) -> (list)
@@ -104,6 +120,7 @@ class NgonChecker(BaseChecker):
 class NonmanifoldChecker(BaseChecker):
 
     __name__ = "Nonmanifold Edges"
+    __category__ = "Topology"
 
     def checkIt(self, objs):
         # type: (list) -> (list)
@@ -128,6 +145,7 @@ class NonmanifoldChecker(BaseChecker):
 class LaminaFaceChecker(BaseChecker):
 
     __name__ = "Lamina Faces"
+    __category__ = "Topology"
 
     def checkIt(self, objs):
         # type: (list) -> (list)
@@ -152,6 +170,7 @@ class LaminaFaceChecker(BaseChecker):
 class BiValentFaceChecker(BaseChecker):
 
     __name__ = "Bi-valent Faces"
+    __category__ = "Topology"
 
     def checkIt(self, objs):
         # type: (list) -> (list)
@@ -176,6 +195,7 @@ class BiValentFaceChecker(BaseChecker):
 class ZeroAreaFaceChecker(BaseChecker):
 
     __name__ = "Zero Area Faces"
+    __category__ = "Topology"
 
     def checkIt(self, objs):
         # type: (list) -> (list)
@@ -201,6 +221,7 @@ class MeshBorderEdgeChecker(BaseChecker):
 
     __name__ = "Mesh Border Edges"
     isWarning = True
+    __category__ = "Topology"
 
     def checkIt(self, objs):
         # type: (list) -> (list)
@@ -225,6 +246,7 @@ class MeshBorderEdgeChecker(BaseChecker):
 class CreaseEdgeChecker(BaseChecker):
 
     __name__ = "Crease Edges"
+    __category__ = "Topology"
 
     def checkIt(self, objs):
         # type: (list) -> (list)
@@ -249,6 +271,7 @@ class CreaseEdgeChecker(BaseChecker):
 class ZeroLengthEdgeChecker(BaseChecker):
 
     __name__ = "Zero-length Edges"
+    __category__ = "Topology"
 
     def checkIt(self, objs):
         # type: (list) -> (list)
@@ -273,6 +296,7 @@ class ZeroLengthEdgeChecker(BaseChecker):
 class VertexPntsChecker(BaseChecker):
 
     __name__ = "Vertex Pnts Attribute"
+    __category__ = "Attribute"
 
     def checkIt(self, objs):
         # type: (list) -> (list)
@@ -297,6 +321,7 @@ class VertexPntsChecker(BaseChecker):
 class NameChecker(BaseChecker):
 
     __name__ = "Name"
+    __category__ = "Name"
     isEnabled = False
 
     def checkIt(self, objs):
@@ -319,6 +344,7 @@ class NameChecker(BaseChecker):
 class ShapeNameChecker(BaseChecker):
 
     __name__ = "ShapeName"
+    __category__ = "Name"
     isEnabled = False
 
     def checkIt(self, objs):
@@ -341,6 +367,7 @@ class ShapeNameChecker(BaseChecker):
 class HistoryChecker(BaseChecker):
 
     __name__ = "History"
+    __category__ = "Node"
     isEnabled = False
 
     def checkIt(self, objs):
@@ -363,6 +390,7 @@ class HistoryChecker(BaseChecker):
 class TransformChecker(BaseChecker):
 
     __name__ = "Transform"
+    __category__ = "Attribute"
 
     def checkIt(self, objs):
         # type: (list) -> (list)
@@ -395,6 +423,7 @@ class TransformChecker(BaseChecker):
 class LockedTransformChecker(BaseChecker):
 
     __name__ = "Locked Transform"
+    __category__ = "Attribute"
     isEnabled = False
 
     def checkIt(self, objs):
@@ -417,6 +446,7 @@ class LockedTransformChecker(BaseChecker):
 class SmoothPreviewChecker(BaseChecker):
 
     __name__ = "Smooth Preview"
+    __category__ = "Attribute"
     isEnabled = False
 
     def checkIt(self, objs):
@@ -439,6 +469,7 @@ class SmoothPreviewChecker(BaseChecker):
 class InputConnectionChecker(BaseChecker):
 
     __name__ = "Input Connections"
+    __category__ = "other"
     isEnabled = False
 
     def checkIt(self, objs):
@@ -461,6 +492,7 @@ class InputConnectionChecker(BaseChecker):
 class KeyframeChecker(BaseChecker):
 
     __name__ = "Keyframe"
+    __category__ = "Attribute"
     isEnabled = False
 
     def checkIt(self, objs):
@@ -484,6 +516,7 @@ class GhostVertexChecker(BaseChecker):
     """ Ghost vertex checker class """
 
     __name__ = "Ghost Vertices"
+    __category__ = "Topology"
 
     def __init__(self):
         super(GhostVertexChecker, self).__init__()
@@ -527,6 +560,7 @@ class GhostVertexChecker(BaseChecker):
 class IntermediateObjectChecker(BaseChecker):
 
     __name__ = "Intermediate Object"
+    __category__ = "Node"
 
     def checkIt(self, objs):
         # type: (list) -> (list)
@@ -534,7 +568,8 @@ class IntermediateObjectChecker(BaseChecker):
         errors = []
 
         for obj in objs:
-            children = cmds.listRelatives(obj, ad=True, fullPath=True, type="mesh") or []
+            children = cmds.listRelatives(
+                obj, ad=True, fullPath=True, type="mesh") or []
             for i in children:
                 isIntermediate = cmds.getAttr(i + ".intermediateObject")
                 if isIntermediate:
@@ -549,6 +584,7 @@ class IntermediateObjectChecker(BaseChecker):
 class UnusedLayerChecker(BaseChecker):
 
     __name__ = "Unused layers"
+    __category__ = "other"
     isEnabled = False
 
     def checkIt(self, objs):
@@ -571,6 +607,7 @@ class UnusedLayerChecker(BaseChecker):
 class Map1Checker(BaseChecker):
 
     __name__ = "UVs to map1"
+    __category__ = "UV"
     isEnabled = False
 
     def checkIt(self, objs):
@@ -590,9 +627,200 @@ class Map1Checker(BaseChecker):
         pass
 
 
+class NegativeUvChecker(BaseChecker):
+
+    __name__ = "UVs in negative space"
+    __category__ = "UV"
+
+    def checkIt(self, objs):
+
+        errors = []
+
+        mSel = OpenMaya.MSelectionList()
+
+        for obj in objs:
+            mSel.add(obj)
+
+        for i in range(mSel.length()):
+            dagPath = mSel.getDagPath(i)
+            try:
+                dagPath.extendToShape()
+                badUVs = []
+                fnMesh = OpenMaya.MFnMesh(dagPath)
+                uArray, vArray = fnMesh.getUVs()
+
+                for index, uv in enumerate(zip(uArray, vArray)):
+                    if uv[0] < 0 or uv[1] < 0:
+                        fullPath = dagPath.fullPathName() + \
+                            ".map[{}]".format(index)
+                        badUVs.append(fullPath)
+                err = Error(dagPath.fullPathName(), badUVs)
+                errors.append(err)
+
+            except RuntimeError:
+                # Not mesh. Do no nothing
+                pass
+
+        return errors
+
+    def fixIt(self):
+        pass
+
+
+class UdimIntersectionChecker(BaseChecker):
+
+    __name__ = "UDIM intersection"
+    __category__ = "UV"
+    isEnabled = False
+
+    def checkIt(self, objs):
+
+        errors = []
+
+        mSel = OpenMaya.MSelectionList()
+
+        for obj in objs:
+            mSel.add(obj)
+
+        for i in range(mSel.length()):
+            dagPath = mSel.getDagPath(i)
+            try:
+                dagPath.extendToShape()
+
+            except RuntimeError:
+                # Not mesh. Do no nothing
+                pass
+
+        return errors
+
+    def fixIt(self):
+        pass
+
+
+class UnassignedUvChecker(BaseChecker):
+
+    __name__ = "Unassigned UVs"
+    __category__ = "UV"
+    isEnabled = False
+
+    def checkIt(self, objs):
+
+        errors = []
+
+        mSel = OpenMaya.MSelectionList()
+
+        for obj in objs:
+            mSel.add(obj)
+
+        for i in range(mSel.length()):
+            dagPath = mSel.getDagPath(i)
+            try:
+                dagPath.extendToShape()
+
+            except RuntimeError:
+                # Not mesh. Do no nothing
+                pass
+
+        return errors
+
+    def fixIt(self):
+        pass
+
+
+class UnmappedPolygonFaceChecker(BaseChecker):
+
+    __name__ = "Unmapped polygon faces"
+    __category__ = "UV"
+    isEnabled = False
+
+    def checkIt(self, objs):
+
+        errors = []
+
+        mSel = OpenMaya.MSelectionList()
+
+        for obj in objs:
+            mSel.add(obj)
+
+        for i in range(mSel.length()):
+            dagPath = mSel.getDagPath(i)
+            try:
+                dagPath.extendToShape()
+
+            except RuntimeError:
+                # Not mesh. Do no nothing
+                pass
+
+        return errors
+
+    def fixIt(self):
+        pass
+
+
+class ZeroAreaUVFaceChecker(BaseChecker):
+
+    __name__ = "Zero area UV Faces"
+    __category__ = "UV"
+    isEnabled = False
+
+    def checkIt(self, objs):
+
+        errors = []
+
+        mSel = OpenMaya.MSelectionList()
+
+        for obj in objs:
+            mSel.add(obj)
+
+        for i in range(mSel.length()):
+            dagPath = mSel.getDagPath(i)
+            try:
+                dagPath.extendToShape()
+
+            except RuntimeError:
+                # Not mesh. Do no nothing
+                pass
+
+        return errors
+
+    def fixIt(self):
+        pass
+
+
+class UvOverlapChecker(BaseChecker):
+
+    __name__ = "UV Overlaps"
+    __category__ = "UV"
+    isEnabled = False
+
+    def checkIt(self, objs):
+
+        errors = []
+
+        mSel = OpenMaya.MSelectionList()
+
+        for obj in objs:
+            mSel.add(obj)
+
+        for i in range(mSel.length()):
+            dagPath = mSel.getDagPath(i)
+            try:
+                dagPath.extendToShape()
+
+            except RuntimeError:
+                # Not mesh. Do no nothing
+                pass
+
+        return errors
+
+    def fixIt(self):
+        pass
+
+
 class SelectionSetChecker(BaseChecker):
 
     __name__ = "Selection Sets"
+    __category__ = "other"
     isEnabled = False
 
     def checkIt(self, objs):
@@ -615,6 +843,7 @@ class SelectionSetChecker(BaseChecker):
 class ColorSetChecker(BaseChecker):
 
     __name__ = "Color Sets"
+    __category__ = "other"
 
     def checkIt(self, objs):
         # type: (list) -> (list)
@@ -662,5 +891,11 @@ CHECKERS = [
     IntermediateObjectChecker,
     UnusedLayerChecker,
     Map1Checker,
+    NegativeUvChecker,
+    UdimIntersectionChecker,
+    UnassignedUvChecker,
+    UnmappedPolygonFaceChecker,
+    ZeroAreaUVFaceChecker,
+    UvOverlapChecker,
     SelectionSetChecker,
     ColorSetChecker]
