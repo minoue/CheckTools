@@ -63,13 +63,11 @@ class Separator(QtWidgets.QWidget):
 class CheckerWidget(QtWidgets.QWidget):
 
     def __init__(self, chk):
-        # type: (checker.BaseChecker) -> (None)
+        # type: (checker.BaseChecker)
         super(CheckerWidget, self).__init__()
 
         self.checker = chk
         self.createUI()
-
-        # self.setMinimumHeight(50)
 
     def createUI(self):
         layout = QtWidgets.QBoxLayout(QtWidgets.QBoxLayout.LeftToRight)
@@ -83,12 +81,12 @@ class CheckerWidget(QtWidgets.QWidget):
 
         self.checkButton = QtWidgets.QPushButton("Check")
         # self.checkButton.setSizePolicy(
-        #     QtWidgets.QSizePolicy.Maximum,
-        #     QtWidgets.QSizePolicy.Expanding)
-        # self.checkButton.setMinimumWidth(130)
+        #     QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Expanding)
         self.checkButton.clicked.connect(self.check)
         self.fixButton = QtWidgets.QPushButton("Fix")
-        self.fixButton.setEnabled(False)
+        self.fixButton.clicked.connect(self.fix)
+        if self.checker.isFixable is not True:
+            self.fixButton.setEnabled(False)
 
         buttonLayout = QtWidgets.QHBoxLayout()
         buttonLayout.addWidget(self.checkButton)
@@ -118,10 +116,14 @@ class CheckerWidget(QtWidgets.QWidget):
             sel[0], children=True, ad=True, fullPath=True, type="transform") or []
         children.append(sel[0])
 
+        self.doCheck(children)
+
+    def doCheck(self, objs):
+
         # Clear list items
         self.errorList.clear()
 
-        errs = self.checker.checkIt(children)
+        errs = self.checker.checkIt(objs)
 
         if errs:
             for err in errs:
@@ -132,6 +134,16 @@ class CheckerWidget(QtWidgets.QWidget):
                     self.frame.setStatusIcon("bad")
         else:
             self.frame.setStatusIcon("good")
+
+    def fix(self):
+        if not self.checker.isEnabled:
+            return
+
+        self.checker.fixIt()
+
+        # Re-check
+        objs = [i.longName for i in self.checker.errors]
+        self.doCheck(objs)
 
     def errorSelected(self, *args):
         """
@@ -186,10 +198,13 @@ class ModelSanityChecker(QtWidgets.QWidget):
 
         checkAllButton = QtWidgets.QPushButton("Check All")
         checkAllButton.clicked.connect(self.checkAll)
-        checkAllButton.setMinimumHeight(40)
+
+        fixAllButton = QtWidgets.QPushButton("Fix All")
+        fixAllButton.setEnabled(False)
 
         mainLayout.addWidget(scroll)
         mainLayout.addWidget(checkAllButton)
+        mainLayout.addWidget(fixAllButton)
 
         self.setLayout(mainLayout)
 
@@ -276,10 +291,7 @@ class MainWindow(MayaQWidgetDockableMixin, QtWidgets.QMainWindow):
         About message
         """
 
-        QtWidgets.QMessageBox.about(
-            self,
-            'About ',
-            'test\n')
+        QtWidgets.QMessageBox.about(self, 'About ', 'test\n')
 
     def run(self):
         try:
@@ -301,8 +313,8 @@ def main():
     except RuntimeError:
         return
 
-    w = MainWindow()
-    w.run()
+    window = MainWindow()
+    window.run()
 
 
 if __name__ == "__main__":

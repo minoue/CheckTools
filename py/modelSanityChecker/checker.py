@@ -30,9 +30,11 @@ class BaseChecker:
     __name__ = ""
     isWarning = False
     isEnabled = True
+    isFixable = False
 
     def __init__(self):
-        pass
+
+        self.errors = []
 
     def __eq__(self, other):
         return self.name == self.name
@@ -844,11 +846,13 @@ class ColorSetChecker(BaseChecker):
 
     __name__ = "Color Sets"
     __category__ = "other"
+    isFixable = True
 
     def checkIt(self, objs):
         # type: (list) -> (list)
 
-        errors = []
+        # Reset result
+        self.errors = []
 
         for obj in objs:
             try:
@@ -858,14 +862,17 @@ class ColorSetChecker(BaseChecker):
                     continue
                 else:
                     err = Error(obj)
-                    errors.append(err)
+                    self.errors.append(err)
             except RuntimeError:
                 pass
 
-        return errors
+        return self.errors
 
     def fixIt(self):
-        pass
+        for i in self.errors:
+            allSets = cmds.polyColorSet(i.longName, q=True, allColorSets=True) or []
+            for s in allSets:
+                cmds.polyColorSet(i.longName, delete=True, colorSet=s)
 
 
 CHECKERS = [
