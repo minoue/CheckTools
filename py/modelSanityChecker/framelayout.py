@@ -56,8 +56,10 @@ class FrameLayout(QtWidgets.QWidget):
         self.childrenWidget.hide()
 
     def titleClicked(self):
-        # type: () -> None
-        """ asdf """
+        """ 
+        title clicked action 
+
+        """
 
         newTitle = ""
 
@@ -71,16 +73,23 @@ class FrameLayout(QtWidgets.QWidget):
         self.titleLabel.setText(newTitle)
 
     def addWidget(self, widget):
-        # type: (QtWidgets) -> None
-        """ Add widgets """
+        # type: (QtWidgets.QWidget) -> None
+        """
+        Add widgets
+
+        """
 
         self.childrenLayout.addWidget(widget)
 
     def addLayout(self, layout):
-
         self.childrenLayout.addLayout(layout)
 
     def setStatusIcon(self, status):
+        # type: (str) -> None
+        """
+        Change status icon
+
+        """
 
         if status == "good":
             self.statusIconLabel.setPixmap(icon.goodIconPixmap)
