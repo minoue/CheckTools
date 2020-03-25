@@ -370,23 +370,26 @@ class HistoryChecker(BaseChecker):
 
     __name__ = "History"
     __category__ = "Node"
-    isEnabled = False
+    isEnabled = True
+    isFixable = True
 
     def checkIt(self, objs):
         # type: (list) -> (list)
 
-        errors = []
+        self.errors = []
 
         for obj in objs:
-            try:
-                pass
-            except RuntimeError:
-                pass
+            hist = cmds.listHistory(obj)
+            if len(hist) > 1:
+                errorObj = Error(obj)
+                self.errors.append(errorObj)
 
-        return errors
+        return self.errors
 
     def fixIt(self):
-        pass
+
+        for e in self.errors:
+            cmds.delete(e.longName, ch=True)
 
 
 class TransformChecker(BaseChecker):
@@ -563,11 +566,12 @@ class IntermediateObjectChecker(BaseChecker):
 
     __name__ = "Intermediate Object"
     __category__ = "Node"
+    isFixable = True
 
     def checkIt(self, objs):
         # type: (list) -> (list)
 
-        errors = []
+        self.errors = []
 
         for obj in objs:
             children = cmds.listRelatives(
@@ -576,11 +580,22 @@ class IntermediateObjectChecker(BaseChecker):
                 isIntermediate = cmds.getAttr(i + ".intermediateObject")
                 if isIntermediate:
                     err = Error(i)
-                    errors.append(err)
-        return errors
+                    self.errors.append(err)
+        return self.errors
 
     def fixIt(self):
-        pass
+        for e in self.errors:
+            shape = e.longName
+            parents = cmds.listRelatives(shape, parent=True) or []
+            for i in parents:
+                # Delete history for parents
+                cmds.delete(i, ch=True)
+
+            if cmds.objExists(shape):
+                try:
+                    cmds.delete(shape)
+                except RuntimeError:
+                    pass
 
 
 class UnusedLayerChecker(BaseChecker):
