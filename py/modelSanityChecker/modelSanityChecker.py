@@ -142,8 +142,7 @@ class CheckerWidget(QtWidgets.QWidget):
         self.checker.fixIt()
 
         # Re-check
-        objs = [i.longName for i in self.checker.errors]
-        self.doCheck(objs)
+        self.check()
 
     def errorSelected(self, *args):
         """
