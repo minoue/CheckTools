@@ -452,23 +452,29 @@ class SmoothPreviewChecker(BaseChecker):
 
     __name__ = "Smooth Preview"
     __category__ = "Attribute"
-    isEnabled = False
+    isFixable = True
 
     def checkIt(self, objs):
         # type: (list) -> (list)
 
-        errors = []
+        self.errors = []
 
         for obj in objs:
-            try:
-                pass
-            except RuntimeError:
-                pass
+            meshes = cmds.listRelatives(
+                obj, children=True, fullPath=True, type="mesh") or []
+            print meshes
+            for i in meshes:
+                isSmooth = cmds.getAttr(i + ".displaySmoothMesh")
+                if isSmooth:
+                    err = Error(i)
+                    self.errors.append(err)
 
-        return errors
+        return self.errors
 
     def fixIt(self):
-        pass
+
+        for e in self.errors:
+            cmds.setAttr(e.longName + ".displaySmoothMesh", 0)
 
 
 class InputConnectionChecker(BaseChecker):
