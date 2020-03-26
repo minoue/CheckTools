@@ -586,15 +586,15 @@ class IntermediateObjectChecker(BaseChecker):
     def fixIt(self):
         for e in self.errors:
             shape = e.longName
-            parents = cmds.listRelatives(shape, parent=True) or []
-            for i in parents:
-                # Delete history for parents
-                cmds.delete(i, ch=True)
 
             if cmds.objExists(shape):
+                parents = cmds.listRelatives(shape, parent=True) or []
+                for i in parents:
+                    # Delete history for parents
+                    cmds.delete(i, ch=True)
                 try:
                     cmds.delete(shape)
-                except RuntimeError:
+                except ValueError:
                     pass
 
 
