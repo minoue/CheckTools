@@ -199,7 +199,7 @@ class ModelSanityChecker(QtWidgets.QWidget):
         checkAllButton.clicked.connect(self.checkAll)
 
         fixAllButton = QtWidgets.QPushButton("Fix All")
-        fixAllButton.setEnabled(False)
+        fixAllButton.clicked.connect(self.fixAll)
 
         mainLayout.addWidget(scroll)
         mainLayout.addWidget(checkAllButton)
@@ -215,6 +215,15 @@ class ModelSanityChecker(QtWidgets.QWidget):
 
         for widget in self.checkerWidgets:
             widget.check()
+
+    def fixAll(self):
+        """
+        Fix all
+
+        """
+
+        for widget in self.checkerWidgets:
+            widget.fix()
 
 
 class CentralWidget(QtWidgets.QWidget):
