@@ -12,31 +12,6 @@ reload(checker)
 reload(framelayout)
 
 
-def init():
-    """
-    Initialize plugins
-
-    """
-
-    if not cmds.pluginInfo("meshChecker", q=True, loaded=True):
-        try:
-            cmds.loadPlugin("meshChecker")
-        except RuntimeError:
-            raise RuntimeError("Failed to load plugin")
-
-    if not cmds.pluginInfo("uvChecker", q=True, loaded=True):
-        try:
-            cmds.loadPlugin("uvChecker")
-        except RuntimeError:
-            raise RuntimeError("Failed to load plugin")
-
-    if not cmds.pluginInfo("findUvOverlaps", q=True, loaded=True):
-        try:
-            cmds.loadPlugin("findUvOverlaps")
-        except RuntimeError:
-            raise RuntimeError("Failed to load plugin")
-
-
 class Separator(QtWidgets.QWidget):
 
     def __init__(self, category="", parent=None):
@@ -316,10 +291,6 @@ class MainWindow(MayaQWidgetDockableMixin, QtWidgets.QMainWindow):
 
 
 def main():
-    try:
-        init()
-    except RuntimeError:
-        return
 
     window = MainWindow()
     window.run()

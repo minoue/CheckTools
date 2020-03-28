@@ -8,6 +8,25 @@ from maya.api import OpenMaya
 from PySide2 import QtWidgets
 
 
+if not cmds.pluginInfo("meshChecker", q=True, loaded=True):
+    try:
+        cmds.loadPlugin("meshChecker")
+    except RuntimeError:
+        raise RuntimeError("Failed to load plugin")
+
+if not cmds.pluginInfo("uvChecker", q=True, loaded=True):
+    try:
+        cmds.loadPlugin("uvChecker")
+    except RuntimeError:
+        raise RuntimeError("Failed to load plugin")
+
+if not cmds.pluginInfo("findUvOverlaps", q=True, loaded=True):
+    try:
+        cmds.loadPlugin("findUvOverlaps")
+    except RuntimeError:
+        raise RuntimeError("Failed to load plugin")
+
+
 class Error(QtWidgets.QListWidgetItem):
     """ Custom error object """
 
