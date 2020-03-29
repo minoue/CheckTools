@@ -318,25 +318,36 @@ class VertexPntsChecker(BaseChecker):
 
     __name__ = "Vertex Pnts Attribute"
     __category__ = "Attribute"
+    isFixable = True
 
     def checkIt(self, objs):
         # type: (list) -> (list)
 
-        errors = []
+        self.errors = []
 
         for obj in objs:
             try:
                 errs = cmds.checkMesh(obj, c=9)
                 if errs:
                     errorObj = Error(obj)
-                    errors.append(errorObj)
+                    self.errors.append(errorObj)
             except RuntimeError:
                 pass
 
-        return errors
+        return self.errors
 
     def fixIt(self):
-        pass
+        mSel = OpenMaya.MSelectionList()
+        for n, e in enumerate(self.errors):
+            if cmds.objExists(e.longName):
+                obj = e.longName
+                mSel.add(obj)
+                dagPath = mSel.getDagPath(n)
+                try:
+                    cmds.polyMoveVertex(
+                        obj, lt=(0, 0, 0), nodeState=1, ch=False)
+                except RuntimeError:
+                    pass
 
 
 class NameChecker(BaseChecker):
