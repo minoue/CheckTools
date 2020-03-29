@@ -534,23 +534,35 @@ class KeyframeChecker(BaseChecker):
 
     __name__ = "Keyframe"
     __category__ = "Attribute"
-    isEnabled = False
+    isFixable = True
 
     def checkIt(self, objs):
         # type: (list) -> (list)
 
-        errors = []
+        self.errors = []
 
-        for obj in objs:
-            try:
-                pass
-            except RuntimeError:
-                pass
+        keyNodes = ["animCurveTU", "animCurveTA", "animCurveTL"]
 
-        return errors
+        for i in objs:
+            conns = cmds.listConnections(i, source=True)
+            keys = []
+
+            if conns is None:
+                continue
+
+            for c in conns:
+                if cmds.objectType(c) in keyNodes:
+                    keys.append(c)
+            if keys:
+                err = Error(i, keys)
+                self.errors.append(err)
+
+        return self.errors
 
     def fixIt(self):
-        pass
+
+        for e in self.errors:
+            cmds.delete(e.components)
 
 
 class GhostVertexChecker(BaseChecker):
