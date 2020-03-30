@@ -411,10 +411,13 @@ class HistoryChecker(BaseChecker):
         self.errors = []
 
         for obj in objs:
-            inMesh = cmds.listConnections(obj + ".inMesh", source=True)
-            if inMesh is not None:
-                err = Error(obj)
-                self.errors.append(err)
+            mesh = cmds.listRelatives(obj, children=True, type="mesh")
+            if mesh is not None:
+                for m in mesh:
+                    inMesh = cmds.listConnections(m + ".inMesh", source=True)
+                    if inMesh is not None:
+                        err = Error(obj)
+                        self.errors.append(err)
 
         return self.errors
 
@@ -494,7 +497,6 @@ class SmoothPreviewChecker(BaseChecker):
         for obj in objs:
             meshes = cmds.listRelatives(
                 obj, children=True, fullPath=True, type="mesh") or []
-            print meshes
             for i in meshes:
                 isSmooth = cmds.getAttr(i + ".displaySmoothMesh")
                 if isSmooth:
@@ -718,10 +720,13 @@ class Map1Checker(BaseChecker):
         self.errors = []
 
         for obj in objs:
-            currentUVSet = cmds.polyUVSet(obj, q=True, currentUVSet=True)[0]
-            if currentUVSet != "map1":
-                err = Error(obj)
-                self.errors.append(err)
+            mesh = cmds.listRelatives(obj, children=True, type="mesh")
+            if mesh is not None:
+                for m in mesh:
+                    currentUVSet = cmds.polyUVSet(m, q=True, currentUVSet=True)[0]
+                    if currentUVSet != "map1":
+                        err = Error(m)
+                        self.errors.append(err)
 
         return self.errors
 
