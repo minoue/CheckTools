@@ -648,27 +648,62 @@ class IntermediateObjectChecker(BaseChecker):
                     pass
 
 
-class UnusedLayerChecker(BaseChecker):
+class DisplayLayerCheck(BaseChecker):
 
-    __name__ = "Unused layers"
+    __name__ = "Display layers"
     __category__ = "other"
-    isEnabled = False
+    isFixable = True
 
     def checkIt(self, objs, settings=None):
         # type: (list) -> (list)
 
-        errors = []
+        self.errors = []
 
         for obj in objs:
-            try:
-                pass
-            except RuntimeError:
-                pass
+            layers = cmds.listConnections(obj + ".drawOverride") or []
+            if layers:
+                err = Error(obj, layers)
+                self.errors.append(err)
 
-        return errors
+        return self.errors
 
     def fixIt(self):
-        pass
+
+        for e in self.errors:
+            layers = e.components
+            node = e.longName
+            for l in layers:
+                cmds.disconnectAttr(l + ".drawInfo", node + ".drawOverride")
+
+
+class UnusedLayerChecker(BaseChecker):
+
+    __name__ = "Unused layers"
+    __category__ = "other"
+    isFixable = True
+
+    def checkIt(self, objs, settings=None):
+        # type: (list) -> (list)
+
+        self.errors = []
+
+        layers = cmds.ls(type="displayLayer")
+        layers.remove("defaultLayer")
+        for layer in layers:
+            contents = cmds.editDisplayLayerMembers(
+                layer, q=True, fullNames=True)
+            if contents is None:
+                err = Error(layer, [layer])
+                self.errors.append(err)
+
+        return self.errors
+
+    def fixIt(self):
+        for e in self.errors:
+            try:
+                cmds.delete(e.longName)
+            except RuntimeError:
+                pass
 
 
 class Map1Checker(BaseChecker):
@@ -963,6 +998,7 @@ CHECKERS = [
     VertexPntsChecker,
     GhostVertexChecker,
     IntermediateObjectChecker,
+    DisplayLayerCheck,
     UnusedLayerChecker,
     Map1Checker,
     NegativeUvChecker,
