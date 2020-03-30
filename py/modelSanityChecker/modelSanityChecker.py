@@ -37,11 +37,12 @@ class Separator(QtWidgets.QWidget):
 
 class CheckerWidget(QtWidgets.QWidget):
 
-    def __init__(self, chk):
+    def __init__(self, chk, settings=None):
         # type: (checker.BaseChecker)
         super(CheckerWidget, self).__init__()
 
         self.checker = chk
+        self.settings = settings
         self.createUI()
 
     def createUI(self):
@@ -98,7 +99,7 @@ class CheckerWidget(QtWidgets.QWidget):
         # Clear list items
         self.errorList.clear()
 
-        errs = self.checker.checkIt(objs)
+        errs = self.checker.checkIt(objs, self.settings)
 
         if errs:
             for err in errs:
@@ -132,16 +133,43 @@ class CheckerWidget(QtWidgets.QWidget):
             cmds.select(err.components, r=True)
 
 
+class Settings(QtWidgets.QWidget):
+
+    def __init__(self, parent=None):
+        super(Settings, self).__init__(parent)
+
+        self.createUI()
+
+    def createUI(self):
+
+        self.maxFaceArea = QtWidgets.QLineEdit("0.000001")
+
+        layout = QtWidgets.QGridLayout()
+        layout.setAlignment(QtCore.Qt.AlignTop)
+        layout.addWidget(QtWidgets.QLabel("Max face area"), 0, 0)
+        layout.addWidget(self.maxFaceArea, 0, 1)
+        self.setLayout(layout)
+
+    def getSettings(self):
+
+        data = {
+            "maxFaceArea": float(self.maxFaceArea.text())
+        }
+
+        return data
+
+
 class ModelSanityChecker(QtWidgets.QWidget):
     """ Main sanity checker class """
 
-    def __init__(self, parent=None):
+    def __init__(self, settings=None, parent=None):
         super(ModelSanityChecker, self).__init__(parent)
 
         checkerObjs = [i() for i in checker.CHECKERS]
         checkerObjs.sort()
-        self.checkerWidgets = [CheckerWidget(i) for i in checkerObjs]
+        self.checkerWidgets = [CheckerWidget(i, settings) for i in checkerObjs]
         self.createUI()
+
 
     def createUI(self):
         """
@@ -215,8 +243,12 @@ class CentralWidget(QtWidgets.QWidget):
     def createUI(self):
         """ Crete widgets """
 
+        settings = Settings(self)
+        checker = ModelSanityChecker(settings, self)
+
         self.tabWidget = QtWidgets.QTabWidget()
-        self.tabWidget.addTab(ModelSanityChecker(self), "SanityChecker")
+        self.tabWidget.addTab(checker, "SanityChecker")
+        self.tabWidget.addTab(settings, "Settings")
 
     def layoutUI(self):
         """ Layout widgets """
@@ -226,6 +258,7 @@ class CentralWidget(QtWidgets.QWidget):
         mainLayout.addWidget(self.tabWidget)
 
         self.setLayout(mainLayout)
+
 
 
 class MainWindow(MayaQWidgetDockableMixin, QtWidgets.QMainWindow):

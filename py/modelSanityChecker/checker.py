@@ -65,7 +65,7 @@ class BaseChecker:
         return (self.category < other.category)
 
     @abstractmethod
-    def checkIt(self, objs):
+    def checkIt(self, objs, settings=None):
         """ Check method """
 
         pass
@@ -94,7 +94,7 @@ class TriangleChecker(BaseChecker):
     __category__ = "Topology"
     isWarning = True
 
-    def checkIt(self, objs):
+    def checkIt(self, objs, settings=None):
         # type: (list) -> (list)
 
         errors = []
@@ -118,7 +118,7 @@ class NgonChecker(BaseChecker):
     __name__ = "N-gons"
     __category__ = "Topology"
 
-    def checkIt(self, objs):
+    def checkIt(self, objs, settings=None):
         # type: (list) -> (list)
 
         errors = []
@@ -143,7 +143,7 @@ class NonmanifoldChecker(BaseChecker):
     __name__ = "Nonmanifold Edges"
     __category__ = "Topology"
 
-    def checkIt(self, objs):
+    def checkIt(self, objs, settings=None):
         # type: (list) -> (list)
 
         errors = []
@@ -168,7 +168,7 @@ class LaminaFaceChecker(BaseChecker):
     __name__ = "Lamina Faces"
     __category__ = "Topology"
 
-    def checkIt(self, objs):
+    def checkIt(self, objs, settings=None):
         # type: (list) -> (list)
 
         errors = []
@@ -193,7 +193,7 @@ class BiValentFaceChecker(BaseChecker):
     __name__ = "Bi-valent Faces"
     __category__ = "Topology"
 
-    def checkIt(self, objs):
+    def checkIt(self, objs, settings=None):
         # type: (list) -> (list)
 
         errors = []
@@ -218,14 +218,16 @@ class ZeroAreaFaceChecker(BaseChecker):
     __name__ = "Zero Area Faces"
     __category__ = "Topology"
 
-    def checkIt(self, objs):
+    def checkIt(self, objs, settings):
         # type: (list) -> (list)
+
+        mfa = settings.getSettings()['maxFaceArea']
 
         errors = []
 
         for obj in objs:
             try:
-                errs = cmds.checkMesh(obj, c=5)
+                errs = cmds.checkMesh(obj, c=5, maxFaceArea=mfa)
                 if errs:
                     errorObj = Error(obj, errs)
                     errors.append(errorObj)
@@ -244,7 +246,7 @@ class MeshBorderEdgeChecker(BaseChecker):
     isWarning = True
     __category__ = "Topology"
 
-    def checkIt(self, objs):
+    def checkIt(self, objs, settings=None):
         # type: (list) -> (list)
 
         errors = []
@@ -269,7 +271,7 @@ class CreaseEdgeChecker(BaseChecker):
     __name__ = "Crease Edges"
     __category__ = "Topology"
 
-    def checkIt(self, objs):
+    def checkIt(self, objs, settings=None):
         # type: (list) -> (list)
 
         errors = []
@@ -294,7 +296,7 @@ class ZeroLengthEdgeChecker(BaseChecker):
     __name__ = "Zero-length Edges"
     __category__ = "Topology"
 
-    def checkIt(self, objs):
+    def checkIt(self, objs, settings=None):
         # type: (list) -> (list)
 
         errors = []
@@ -320,7 +322,7 @@ class VertexPntsChecker(BaseChecker):
     __category__ = "Attribute"
     isFixable = True
 
-    def checkIt(self, objs):
+    def checkIt(self, objs, settings=None):
         # type: (list) -> (list)
 
         self.errors = []
@@ -356,7 +358,7 @@ class NameChecker(BaseChecker):
     __category__ = "Name"
     isEnabled = False
 
-    def checkIt(self, objs):
+    def checkIt(self, objs, settings=None):
         # type: (list) -> (list)
 
         errors = []
@@ -379,7 +381,7 @@ class ShapeNameChecker(BaseChecker):
     __category__ = "Name"
     isEnabled = False
 
-    def checkIt(self, objs):
+    def checkIt(self, objs, settings=None):
         # type: (list) -> (list)
 
         errors = []
@@ -403,7 +405,7 @@ class HistoryChecker(BaseChecker):
     isEnabled = True
     isFixable = True
 
-    def checkIt(self, objs):
+    def checkIt(self, objs, settings=None):
         # type: (list) -> (list)
 
         self.errors = []
@@ -427,7 +429,7 @@ class TransformChecker(BaseChecker):
     __name__ = "Transform"
     __category__ = "Attribute"
 
-    def checkIt(self, objs):
+    def checkIt(self, objs, settings=None):
         # type: (list) -> (list)
 
         ignore = []
@@ -461,7 +463,7 @@ class LockedTransformChecker(BaseChecker):
     __category__ = "Attribute"
     isEnabled = False
 
-    def checkIt(self, objs):
+    def checkIt(self, objs, settings=None):
         # type: (list) -> (list)
 
         errors = []
@@ -484,7 +486,7 @@ class SmoothPreviewChecker(BaseChecker):
     __category__ = "Attribute"
     isFixable = True
 
-    def checkIt(self, objs):
+    def checkIt(self, objs, settings=None):
         # type: (list) -> (list)
 
         self.errors = []
@@ -513,7 +515,7 @@ class InputConnectionChecker(BaseChecker):
     __category__ = "other"
     isEnabled = False
 
-    def checkIt(self, objs):
+    def checkIt(self, objs, settings=None):
         # type: (list) -> (list)
 
         errors = []
@@ -536,7 +538,7 @@ class KeyframeChecker(BaseChecker):
     __category__ = "Attribute"
     isFixable = True
 
-    def checkIt(self, objs):
+    def checkIt(self, objs, settings=None):
         # type: (list) -> (list)
 
         self.errors = []
@@ -574,7 +576,7 @@ class GhostVertexChecker(BaseChecker):
     def __init__(self):
         super(GhostVertexChecker, self).__init__()
 
-    def checkIt(self, objs):
+    def checkIt(self, objs, settings=None):
         # type: (list) -> (list)
 
         errors = []
@@ -616,7 +618,7 @@ class IntermediateObjectChecker(BaseChecker):
     __category__ = "Node"
     isFixable = True
 
-    def checkIt(self, objs):
+    def checkIt(self, objs, settings=None):
         # type: (list) -> (list)
 
         self.errors = []
@@ -652,7 +654,7 @@ class UnusedLayerChecker(BaseChecker):
     __category__ = "other"
     isEnabled = False
 
-    def checkIt(self, objs):
+    def checkIt(self, objs, settings=None):
         # type: (list) -> (list)
 
         errors = []
@@ -675,7 +677,7 @@ class Map1Checker(BaseChecker):
     __category__ = "UV"
     isEnabled = False
 
-    def checkIt(self, objs):
+    def checkIt(self, objs, settings=None):
         # type: (list) -> (list)
 
         errors = []
@@ -697,7 +699,7 @@ class NegativeUvChecker(BaseChecker):
     __name__ = "UVs in negative space"
     __category__ = "UV"
 
-    def checkIt(self, objs):
+    def checkIt(self, objs, settings=None):
 
         errors = []
 
@@ -738,7 +740,7 @@ class UdimIntersectionChecker(BaseChecker):
     __category__ = "UV"
     isEnabled = False
 
-    def checkIt(self, objs):
+    def checkIt(self, objs, settings=None):
 
         errors = []
 
@@ -768,7 +770,7 @@ class UnassignedUvChecker(BaseChecker):
     __category__ = "UV"
     isEnabled = False
 
-    def checkIt(self, objs):
+    def checkIt(self, objs, settings=None):
 
         errors = []
 
@@ -798,7 +800,7 @@ class UnmappedPolygonFaceChecker(BaseChecker):
     __category__ = "UV"
     isEnabled = False
 
-    def checkIt(self, objs):
+    def checkIt(self, objs, settings=None):
 
         errors = []
 
@@ -828,7 +830,7 @@ class ZeroAreaUVFaceChecker(BaseChecker):
     __category__ = "UV"
     isEnabled = False
 
-    def checkIt(self, objs):
+    def checkIt(self, objs, settings=None):
 
         errors = []
 
@@ -858,7 +860,7 @@ class UvOverlapChecker(BaseChecker):
     __category__ = "UV"
     isEnabled = False
 
-    def checkIt(self, objs):
+    def checkIt(self, objs, settings=None):
 
         errors = []
 
@@ -888,7 +890,7 @@ class SelectionSetChecker(BaseChecker):
     __category__ = "other"
     isEnabled = False
 
-    def checkIt(self, objs):
+    def checkIt(self, objs, settings=None):
         # type: (list) -> (list)
 
         errors = []
@@ -911,7 +913,7 @@ class ColorSetChecker(BaseChecker):
     __category__ = "other"
     isFixable = True
 
-    def checkIt(self, objs):
+    def checkIt(self, objs, settings=None):
         # type: (list) -> (list)
 
         # Reset result
