@@ -411,10 +411,10 @@ class HistoryChecker(BaseChecker):
         self.errors = []
 
         for obj in objs:
-            hist = cmds.listHistory(obj)
-            if len(hist) > 1:
-                errorObj = Error(obj)
-                self.errors.append(errorObj)
+            inMesh = cmds.listConnections(obj + ".inMesh", source=True)
+            if inMesh is not None:
+                err = Error(obj)
+                self.errors.append(err)
 
         return self.errors
 
