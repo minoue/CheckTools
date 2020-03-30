@@ -675,23 +675,25 @@ class Map1Checker(BaseChecker):
 
     __name__ = "UVs to map1"
     __category__ = "UV"
-    isEnabled = False
+    isFixable = True
 
     def checkIt(self, objs, settings=None):
         # type: (list) -> (list)
 
-        errors = []
+        self.errors = []
 
         for obj in objs:
-            try:
-                pass
-            except RuntimeError:
-                pass
+            currentUVSet = cmds.polyUVSet(obj, q=True, currentUVSet=True)[0]
+            if currentUVSet != "map1":
+                err = Error(obj)
+                self.errors.append(err)
 
-        return errors
+        return self.errors
 
     def fixIt(self):
-        pass
+
+        for e in self.errors:
+            cmds.polyUVSet(e.longName, uvSet="map1", currentUVSet=True)
 
 
 class NegativeUvChecker(BaseChecker):
