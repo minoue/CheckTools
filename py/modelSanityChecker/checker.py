@@ -464,23 +464,35 @@ class LockedTransformChecker(BaseChecker):
 
     __name__ = "Locked Transform"
     __category__ = "Attribute"
-    isEnabled = False
+    isFixable = True
+
+    def __init__(self):
+        super(LockedTransformChecker, self).__init__()
+        self.attrs = ["tx", "ty", "tz", "rx", "ry", "rz", "sx", "sy", "sz"]
 
     def checkIt(self, objs, settings=None):
         # type: (list) -> (list)
 
-        errors = []
+        self.errors = []
+
 
         for obj in objs:
             try:
-                pass
+                for at in self.attrs:
+                    isLocked = cmds.getAttr(obj + ".{}".format(at), lock=True)
+                    if isLocked:
+                        err = Error(obj)
+                        self.errors.append(err)
+                        break
             except RuntimeError:
                 pass
 
-        return errors
+        return self.errors
 
     def fixIt(self):
-        pass
+        for e in self.errors:
+            for at in self.attrs:
+                cmds.setAttr(e.longName + ".{}".format(at), lock=False)
 
 
 class SmoothPreviewChecker(BaseChecker):
