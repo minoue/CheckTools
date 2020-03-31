@@ -780,27 +780,22 @@ class UdimIntersectionChecker(BaseChecker):
 
     __name__ = "UDIM intersection"
     __category__ = "UV"
-    isEnabled = False
 
     def checkIt(self, objs, settings=None):
 
-        errors = []
-
-        mSel = OpenMaya.MSelectionList()
+        self.errors = []
 
         for obj in objs:
-            mSel.add(obj)
-
-        for i in range(mSel.length()):
-            dagPath = mSel.getDagPath(i)
             try:
-                dagPath.extendToShape()
-
+                uvs = cmds.checkUV(obj, c=0)
+                if uvs:
+                    err = Error(obj, uvs)
+                    self.errors.append(err)
             except RuntimeError:
                 # Not mesh. Do no nothing
                 pass
 
-        return errors
+        return self.errors
 
     def fixIt(self):
         pass
@@ -810,27 +805,22 @@ class UnassignedUvChecker(BaseChecker):
 
     __name__ = "Unassigned UVs"
     __category__ = "UV"
-    isEnabled = False
 
     def checkIt(self, objs, settings=None):
 
-        errors = []
-
-        mSel = OpenMaya.MSelectionList()
+        self.errors = []
 
         for obj in objs:
-            mSel.add(obj)
-
-        for i in range(mSel.length()):
-            dagPath = mSel.getDagPath(i)
             try:
-                dagPath.extendToShape()
-
+                uvs = cmds.checkUV(obj, c=3)
+                if uvs:
+                    err = Error(obj, uvs)
+                    self.errors.append(err)
             except RuntimeError:
                 # Not mesh. Do no nothing
                 pass
 
-        return errors
+        return self.errors
 
     def fixIt(self):
         pass
@@ -840,27 +830,22 @@ class UnmappedPolygonFaceChecker(BaseChecker):
 
     __name__ = "Unmapped polygon faces"
     __category__ = "UV"
-    isEnabled = False
 
     def checkIt(self, objs, settings=None):
 
-        errors = []
-
-        mSel = OpenMaya.MSelectionList()
+        self.errors = []
 
         for obj in objs:
-            mSel.add(obj)
-
-        for i in range(mSel.length()):
-            dagPath = mSel.getDagPath(i)
             try:
-                dagPath.extendToShape()
-
+                uvs = cmds.checkUV(obj, c=1)
+                if uvs:
+                    err = Error(obj, uvs)
+                    self.errors.append(err)
             except RuntimeError:
                 # Not mesh. Do no nothing
                 pass
 
-        return errors
+        return self.errors
 
     def fixIt(self):
         pass
@@ -870,27 +855,22 @@ class ZeroAreaUVFaceChecker(BaseChecker):
 
     __name__ = "Zero area UV Faces"
     __category__ = "UV"
-    isEnabled = False
 
     def checkIt(self, objs, settings=None):
 
-        errors = []
-
-        mSel = OpenMaya.MSelectionList()
+        self.errors = []
 
         for obj in objs:
-            mSel.add(obj)
-
-        for i in range(mSel.length()):
-            dagPath = mSel.getDagPath(i)
             try:
-                dagPath.extendToShape()
-
+                uvs = cmds.checkUV(obj, c=2)
+                if uvs:
+                    err = Error(obj, uvs)
+                    self.errors.append(err)
             except RuntimeError:
                 # Not mesh. Do no nothing
                 pass
 
-        return errors
+        return self.errors
 
     def fixIt(self):
         pass
