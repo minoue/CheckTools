@@ -2,6 +2,8 @@
 Checker classes
 """
 
+import re
+
 from abc import ABCMeta, abstractmethod
 from maya import cmds
 from maya.api import OpenMaya
@@ -922,23 +924,49 @@ class SelectionSetChecker(BaseChecker):
 
     __name__ = "Selection Sets"
     __category__ = "other"
-    isEnabled = False
+    isFixable = True
+
+    def getSets(self, path, typ):
+
+        if typ == "transform":
+            conns = cmds.listConnections(path + ".instObjGroups") or []
+            return [i for i in conns if cmds.objectType(i) == "objectSet"]
+        elif typ == "shape":
+            conns = cmds.listConnections(path + ".instObjGroups.objectGroups") or []
+            return [i for i in conns if cmds.objectType(i) == "objectSet"]
+        else:
+            pass
+
+        return []
 
     def checkIt(self, objs, settings=None):
         # type: (list) -> (list)
 
-        errors = []
+        self.errors = []
+        objectSets = []
+        ignore = ["modelPanel[0-9]ViewSelectedSet"]
 
         for obj in objs:
-            try:
-                pass
-            except RuntimeError:
-                pass
+            shapes = cmds.listRelatives(obj, children=True, fullPath=True, shapes=True) or []
+            for shape in shapes:
+                objectSets.extend(self.getSets(shape, "shape"))
+            objectSets.extend(self.getSets(obj, "transform"))
 
-        return errors
+        objectSets = list(set(objectSets))
+        for objSet in objectSets:
+            for i in ignore:
+                if re.match(i, objSet) is None:
+                    err = Error(objSet)
+                    self.errors.append(err)
+
+        return self.errors
 
     def fixIt(self):
-        pass
+        for e in self.errors:
+            try:
+                cmds.delete(e.longName)
+            except Exception:
+                pass
 
 
 class ColorSetChecker(BaseChecker):
