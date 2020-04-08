@@ -381,23 +381,35 @@ class ShapeNameChecker(BaseChecker):
 
     __name__ = "ShapeName"
     __category__ = "Name"
-    isEnabled = False
+    isFixable = True
 
     def checkIt(self, objs, settings=None):
         # type: (list) -> (list)
 
-        errors = []
+        self.errors = []
 
         for obj in objs:
-            try:
-                pass
-            except RuntimeError:
-                pass
+            shapes = cmds.listRelatives(obj, children=True, fullPath=True, shapes=True) or []
+            if shapes:
+                for shape in shapes:
+                    isIntermediate = cmds.getAttr(shape + ".intermediateObject")
+                    if isIntermediate:
+                        continue
+                    shortName = obj.split("|")[-1]
+                    shapeShortName = shape.split("|")[-1]
 
-        return errors
+                    if shortName + "Shape" != shapeShortName:
+                        err = Error(shape)
+                        self.errors.append(err)
+
+        return self.errors
 
     def fixIt(self):
-        pass
+        for e in self.errors:
+            shape = e.longName
+            parent = cmds.listRelatives(shape, parent=True, fullPath=False)[0]
+            newShapeName = parent + "Shape"
+            cmds.rename(shape, newShapeName)
 
 
 class HistoryChecker(BaseChecker):
