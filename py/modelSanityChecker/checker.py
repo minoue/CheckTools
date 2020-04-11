@@ -736,7 +736,7 @@ class UnusedLayerChecker(BaseChecker):
 
 class Map1Checker(BaseChecker):
 
-    __name__ = "UVs to map1"
+    __name__ = "UVSet to map1"
     __category__ = "UV"
     isFixable = True
 
