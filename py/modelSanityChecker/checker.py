@@ -489,7 +489,6 @@ class LockedTransformChecker(BaseChecker):
 
         self.errors = []
 
-
         for obj in objs:
             try:
                 for at in self.attrs:
@@ -746,11 +745,12 @@ class Map1Checker(BaseChecker):
         self.errors = []
 
         for obj in objs:
-            mesh = cmds.listRelatives(obj, children=True, type="mesh")
+            mesh = cmds.listRelatives(
+                obj, children=True, fullPath=True, type="mesh")
             if mesh is not None:
                 for m in mesh:
-                    currentUVSet = cmds.polyUVSet(m, q=True, currentUVSet=True)[0]
-                    if currentUVSet != "map1":
+                    curUVSet = cmds.polyUVSet(m, q=True, currentUVSet=True)[0]
+                    if curUVSet != "map1":
                         err = Error(m)
                         self.errors.append(err)
 
