@@ -789,8 +789,9 @@ class NegativeUvChecker(BaseChecker):
                         fullPath = dagPath.fullPathName() + \
                             ".map[{}]".format(index)
                         badUVs.append(fullPath)
-                err = Error(dagPath.fullPathName(), badUVs)
-                errors.append(err)
+                if badUVs:
+                    err = Error(dagPath.fullPathName(), badUVs)
+                    errors.append(err)
 
             except RuntimeError:
                 # Not mesh. Do no nothing
