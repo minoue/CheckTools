@@ -216,8 +216,24 @@ class ModelSanityChecker(QtWidgets.QWidget):
 
         """
 
-        for widget in self.checkerWidgets:
+        progDialog = QtWidgets.QProgressDialog(
+            "Now Checking...",
+            "Cancel",
+            0,
+            len(self.checkerWidgets),
+            self)
+        progDialog.setWindowTitle("Building library")
+        # progDialog.setWindowModality(QtCore.Qt.WindowModal)
+        progDialog.show()
+
+        for num, widget in enumerate(self.checkerWidgets):
             widget.check()
+            progDialog.setValue(num+1)
+            progDialog.setLabel(
+                QtWidgets.QLabel(r'Now checking "{}"'.format(widget.checker.name)))
+            QtCore.QCoreApplication.processEvents()
+
+        progDialog.close()
 
     def fixAll(self):
         """
