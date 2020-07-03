@@ -3,96 +3,122 @@
 module docstring here
 """
 
+from PySide2 import QtCore, QtWidgets, QtGui
 from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
-from PySide2 import QtCore, QtWidgets
-from maya import OpenMaya
 from maya import cmds
-
 from . import checker
+from . import framelayout
 reload(checker)
+reload(framelayout)
 
 
-def init():
-    """
-    Initialize plugins
+class Separator(QtWidgets.QWidget):
 
-    """
+    def __init__(self, category="", parent=None):
+        super(Separator, self).__init__(parent)
 
-    if not cmds.pluginInfo("meshChecker", q=True, loaded=True):
-        try:
-            cmds.loadPlugin("meshChecker")
-        except RuntimeError:
-            raise RuntimeError("Failed to load plugin")
-
-    if not cmds.pluginInfo("uvChecker", q=True, loaded=True):
-        try:
-            cmds.loadPlugin("uvChecker")
-        except RuntimeError:
-            raise RuntimeError("Failed to load plugin")
-
-    if not cmds.pluginInfo("findUvOverlaps", q=True, loaded=True):
-        try:
-            cmds.loadPlugin("findUvOverlaps")
-        except RuntimeError:
-            raise RuntimeError("Failed to load plugin")
+        line = QtWidgets.QFrame()
+        line.setFrameShape(QtWidgets.QFrame.HLine)
+        line.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                           QtWidgets.QSizePolicy.Expanding)
+        label = QtWidgets.QLabel("  " + category)
+        font = QtGui.QFont()
+        font.setItalic(True)
+        font.setCapitalization(QtGui.QFont.AllUppercase)
+        font.setBold(True)
+        label.setFont(font)
+        layout = QtWidgets.QHBoxLayout()
+        layout.addWidget(line)
+        layout.addWidget(label)
+        layout.setSpacing(0)
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(layout)
 
 
 class CheckerWidget(QtWidgets.QWidget):
 
-    RED = """QPushButton{
-                background: red;
-          }
-          """
-
-    GREEN = """QPushButton{
-                background: green;
-          }
-          """
-
-    def __init__(self, chk):
-        # type: (checker.BaseChecker) -> (None)
+    def __init__(self, chk, settings=None):
+        # type: (checker.BaseChecker)
         super(CheckerWidget, self).__init__()
 
         self.checker = chk
+        self.settings = settings
         self.createUI()
-
-        self.setMinimumHeight(100)
 
     def createUI(self):
         layout = QtWidgets.QBoxLayout(QtWidgets.QBoxLayout.LeftToRight)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+        layout.setAlignment(QtCore.Qt.AlignTop)
 
-        self.checkButton = QtWidgets.QPushButton(self.checker.checkLabel)
-        self.checkButton.setSizePolicy(
-            QtWidgets.QSizePolicy.Maximum,
-            QtWidgets.QSizePolicy.Expanding)
-        self.checkButton.setMinimumWidth(150)
+        self.frame = framelayout.FrameLayout(self.checker.name)
+        if not self.checker.isEnabled:
+            self.setEnabled(False)
+
+        self.checkButton = QtWidgets.QPushButton("Check")
+        # self.checkButton.setSizePolicy(
+        #     QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Expanding)
         self.checkButton.clicked.connect(self.check)
+        self.fixButton = QtWidgets.QPushButton("Fix")
+        self.fixButton.clicked.connect(self.fix)
+        if self.checker.isFixable is not True:
+            self.fixButton.setEnabled(False)
+
+        buttonLayout = QtWidgets.QHBoxLayout()
+        buttonLayout.addWidget(self.checkButton)
+        buttonLayout.addWidget(self.fixButton)
 
         self.errorList = QtWidgets.QListWidget()
         self.errorList.itemClicked.connect(self.errorSelected)
 
-        layout.addWidget(self.checkButton)
-        layout.addWidget(self.errorList)
+        self.frame.addWidget(self.errorList)
+        self.frame.addLayout(buttonLayout)
+
+        layout.addWidget(self.frame)
 
         self.setLayout(layout)
 
     def check(self):
+        if not self.checker.isEnabled:
+            return
+
         sel = cmds.ls(sl=True, fl=True, long=True)
 
-        if len(sel) == 0:
+        if not sel:
             cmds.warning("Nothing is selected")
             return
+
+        children = cmds.listRelatives(
+            sel[0], children=True, ad=True, fullPath=True, type="transform") or []
+        children.append(sel[0])
+
+        self.doCheck(children)
+
+    def doCheck(self, objs):
 
         # Clear list items
         self.errorList.clear()
 
-        errsWidgets = self.checker.checkIt(sel)
-        for e in errsWidgets:
-            if not e.isClean:
-                self.errorList.addItem(e)
-                self.setColor(self.RED)
-            else:
-                self.setColor(self.GREEN)
+        errs = self.checker.checkIt(objs, self.settings)
+
+        if errs:
+            for err in errs:
+                self.errorList.addItem(err)
+                if self.checker.isWarning:
+                    self.frame.setStatusIcon("warning")
+                else:
+                    self.frame.setStatusIcon("bad")
+        else:
+            self.frame.setStatusIcon("good")
+
+    def fix(self):
+        if not self.checker.isEnabled:
+            return
+
+        self.checker.fixIt()
+
+        # Re-check
+        self.check()
 
     def errorSelected(self, *args):
         """
@@ -101,25 +127,49 @@ class CheckerWidget(QtWidgets.QWidget):
         """
 
         err = args[0]
-        cmds.select(err.components, r=True)
+        if err.components is None:
+            cmds.select(err.longName, r=True)
+        else:
+            cmds.select(err.components, r=True)
 
-    def setColor(self, col):
-        """
-        Change button color
 
-        """
+class Settings(QtWidgets.QWidget):
 
-        self.checkButton.setStyleSheet(col)
+    def __init__(self, parent=None):
+        super(Settings, self).__init__(parent)
+
+        self.createUI()
+
+    def createUI(self):
+
+        self.maxFaceArea = QtWidgets.QLineEdit("0.000001")
+
+        layout = QtWidgets.QGridLayout()
+        layout.setAlignment(QtCore.Qt.AlignTop)
+        layout.addWidget(QtWidgets.QLabel("Max face area"), 0, 0)
+        layout.addWidget(self.maxFaceArea, 0, 1)
+        self.setLayout(layout)
+
+    def getSettings(self):
+
+        data = {
+            "maxFaceArea": float(self.maxFaceArea.text())
+        }
+
+        return data
 
 
 class ModelSanityChecker(QtWidgets.QWidget):
     """ Main sanity checker class """
 
-    def __init__(self, parent=None):
+    def __init__(self, settings=None, parent=None):
         super(ModelSanityChecker, self).__init__(parent)
 
-        self.checkers = [CheckerWidget(i()) for i in checker.CHECKERS]
+        checkerObjs = [i() for i in checker.CHECKERS]
+        checkerObjs.sort()
+        self.checkerWidgets = [CheckerWidget(i, settings) for i in checkerObjs]
         self.createUI()
+
 
     def createUI(self):
         """
@@ -128,12 +178,19 @@ class ModelSanityChecker(QtWidgets.QWidget):
         """
 
         mainLayout = QtWidgets.QVBoxLayout()
+        mainLayout.setContentsMargins(0, 0, 0, 0)
 
         scroll = QtWidgets.QScrollArea()
         scroll.setWidgetResizable(1)
 
         scrollLayout = QtWidgets.QVBoxLayout()
-        for widget in self.checkers:
+        currentCategory = self.checkerWidgets[0].checker.category
+        scrollLayout.addWidget(Separator(currentCategory))
+        for widget in self.checkerWidgets:
+            if currentCategory != widget.checker.category:
+                cat = widget.checker.category
+                currentCategory = cat
+                scrollLayout.addWidget(Separator(cat))
             scrollLayout.addWidget(widget)
 
         content = QtWidgets.QWidget()
@@ -143,10 +200,13 @@ class ModelSanityChecker(QtWidgets.QWidget):
 
         checkAllButton = QtWidgets.QPushButton("Check All")
         checkAllButton.clicked.connect(self.checkAll)
-        checkAllButton.setMinimumHeight(40)
+
+        fixAllButton = QtWidgets.QPushButton("Fix All")
+        fixAllButton.clicked.connect(self.fixAll)
 
         mainLayout.addWidget(scroll)
         mainLayout.addWidget(checkAllButton)
+        mainLayout.addWidget(fixAllButton)
 
         self.setLayout(mainLayout)
 
@@ -156,8 +216,33 @@ class ModelSanityChecker(QtWidgets.QWidget):
 
         """
 
-        for widget in self.checkers:
+        progDialog = QtWidgets.QProgressDialog(
+            "Now Checking...",
+            "Cancel",
+            0,
+            len(self.checkerWidgets),
+            self)
+        progDialog.setWindowTitle("Building library")
+        # progDialog.setWindowModality(QtCore.Qt.WindowModal)
+        progDialog.show()
+
+        for num, widget in enumerate(self.checkerWidgets):
             widget.check()
+            progDialog.setValue(num+1)
+            progDialog.setLabel(
+                QtWidgets.QLabel(r'Now checking "{}"'.format(widget.checker.name)))
+            QtCore.QCoreApplication.processEvents()
+
+        progDialog.close()
+
+    def fixAll(self):
+        """
+        Fix all
+
+        """
+
+        for widget in self.checkerWidgets:
+            widget.fix()
 
 
 class CentralWidget(QtWidgets.QWidget):
@@ -174,16 +259,22 @@ class CentralWidget(QtWidgets.QWidget):
     def createUI(self):
         """ Crete widgets """
 
+        settings = Settings(self)
+        checker = ModelSanityChecker(settings, self)
+
         self.tabWidget = QtWidgets.QTabWidget()
-        self.tabWidget.addTab(ModelSanityChecker(self), "SanityChecker")
+        self.tabWidget.addTab(checker, "SanityChecker")
+        self.tabWidget.addTab(settings, "Settings")
 
     def layoutUI(self):
         """ Layout widgets """
 
         mainLayout = QtWidgets.QBoxLayout(QtWidgets.QBoxLayout.TopToBottom)
+        mainLayout.setContentsMargins(5, 5, 5, 5)
         mainLayout.addWidget(self.tabWidget)
 
         self.setLayout(mainLayout)
+
 
 
 class MainWindow(MayaQWidgetDockableMixin, QtWidgets.QMainWindow):
@@ -198,11 +289,11 @@ class MainWindow(MayaQWidgetDockableMixin, QtWidgets.QMainWindow):
         super(MainWindow, self).__init__(parent)
 
         self.thisObjectName = "sanityCheckerWindow"
-        self.windowTitle = "Sanity Checker"
+        self.winTitle = "Sanity Checker"
         self.workspaceControlName = self.thisObjectName + "WorkspaceControl"
 
         self.setObjectName(self.thisObjectName)
-        self.setWindowTitle(self.windowTitle)
+        self.setWindowTitle(self.winTitle)
 
         self.setWindowFlags(QtCore.Qt.Window)
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
@@ -232,10 +323,7 @@ class MainWindow(MayaQWidgetDockableMixin, QtWidgets.QMainWindow):
         About message
         """
 
-        QtWidgets.QMessageBox.about(
-            self,
-            'About ',
-            'test\n')
+        QtWidgets.QMessageBox.about(self, 'About ', 'test\n')
 
     def run(self):
         try:
@@ -252,13 +340,9 @@ class MainWindow(MayaQWidgetDockableMixin, QtWidgets.QMainWindow):
 
 
 def main():
-    try:
-        init()
-    except RuntimeError:
-        return
 
-    w = MainWindow()
-    w.run()
+    window = MainWindow()
+    window.run()
 
 
 if __name__ == "__main__":
