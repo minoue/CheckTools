@@ -223,32 +223,6 @@ IndexArray MeshChecker::findZeroLengthEdges(const MFnMesh& mesh, double minEdgeL
     return indices;
 }
 
-IndexArray MeshChecker::findUnfrozenVertices(const MFnMesh& mesh)
-{
-    MPlug pnts_plug = mesh.findPlug("pnts", false);
-
-    auto num_vertices = mesh.numVertices();
-    IndexArray indices;
-    indices.reserve(static_cast<size_t>(num_vertices));
-
-    for (Index i{}; i < num_vertices; ++i) {
-        MPlug xyz_plug = pnts_plug.elementByLogicalIndex(static_cast<unsigned int>(i));
-        if (xyz_plug.isCompound()) {
-            float xyz[3];
-            for (unsigned int j{}; j < 3; ++j) {
-                xyz_plug.child(j).getValue(xyz[j]);
-            }
-
-            auto eps = std::numeric_limits<float>::epsilon();
-            if (!(std::abs(xyz[0]) <= eps && std::abs(xyz[1]) <= eps && std::abs(xyz[2]) <= eps)) {
-                indices.push_back(i);
-            }
-        }
-    }
-
-    return indices;
-}
-
 bool MeshChecker::hasVertexPntsAttr(const MFnMesh& mesh, bool fix)
 {
     MDagPath path;
