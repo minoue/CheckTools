@@ -19,6 +19,9 @@ Mesh/Topology checker for my own
 |check|c|int||C|
 |maxFaceaArea|mfa|float|0.00001|C|
 |minEdgeLength|mel|float|0.000001|C|
+|doFix|fix|bool|false|c|
+
+* 'fix' flag can be used for 'vertex pnts attribute' check
 
 ## Example
 ```python
