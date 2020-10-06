@@ -225,12 +225,7 @@ IndexArray MeshChecker::findZeroLengthEdges(const MFnMesh& mesh, double minEdgeL
 
 IndexArray MeshChecker::findUnfrozenVertices(const MFnMesh& mesh)
 {
-    MDagPath path;
-    mesh.getPath(path);
-
-    path.extendToShape();
-    MFnDagNode dag_node{ path };
-    MPlug pnts_plug = dag_node.findPlug("pnts");
+    MPlug pnts_plug = mesh.findPlug("pnts", false);
 
     auto num_vertices = mesh.numVertices();
     IndexArray indices;
@@ -263,7 +258,7 @@ bool MeshChecker::hasVertexPntsAttr(const MFnMesh& mesh, bool fix)
 
     path.extendToShape();
     MFnDagNode dagNode(path);
-    MPlug pntsArray = dagNode.findPlug("pnts");
+    MPlug pntsArray = mesh.findPlug("pnts", false);
     MDataHandle dataHandle = pntsArray.asMDataHandle();
     MArrayDataHandle arrayDataHandle(dataHandle);
     MDataHandle outputHandle;

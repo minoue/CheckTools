@@ -31,9 +31,9 @@ void Vector2D::normalize()
 
 float Vector2D::getLength()
 {
-    float& x = this->x;
-    float& y = this->y;
-    return std::sqrt(x * x + y * y);
+    float& value_x = this->x;
+    float& value_y = this->y;
+    return std::sqrt(value_x * value_x + value_y * value_y);
 }
 
 float Vector2D::operator*(const Vector2D& rhs) const

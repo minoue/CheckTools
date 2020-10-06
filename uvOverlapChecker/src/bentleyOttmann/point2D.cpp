@@ -38,8 +38,8 @@ Vector2D Point2D::operator-(const Point2D& rhs) const
         return v;
     }
 
-    float x = rhs.x - this->x;
-    float y = rhs.y - this->y;
-    Vector2D v(x, y);
+    float value_x = rhs.x - this->x;
+    float value_y = rhs.y - this->y;
+    Vector2D v(value_x, value_y);
     return v;
 }

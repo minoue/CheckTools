@@ -54,11 +54,11 @@ bool UVShell::operator*(const UVShell& other) const
 
 UVShell UVShell::operator&&(const UVShell& other) const
 {
-    std::vector<LineSegment> lines = this->lines;
-    lines.insert(lines.end(), other.lines.begin(), other.lines.end());
-    UVShell s;
-    s.lines = lines;
-    return s;
+    std::vector<LineSegment> lineVector = this->lines;
+    lineVector.insert(lineVector.end(), other.lines.begin(), other.lines.end());
+    UVShell shell;
+    shell.lines = lineVector;
+    return shell;
 }
 
 FindUvOverlaps::~FindUvOverlaps() {}
