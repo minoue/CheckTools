@@ -1,5 +1,6 @@
-#ifndef __UVCHECKER_H__
-#define __UVCHECKER_H__
+
+#pragma once
+
 
 #include <maya/MFnMesh.h>
 #include <maya/MPxCommand.h>
@@ -41,5 +42,3 @@ private:
     MString uvSet;
     double maxUvBorderDistance;
 };
-
-#endif /* defined(__UVCHECKER_H__) */

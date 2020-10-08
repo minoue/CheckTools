@@ -3,8 +3,7 @@
 //  bentleyOttmann
 //
 
-#ifndef vector2D_hpp
-#define vector2D_hpp
+#pragma once
 
 class Vector2D {
 public:
@@ -18,5 +17,3 @@ public:
 
     float operator*(const Vector2D& rhs) const;
 };
-
-#endif /* vector2D_hpp */

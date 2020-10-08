@@ -16,7 +16,7 @@
 #include <maya/MTimer.h>
 
 static const char* const pluginCommandName = "findUvOverlaps";
-static const char* const pluginVersion = "1.8.15";
+static const char* const pluginVersion = "1.8.17";
 static const char* const pluginAuthor = "Michitaka Inoue";
 
 void UVShell::initAABB()

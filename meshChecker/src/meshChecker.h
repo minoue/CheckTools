@@ -1,5 +1,6 @@
-#ifndef __MESHCHECKER_H__
-#define __MESHCHECKER_H__
+
+#pragma once
+
 
 #include <maya/MApiNamespace.h>
 #include <maya/MPxCommand.h>
@@ -50,5 +51,3 @@ public:
 private:
     MeshChecker();
 };
-
-#endif /* defined(__MESHCHECKER_H__) */

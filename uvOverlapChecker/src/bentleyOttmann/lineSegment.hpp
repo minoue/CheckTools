@@ -3,8 +3,8 @@
 //  bentleyOttmann
 //
 
-#ifndef lineSegment_hpp
-#define lineSegment_hpp
+#pragma once
+
 
 #include "point2D.hpp"
 #include <string>
@@ -52,5 +52,3 @@ public:
 namespace lineUtils {
 void getIntersectionPoint(const LineSegment& lineA, const LineSegment& lineB, float& x, float& y);
 }
-
-#endif /* lineSegment_hpp */

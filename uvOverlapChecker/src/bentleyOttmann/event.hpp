@@ -3,8 +3,7 @@
 //  bentleyOttmann
 //
 
-#ifndef event_hpp
-#define event_hpp
+#pragma once
 
 #include "lineSegment.hpp"
 #include "point2D.hpp"
@@ -33,5 +32,3 @@ public:
 
 private:
 };
-
-#endif /* event_hpp */

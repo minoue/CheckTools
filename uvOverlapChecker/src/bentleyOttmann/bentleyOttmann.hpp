@@ -3,8 +3,7 @@
 //  bentleyOttmann
 //
 
-#ifndef bentleyOttmann_hpp
-#define bentleyOttmann_hpp
+#pragma once
 
 #include "event.hpp"
 #include "lineSegment.hpp"
@@ -33,5 +32,3 @@ private:
     std::vector<LineSegment*> statusPtrQueue;
     std::multiset<Event> eventQueue;
 };
-
-#endif /* bentleyOttmann_hpp */

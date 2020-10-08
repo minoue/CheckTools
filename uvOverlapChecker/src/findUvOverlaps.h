@@ -1,5 +1,5 @@
-#ifndef __findUvOverlaps_h__
-#define __findUvOverlaps_h__
+#pragma once
+
 
 #include "bentleyOttmann/bentleyOttmann.hpp"
 #include "bentleyOttmann/lineSegment.hpp"
@@ -61,6 +61,3 @@ private:
     void pushToShellVector(UVShell &shell);
     void timeIt(std::string text, double t);
 };
-
-
-#endif /* defined(__findUvOverlaps_h__) */

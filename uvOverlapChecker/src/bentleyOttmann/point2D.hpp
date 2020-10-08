@@ -3,8 +3,7 @@
 //  bentleyOttmann
 //
 
-#ifndef point2D_hpp
-#define point2D_hpp
+#pragma once
 
 #include "vector2D.hpp"
 #include <utility>
@@ -27,5 +26,3 @@ public:
     bool operator<(const Point2D& rhs) const;
     Vector2D operator-(const Point2D& rhs) const;
 };
-
-#endif /* point2D_hpp */
