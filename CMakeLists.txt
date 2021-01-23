@@ -103,3 +103,11 @@ endfunction(add_maya_library)
 add_subdirectory(meshChecker)
 add_subdirectory(uvChecker)
 add_subdirectory(uvOverlapChecker)
+
+
+if(MAYA_VERSION)
+    message(STATUS "MAYA_VERSION : ${MAYA_VERSION}")
+else()
+    message(STATUS "MAYA_VERSION not set for install directory")
+endif()
+set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_BINARY_DIR})
