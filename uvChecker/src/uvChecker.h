@@ -1,4 +1,3 @@
-
 #pragma once
 
 
@@ -13,7 +12,8 @@ enum class UVCheckType {
     HAS_UVS,
     ZERO_AREA,
     UN_ASSIGNED_UVS,
-    NEGATIVE_SPACE_UVS
+    NEGATIVE_SPACE_UVS,
+    CONCAVE_UVS
 };
 
 class UvChecker final : public MPxCommand {
@@ -34,6 +34,7 @@ public:
     IndexArray findNoUvFaces(const MFnMesh&);
     IndexArray findZeroUvFaces(const MFnMesh&);
     IndexArray findNegativeSpaceUVs(const MFnMesh&);
+    IndexArray findConcaveUVs(const MFnMesh&);
     bool hasUnassignedUVs(const MFnMesh&);
 
 private:
@@ -41,4 +42,5 @@ private:
     double minUVArea;
     MString uvSet;
     double maxUvBorderDistance;
+    float getTriangleArea(float Ax, float Ay, float Bx, float By, float Cx, float Cy) const;
 };

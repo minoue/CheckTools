@@ -8,6 +8,7 @@
 #include <maya/MFloatArray.h>
 #include <maya/MGlobal.h>
 #include <maya/MIntArray.h>
+#include <maya/MPointArray.h>
 #include <maya/MItMeshPolygon.h>
 #include <maya/MSelectionList.h>
 #include <maya/MString.h>
@@ -186,6 +187,12 @@ MStatus UvChecker::doIt(const MArgList& args)
         indices = findNegativeSpaceUVs(mesh);
         setResult(create_result_string(path, indices, ResultType::UV));
         break;
+    case UVCheckType::CONCAVE_UVS:
+        if (verbose)
+            MGlobal::displayInfo("Checking concave UVs");
+        indices = findConcaveUVs(mesh);
+        setResult(create_result_string(path, indices, ResultType::Face));
+        break;
     default:
         MGlobal::displayError("Invalid check number");
         return MS::kFailure;
@@ -344,4 +351,57 @@ IndexArray UvChecker::findNegativeSpaceUVs(const MFnMesh& mesh)
     indices.erase(std::unique(indices.begin(), indices.end()), indices.end());
 
     return indices;
+}
+
+// Find concave UVs by iterating each polygon and its internal triangles.
+// If area of triangle is 0 or negative, triangle vertex order is reversed
+// and the face is hence concave UVed polygon.
+IndexArray UvChecker::findConcaveUVs(const MFnMesh& mesh)
+{
+    IndexArray indices;
+    MDagPath path;
+    mesh.getPath(path);
+    MPointArray points;
+    MIntArray vertexList;
+
+    for (MItMeshPolygon itPoly(path); !itPoly.isDone(); itPoly.next()) {
+        unsigned int polygonIndex = itPoly.index();
+        itPoly.getTriangles(points, vertexList);
+        int numVerts = static_cast<int>(itPoly.polygonVertexCount());
+
+        int p1, p2, p3;
+
+        for (int i=0; i<numVerts; i++) {
+            p1 = i;
+            p2 = i + 1;
+            p3 = i + 2;
+
+            if (p2 > numVerts - 1) {
+                p2 -= numVerts;
+            }
+            if (p3 > numVerts - 1) {
+                p3 -= numVerts;
+            }
+
+            float2 uv1;
+            float2 uv2;
+            float2 uv3;
+
+            itPoly.getUV(p1, uv1);
+            itPoly.getUV(p2, uv2);
+            itPoly.getUV(p3, uv3);
+
+            float S = getTriangleArea(uv1[0], uv1[1], uv2[0], uv2[1], uv3[0], uv3[1]);
+
+            if (S <= 0.00000000001) {
+                indices.push_back(static_cast<int>(polygonIndex));
+            }
+        }
+    }
+    return indices;
+}
+
+float UvChecker::getTriangleArea(float Ax, float Ay, float Bx, float By, float Cx, float Cy) const
+{
+    return ((Ax * (By - Cy)) + (Bx * (Cy - Ay)) + (Cx * (Ay - By))) * 0.5F;
 }
