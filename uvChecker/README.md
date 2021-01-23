@@ -7,6 +7,7 @@ Find general uv errors
 2. Zero-area Uv faces
 3. Unassigned UVs
 4. UVs in negative space
+5. Concave UV faces
 
 ### Flags
 | Longname | Shortname | Argument types | Default | Properties | Description |

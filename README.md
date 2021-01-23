@@ -24,17 +24,17 @@ C++11
 >cd CheckTools
 >mkdir build
 >cd build
->cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../ -DMAYA_ROOT_DIR=path_to_maya_directory ../
+>cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DMAYA_VERSION=2020 -DMAYA_ROOT_DIR=path_to_maya_directory ../
 >cmake --build . --config Release --target install
 ```
 
 ### Windows
-eg. VS2017 and Maya2018
+eg. VS2019 and Maya2020
 ```
 >git clone https://github.com/minoue/CheckTools
 >cd CheckTools
 >mkdir build
 >cd build
->cmake -G "Visual Studio 15 2017 Win64" -DCMAKE_INSTALL_PREFIX=../ -DMAYA_ROOT_DIR="C:\Program Files\Autodesk\Maya2018" ../
+>cmake -G "Visual Studio 16 2019" -DMAYA_VERSION=2020 -DMAYA_ROOT_DIR="C:\Program Files\Autodesk\Maya2020" ../
 >cmake --build . --config Release --target install
 ```
