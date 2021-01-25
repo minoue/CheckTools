@@ -1,15 +1,34 @@
-## UVChecker
+# UVChecker
 Find general uv errors
 
-### Check numbers
-0. Udim border intersections
-1. Non-mapped UV faces
-2. Zero-area Uv faces
-3. Unassigned UVs
-4. UVs in negative space
-5. Concave UV faces
+## Check Numbers
 
-### Flags
+### 0. Udim border intersections
+
+![](../images/udimIntersections.png)
+
+### 1. Unmapped polygon faces
+
+![](../images/unMappedFaces.png)
+
+### 2. Zero-area UV faces
+
+![](../images/zeroAreaUVFaces.png)
+
+### 3. Unassigned UVs
+
+![img]()
+
+### 4. UVs in negative space
+
+![](../images/UVsInNegative.png)
+
+### 5. Concave UV faces
+
+![](../images/concaveUVs.png)
+
+
+## Flags
 | Longname | Shortname | Argument types | Default | Properties | Description |
 |:---------|----------:|:--------------:|:-------:|:----------:|:-----------:|
 |check|c|integer||C||
@@ -18,7 +37,8 @@ Find general uv errors
 |maxUvBorderDistance|muvd|double|0.0|C|Ignore UVs close to udims borders for "Udim border intersections" check|
 |verbose|v|bool|False|C||
 
-### Example
+
+## Example
 ```python
 from maya import cmds
 errors = cmds.checkUV("|pSphere1", c=0)
