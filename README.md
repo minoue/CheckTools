@@ -13,6 +13,12 @@ UV overlap checker based on the Bentley–Ottmann algorithm
  ⚠️ **Warning** ⚠️
 * Be sure to check if a mesh has no **unassigned UVs**, otherwise maya clashes.
 
+## GUI
+
+[ModelCheckerForMaya](https://github.com/minoue/ModelCheckerForMaya)
+
+![img](https://github.com/minoue/ModelCheckerForMaya/blob/master/images/ui.png)
+
 ## Build
 
 ### Build requirements
