@@ -3,7 +3,7 @@ project(findUvOverlaps CXX)
 add_maya_library(NAME ${PROJECT_NAME}
         PRIVATE_SOURCE
         src/findUvOverlaps.cpp
-        src/findUvOverlaps.h
+        src/findUvOverlaps.hpp
         src/bentleyOttmann/bentleyOttmann.cpp
         src/bentleyOttmann/bentleyOttmann.hpp
         src/bentleyOttmann/event.hpp

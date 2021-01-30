@@ -1,4 +1,4 @@
-#include "uvChecker.h"
+#include "uvChecker.hpp"
 #include <maya/MFnPlugin.h>
 #include <string>
 

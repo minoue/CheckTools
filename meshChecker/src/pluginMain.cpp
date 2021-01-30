@@ -1,4 +1,4 @@
-#include "meshChecker.h"
+#include "meshChecker.hpp"
 #include <maya/MFnPlugin.h>
 #include <string>
 

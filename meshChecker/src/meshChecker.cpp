@@ -1,4 +1,4 @@
-#include "meshChecker.h"
+#include "meshChecker.hpp"
 #include <maya/MArgDatabase.h>
 #include <maya/MArgList.h>
 #include <maya/MArrayDataHandle.h>

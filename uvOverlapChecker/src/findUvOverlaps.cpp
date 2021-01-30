@@ -4,7 +4,7 @@
 #include <utility>
 #include <vector>
 #include <unordered_set>
-#include "findUvOverlaps.h"
+#include "findUvOverlaps.hpp"
 #include <maya/MArgDatabase.h>
 #include <maya/MDagPath.h>
 #include <maya/MFloatArray.h>

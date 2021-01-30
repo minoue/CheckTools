@@ -4,7 +4,7 @@ add_maya_library(NAME ${PROJECT_NAME}
         PRIVATE_SOURCE
         src/pluginMain.cpp
         src/meshChecker.cpp
-        src/meshChecker.h
+        src/meshChecker.hpp
         )
 
 if (WIN32)
