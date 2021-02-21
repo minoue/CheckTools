@@ -1,19 +1,13 @@
 #include "uvChecker.hpp"
 #include <algorithm>
-#include <cstddef>
-#include <math.h>
 #include <maya/MArgDatabase.h>
 #include <maya/MArgList.h>
 #include <maya/MDagPath.h>
 #include <maya/MFloatArray.h>
 #include <maya/MGlobal.h>
-#include <maya/MIntArray.h>
 #include <maya/MPointArray.h>
 #include <maya/MItMeshPolygon.h>
 #include <maya/MSelectionList.h>
-#include <maya/MString.h>
-#include <maya/MStringArray.h>
-#include <string>
 #include <unordered_set>
 
 using IndexArray = UvChecker::IndexArray;
