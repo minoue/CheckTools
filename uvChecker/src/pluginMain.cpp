@@ -3,7 +3,7 @@
 #include <string>
 
 static const char* const pluginCommandName = "checkUV";
-static const char* const pluginVersion = "1.9.5";
+static const char* const pluginVersion = "1.9.6";
 static const char* const pluginAuthor = "Michi Inoue";
 
 MStatus initializePlugin(MObject mObj)

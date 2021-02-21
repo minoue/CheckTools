@@ -57,6 +57,10 @@ MStringArray create_result_string(const MDagPath &path, const IndexArray &indice
 } // unnamed namespace
 
 UvChecker::UvChecker()
+    : verbose(false),
+      uvSet("map1"),
+      minUVArea(0.000001),
+      maxUvBorderDistance(0.0)
 {
 }
 
@@ -131,13 +135,9 @@ MStatus UvChecker::doIt(const MArgList& args)
 
     if (argData.isFlagSet("-verbose"))
         argData.getFlagArgument("-verbose", 0, verbose);
-    else
-        verbose = false;
 
     if (argData.isFlagSet("-uvArea"))
         argData.getFlagArgument("-uvArea", 0, minUVArea);
-    else
-        minUVArea = 0.000001;
 
     if (argData.isFlagSet("-uvSet"))
         argData.getFlagArgument("-uvSet", 0, uvSet);
@@ -146,8 +146,6 @@ MStatus UvChecker::doIt(const MArgList& args)
 
     if (argData.isFlagSet("-maxUvBorderDistance"))
         argData.getFlagArgument("-maxUvBorderDistance", 0, maxUvBorderDistance);
-    else
-        maxUvBorderDistance = 0.0;
 
     if (verbose == true) {
         MString objectPath = "Selected mesh : " + path.fullPathName();
