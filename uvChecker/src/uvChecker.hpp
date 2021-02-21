@@ -42,5 +42,4 @@ private:
     double minUVArea;
     MString uvSet;
     double maxUvBorderDistance;
-    float getTriangleArea(float Ax, float Ay, float Bx, float By, float Cx, float Cy) const;
 };

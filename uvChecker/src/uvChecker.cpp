@@ -12,6 +12,8 @@
 
 using IndexArray = UvChecker::IndexArray;
 
+namespace {
+
 enum class ResultType {
     Face,
     Vertex,
@@ -19,35 +21,40 @@ enum class ResultType {
     UV
 };
 
-MStringArray create_result_string(const MDagPath& path, const IndexArray& indices, ResultType type)
-{
+float getTriangleArea(float Ax, float Ay, float Bx, float By, float Cx, float Cy) {
+    return ((Ax * (By - Cy)) + (Bx * (Cy - Ay)) + (Cx * (Ay - By))) * 0.5F;
+}
+
+MStringArray create_result_string(const MDagPath &path, const IndexArray &indices, ResultType type) {
     MString full_path = path.fullPathName();
     std::vector<MString> result;
     result.reserve(indices.size());
 
     for (auto index : indices) {
         switch (type) {
-        case ResultType::Face: {
-            result.emplace_back(full_path + ".f[" + index + "]");
-            break;
-        }
-        case ResultType::Vertex: {
-            result.emplace_back(full_path + ".vtx[" + index + "]");
-            break;
-        }
+            case ResultType::Face: {
+                result.emplace_back(full_path + ".f[" + index + "]");
+                break;
+            }
+            case ResultType::Vertex: {
+                result.emplace_back(full_path + ".vtx[" + index + "]");
+                break;
+            }
 
-        case ResultType::Edge: {
-            result.emplace_back(full_path + ".e[" + index + "]");
-            break;
-        }
-        case ResultType::UV: {
-            result.emplace_back(full_path + ".map[" + index + "]");
-            break;
-        }
+            case ResultType::Edge: {
+                result.emplace_back(full_path + ".e[" + index + "]");
+                break;
+            }
+            case ResultType::UV: {
+                result.emplace_back(full_path + ".map[" + index + "]");
+                break;
+            }
         }
     }
-    return { &result[0], static_cast<unsigned int>(indices.size()) };
+    return {&result[0], static_cast<unsigned int>(indices.size())};
 }
+
+} // unnamed namespace
 
 UvChecker::UvChecker()
 {
@@ -393,9 +400,4 @@ IndexArray UvChecker::findConcaveUVs(const MFnMesh& mesh)
         }
     }
     return indices;
-}
-
-float UvChecker::getTriangleArea(float Ax, float Ay, float Bx, float By, float Cx, float Cy) const
-{
-    return ((Ax * (By - Cy)) + (Bx * (Cy - Ay)) + (Cx * (Ay - By))) * 0.5F;
 }
