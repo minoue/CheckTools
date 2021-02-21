@@ -45,7 +45,6 @@ public:
     static IndexArray findMeshBorderEdges(const MFnMesh&);
     static IndexArray findCreaseEdges(const MFnMesh&);
     static IndexArray findZeroLengthEdges(const MFnMesh&, double minEdgeLength);
-    static IndexArray findUnfrozenVertices(const MFnMesh&);
     static bool hasVertexPntsAttr(const MFnMesh&, bool fix);
 
 private:

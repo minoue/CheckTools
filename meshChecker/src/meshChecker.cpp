@@ -13,12 +13,10 @@
 #include <maya/MItMeshVertex.h>
 #include <maya/MPlug.h>
 #include <maya/MSelectionList.h>
-#include <maya/MString.h>
 #include <maya/MSyntax.h>
 #include <maya/MUintArray.h>
 
 #include <cmath>
-#include <limits>
 
 using IndexArray = MeshChecker::IndexArray;
 
