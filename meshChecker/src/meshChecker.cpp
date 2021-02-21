@@ -307,7 +307,7 @@ MStatus MeshChecker::doIt(const MArgList& args)
         MGlobal::getActiveSelectionList(selection);
     } else {
         status = argData.getCommandArgument(0, selection);
-        CHECK_MSTATUS_AND_RETURN_IT(status);
+        CHECK_MSTATUS_AND_RETURN_IT(status)
         if (status != MS::kSuccess) {
             return MStatus::kFailure;
         }

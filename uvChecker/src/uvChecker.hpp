@@ -19,11 +19,14 @@ enum class UVCheckType {
 class UvChecker final : public MPxCommand {
 public:
     UvChecker();
-    virtual ~UvChecker();
-    MStatus doIt(const MArgList& argList);
-    MStatus undoIt();
-    MStatus redoIt();
-    bool isUndoable() const;
+    ~UvChecker() final;
+
+    // command interface
+    MStatus doIt(const MArgList& argList) final;
+    MStatus undoIt() final;
+    MStatus redoIt() final;
+    bool isUndoable() const final;
+
     static void* creator();
     static MSyntax newSyntax();
 
@@ -34,7 +37,7 @@ public:
     IndexArray findNoUvFaces(const MFnMesh&);
     IndexArray findZeroUvFaces(const MFnMesh&);
     IndexArray findNegativeSpaceUVs(const MFnMesh&);
-    IndexArray findConcaveUVs(const MFnMesh&);
+    static IndexArray findConcaveUVs(const MFnMesh&);
     bool hasUnassignedUVs(const MFnMesh&);
 
 private:

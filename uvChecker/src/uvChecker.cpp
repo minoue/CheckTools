@@ -65,8 +65,7 @@ UvChecker::UvChecker()
 }
 
 UvChecker::~UvChecker()
-{
-}
+= default;
 
 MSyntax UvChecker::newSyntax()
 {
@@ -110,7 +109,7 @@ MStatus UvChecker::doIt(const MArgList& args)
     sel.getDagPath(0, path);
     MFnMesh mesh(path);
     status = path.extendToShape();
-    CHECK_MSTATUS_AND_RETURN_IT(status);
+    CHECK_MSTATUS_AND_RETURN_IT(status)
 
     // Check if mesh or not
     if (path.apiType() != MFn::kMesh) {
@@ -127,7 +126,7 @@ MStatus UvChecker::doIt(const MArgList& args)
 
         check_type = static_cast<UVCheckType>(check_value);
 
-        // TODO check if exeds value
+        // TODO check if exceeds value
     } else {
         MGlobal::displayError("Check type required.");
         return MS::kFailure;
@@ -147,7 +146,7 @@ MStatus UvChecker::doIt(const MArgList& args)
     if (argData.isFlagSet("-maxUvBorderDistance"))
         argData.getFlagArgument("-maxUvBorderDistance", 0, maxUvBorderDistance);
 
-    if (verbose == true) {
+    if (verbose) {
         MString objectPath = "Selected mesh : " + path.fullPathName();
         MGlobal::displayInfo(objectPath);
     }
@@ -195,7 +194,6 @@ MStatus UvChecker::doIt(const MArgList& args)
     default:
         MGlobal::displayError("Invalid check number");
         return MS::kFailure;
-        break;
     }
 
     return redoIt();
@@ -261,8 +259,8 @@ IndexArray UvChecker::findUdimIntersections(const MFnMesh& fnMesh)
         }
     }
 
-    for (auto indexSetIter = indexSet.begin(); indexSetIter != indexSet.end(); ++indexSetIter) {
-        indices.emplace_back(*indexSetIter);
+    for (int indexSetIter : indexSet) {
+        indices.emplace_back(indexSetIter);
     }
     return indices;
 }
@@ -275,7 +273,7 @@ IndexArray UvChecker::findNoUvFaces(const MFnMesh& mesh)
     mesh.getPath(path);
     for (MItMeshPolygon itPoly(path); !itPoly.isDone(); itPoly.next()) {
         hasUVs = itPoly.hasUVs(uvSet);
-        if (hasUVs == false) {
+        if (!hasUVs) {
             indices.emplace_back(itPoly.index());
         }
     }
@@ -291,7 +289,7 @@ IndexArray UvChecker::findZeroUvFaces(const MFnMesh& mesh)
     mesh.getPath(path);
     for (MItMeshPolygon itPoly(path); !itPoly.isDone(); itPoly.next()) {
         hasUVs = itPoly.hasUVs(uvSet);
-        if (hasUVs == false) {
+        if (!hasUVs) {
         } else {
             itPoly.getUVArea(area, &uvSet);
             if (area < minUVArea) {
