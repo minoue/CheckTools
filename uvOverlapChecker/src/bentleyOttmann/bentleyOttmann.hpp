@@ -23,7 +23,7 @@ public:
     BentleyOttmann operator+(const BentleyOttmann& rhs) const;
 
 private:
-    std::vector<LineSegment> *resultPtr;
+    std::vector<LineSegment> *resultPtr{};
     bool doBegin(Event& ev);
     bool doEnd(Event& ev);
     bool doCross(Event& ev);

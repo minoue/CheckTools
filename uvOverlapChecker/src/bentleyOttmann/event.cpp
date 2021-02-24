@@ -5,9 +5,9 @@
 
 #include "event.hpp"
 
-Event::Event() {}
+Event::Event() = default;
 
-Event::Event(int eventType, LineSegment* edgePtrA, Point2D point)
+Event::Event(int eventType, LineSegment* edgePtrA, const Point2D& point)
     : eventType(eventType)
     , edgePtrA(edgePtrA)
     , eventPoint(point)
@@ -15,7 +15,7 @@ Event::Event(int eventType, LineSegment* edgePtrA, Point2D point)
 {
 }
 
-Event::Event(int eventType, LineSegment* edgePtrA, LineSegment* edgePtrB, Point2D point)
+Event::Event(int eventType, LineSegment* edgePtrA, LineSegment* edgePtrB, const Point2D& point)
     : eventType(eventType)
     , edgePtrA(edgePtrA)
     , edgePtrB(edgePtrB)
@@ -24,7 +24,7 @@ Event::Event(int eventType, LineSegment* edgePtrA, LineSegment* edgePtrB, Point2
 {
 }
 
-Event::~Event() {}
+Event::~Event() = default;
 
 bool Event::operator<(const Event& rhs) const
 {

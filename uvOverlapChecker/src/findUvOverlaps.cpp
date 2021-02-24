@@ -11,23 +11,21 @@
 #include <maya/MFnMesh.h>
 #include <maya/MFnPlugin.h>
 #include <maya/MGlobal.h>
-#include <maya/MIntArray.h>
-#include <maya/MStringArray.h>
 #include <maya/MTimer.h>
 
 static const char* const pluginCommandName = "findUvOverlaps";
-static const char* const pluginVersion = "1.8.17";
+static const char* const pluginVersion = "1.8.18";
 static const char* const pluginAuthor = "Michitaka Inoue";
 
 void UVShell::initAABB()
 {
     std::vector<float> uVector;
     std::vector<float> vVector;
-    for (auto lineIter = this->lines.begin(); lineIter != this->lines.end(); ++lineIter) {
-        uVector.emplace_back(lineIter->begin.x);
-        uVector.emplace_back(lineIter->end.x);
-        vVector.emplace_back(lineIter->begin.y);
-        vVector.emplace_back(lineIter->end.y);
+    for (auto & line : this->lines) {
+        uVector.emplace_back(line.begin.x);
+        uVector.emplace_back(line.end.x);
+        vVector.emplace_back(line.begin.y);
+        vVector.emplace_back(line.end.y);
     }
     this->left = *std::min_element(uVector.begin(), uVector.end());
     this->right = *std::max_element(uVector.begin(), uVector.end());
@@ -61,7 +59,10 @@ UVShell UVShell::operator&&(const UVShell& other) const
     return shell;
 }
 
-FindUvOverlaps::~FindUvOverlaps() {}
+FindUvOverlaps::FindUvOverlaps()
+    : verbose(false) {}
+
+FindUvOverlaps::~FindUvOverlaps() = default;
 
 void* FindUvOverlaps::creator()
 {
@@ -90,7 +91,7 @@ void FindUvOverlaps::pushToLineVector(std::vector<LineSegment>& v)
         locker.lock();
         finalResult.push_back(v);
         locker.unlock();
-    } catch (std::exception e) {
+    } catch (std::exception& e) {
         std::cerr << e.what() << std::endl;
     }
 }
@@ -101,7 +102,7 @@ void FindUvOverlaps::pushToShellVector(UVShell& shell)
         locker.lock();
         shellVector.push_back(shell);
         locker.unlock();
-    } catch (std::exception e) {
+    } catch (std::exception& e) {
         std::cerr << e.what() << std::endl;
     }
 }
@@ -182,7 +183,7 @@ MStatus FindUvOverlaps::doIt(const MArgList& args)
 
     // Multithread bentleyOttman check
     size_t numAllShells2 = shells.size();
-    std::thread* btoThreadArray = new std::thread[numAllShells2];
+    auto* btoThreadArray = new std::thread[numAllShells2];
     for (size_t i = 0; i < numAllShells2; i++) {
         UVShell& s = shells[i];
         btoThreadArray[i] = std::thread(&FindUvOverlaps::btoCheck, this, std::ref(s));
@@ -223,7 +224,7 @@ MStatus FindUvOverlaps::doIt(const MArgList& args)
     MString s;
     MStringArray resultStringArray;
 
-    for (auto fullpath : temp) {
+    for (const auto& fullpath : temp) {
         s.set(fullpath.c_str());
         resultStringArray.append(s);
     }
@@ -274,7 +275,7 @@ MStatus FindUvOverlaps::init(int i)
     unsigned int nextCounter;
     // Loop over each face and its edges, then create a pair of indices
     for (unsigned int j = 0; j < uvCountSize; j++) {
-        unsigned int numFaceUVs = static_cast<unsigned int>(uvCounts[j]);
+        auto numFaceUVs = static_cast<unsigned int>(uvCounts[j]);
         for (unsigned int localIndex = 0; localIndex < numFaceUVs; localIndex++) {
             if (localIndex == numFaceUVs - 1) {
                 // Set the nextCounter to the localIndex of zero of the face
@@ -314,28 +315,28 @@ MStatus FindUvOverlaps::init(int i)
     std::vector<UVShell> shells(nbUvShells);
 
     // Loop over all id pairs and create lineSegment objects
-    for (auto pairIter = idPairs.begin(); pairIter != idPairs.end(); ++pairIter) {
+    for (auto & idPair : idPairs) {
 
-        unsigned int idA = (*pairIter).first;
-        unsigned int idB = (*pairIter).second;
+        unsigned int idA = idPair.first;
+        unsigned int idB = idPair.second;
         Point2D p1(uArray[idA], vArray[idA], static_cast<int>(idA));
         Point2D p2(uArray[idB], vArray[idB], static_cast<int>(idB));
 
         // Create new lineSegment object
         LineSegment line(p1, p2, dagPathChar);
 
-        unsigned int shellIndex = static_cast<unsigned int>(uvShellIds[idA]);
+        auto shellIndex = static_cast<unsigned int>(uvShellIds[idA]);
         shells[shellIndex].lines.emplace_back(line);
     }
 
-    for (size_t j = 0; j < shells.size(); j++) {
-        pushToShellVector(shells[j]);
+    for (auto & shell : shells) {
+        pushToShellVector(shell);
     }
 
     return MS::kSuccess;
 }
 
-void FindUvOverlaps::timeIt(std::string text, double t)
+void FindUvOverlaps::timeIt(const std::string& text, double t)
 {
     MString message, time;
     message.set(text.c_str());
@@ -380,4 +381,12 @@ MStatus uninitializePlugin(MObject obj)
     }
 
     return status;
+}
+
+const char *MStringVector::emplace_back(const MString& path) {
+    std::lock_guard<std::mutex> lock(mtx);
+    elements.emplace_back(path);
+    MString &tempMstring = elements.back();
+    const char* tempChar = tempMstring.asChar();
+    return tempChar;
 }

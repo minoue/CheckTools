@@ -6,8 +6,7 @@
 #include "point2D.hpp"
 
 Point2D::Point2D()
-{
-}
+= default;
 
 Point2D::Point2D(float x, float y, int index)
     : x(x)
@@ -18,8 +17,7 @@ Point2D::Point2D(float x, float y, int index)
 }
 
 Point2D::~Point2D()
-{
-}
+= default;
 
 bool Point2D::operator==(const Point2D& rhs) const
 {

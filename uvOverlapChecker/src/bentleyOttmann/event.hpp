@@ -7,20 +7,20 @@
 
 #include "lineSegment.hpp"
 #include "point2D.hpp"
-#include <stdio.h>
+#include <cstdio>
 
 class Event {
 public:
     Event();
-    Event(int eventType, LineSegment* edgePtrA, Point2D point);
-    Event(int eventType, LineSegment* edgePtrA, LineSegment* edgePtrB, Point2D point);
+    Event(int eventType, LineSegment* edgePtrA, const Point2D& point);
+    Event(int eventType, LineSegment* edgePtrA, LineSegment* edgePtrB, const Point2D& point);
     ~Event();
 
-    int eventType;
-    LineSegment *edgePtrA, *edgePtrB;
+    int eventType{};
+    LineSegment *edgePtrA{}, *edgePtrB{};
     Point2D eventPoint;
-    int index;
-    float sweepline;
+    int index{};
+    float sweepline{};
 
     bool operator<(const Event& rhs) const;
 

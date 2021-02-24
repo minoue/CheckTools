@@ -13,8 +13,8 @@ public:
     Point2D();
     Point2D(float x, float y, int index);
     ~Point2D();
-    float x, y;
-    int index;
+    float x{}, y{};
+    int index{};
     std::pair<float, float> xy;
 
     bool operator==(const Point2D& rhs) const;

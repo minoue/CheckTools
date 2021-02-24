@@ -26,18 +26,12 @@ private:
     std::mutex mtx;
     std::vector<MString> elements;
 public:
-    const char* emplace_back(MString path) {
-        std::lock_guard<std::mutex> lock(mtx);
-        elements.emplace_back(path);
-        MString &tempMstring = elements.back();
-        const char* tempChar = tempMstring.asChar();
-        return tempChar;
-    }
+    const char* emplace_back(const MString& path);
 };
 
 class FindUvOverlaps : public MPxCommand {
 public:
-    FindUvOverlaps(){};
+    FindUvOverlaps();
     ~FindUvOverlaps() override;
 
     MStatus doIt(const MArgList& args) override;
@@ -59,5 +53,5 @@ private:
     void btoCheck(UVShell &shell);
     void pushToLineVector(std::vector<LineSegment> &v);
     void pushToShellVector(UVShell &shell);
-    void timeIt(std::string text, double t);
+    static void timeIt(const std::string& text, double t);
 };

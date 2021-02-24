@@ -12,8 +12,7 @@ BentleyOttmann::BentleyOttmann(std::vector<LineSegment>& edgeVector) : edges(edg
 }
 
 BentleyOttmann::~BentleyOttmann()
-{
-}
+= default;
 
 BentleyOttmann BentleyOttmann::operator+(const BentleyOttmann& rhs) const
 {
@@ -42,9 +41,9 @@ void BentleyOttmann::check(std::vector<LineSegment> &result)
 {
     resultPtr = &result;
 
-    for (auto edgeIter = edges.begin(); edgeIter != edges.end(); ++edgeIter) {
-        Event ev1(0, &(*edgeIter), (*edgeIter).begin);
-        Event ev2(1, &(*edgeIter), (*edgeIter).end);
+    for (auto & edge : edges) {
+        Event ev1(0, &edge, edge.begin);
+        Event ev2(1, &edge, edge.end);
         eventQueue.insert(ev1);
         eventQueue.insert(ev2);
     }
@@ -85,8 +84,7 @@ bool BentleyOttmann::doBegin(Event& ev)
     }
 
     // Set crossing point of Y for all edges in the statusQueue and the sweepline
-    for (size_t i = 0; i < statusPtrQueue.size(); i++) {
-        LineSegment* ePtr = statusPtrQueue[i];
+    for (auto ePtr : statusPtrQueue) {
         if (ePtr->isHorizontal) {
             // If the edge is horizontal, y of corrsing point is always y
             // as sweepline moves from left to right
