@@ -13,7 +13,8 @@ enum class UVCheckType {
     ZERO_AREA,
     UN_ASSIGNED_UVS,
     NEGATIVE_SPACE_UVS,
-    CONCAVE_UVS
+    CONCAVE_UVS,
+    REVERSED_UVS
 };
 
 class UvChecker final : public MPxCommand {
@@ -38,6 +39,7 @@ public:
     IndexArray findZeroUvFaces(const MFnMesh&);
     IndexArray findNegativeSpaceUVs(const MFnMesh&);
     static IndexArray findConcaveUVs(const MFnMesh&);
+    IndexArray findReversedUVs(const MFnMesh&);
     bool hasUnassignedUVs(const MFnMesh&);
 
 private:

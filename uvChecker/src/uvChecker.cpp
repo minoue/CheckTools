@@ -191,6 +191,12 @@ MStatus UvChecker::doIt(const MArgList& args)
         indices = findConcaveUVs(mesh);
         setResult(create_result_string(path, indices, ResultType::Face));
         break;
+    case UVCheckType::REVERSED_UVS:
+        if (verbose)
+            MGlobal::displayInfo("Checking Reversed UVs");
+        indices = findReversedUVs(mesh);
+        setResult(create_result_string(path, indices, ResultType::Face));
+        break;
     default:
         MGlobal::displayError("Invalid check number");
         return MS::kFailure;
@@ -393,6 +399,18 @@ IndexArray UvChecker::findConcaveUVs(const MFnMesh& mesh)
             if (S <= 0.00000000001) {
                 indices.push_back(static_cast<int>(polygonIndex));
             }
+        }
+    }
+    return indices;
+}
+
+IndexArray UvChecker::findReversedUVs(const MFnMesh& mesh) {
+    IndexArray indices;
+    MDagPath path;
+    mesh.getPath(path);
+    for (MItMeshPolygon itPoly(path); !itPoly.isDone(); itPoly.next()) {
+        if (itPoly.isUVReversed()) {
+            indices.push_back(itPoly.index());
         }
     }
     return indices;
