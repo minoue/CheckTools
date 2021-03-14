@@ -27,6 +27,9 @@ Find general uv errors
 
 ![](../images/concaveUVs.png)
 
+### 6. Reversed UVs
+
+![](../images/reversedUVs.png)
 
 ## Flags
 | Longname | Shortname | Argument types | Default | Properties | Description |
