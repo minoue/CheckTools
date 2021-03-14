@@ -39,7 +39,7 @@ public:
     IndexArray findZeroUvFaces(const MFnMesh&);
     IndexArray findNegativeSpaceUVs(const MFnMesh&);
     static IndexArray findConcaveUVs(const MFnMesh&);
-    IndexArray findReversedUVs(const MFnMesh&);
+    static IndexArray findReversedUVs(const MFnMesh&);
     bool hasUnassignedUVs(const MFnMesh&);
 
 private:

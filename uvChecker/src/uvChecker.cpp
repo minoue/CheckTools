@@ -371,8 +371,8 @@ IndexArray UvChecker::findConcaveUVs(const MFnMesh& mesh)
         unsigned int polygonIndex = itPoly.index();
         itPoly.getTriangles(points, vertexList);
         int numVerts = static_cast<int>(itPoly.polygonVertexCount());
-
         int p1, p2, p3;
+        bool isReversed = itPoly.isUVReversed();
 
         for (int i=0; i<numVerts; i++) {
             p1 = i;
@@ -396,8 +396,14 @@ IndexArray UvChecker::findConcaveUVs(const MFnMesh& mesh)
 
             float S = getTriangleArea(uv1[0], uv1[1], uv2[0], uv2[1], uv3[0], uv3[1]);
 
-            if (S <= 0.00000000001) {
-                indices.push_back(static_cast<int>(polygonIndex));
+            if (!isReversed) {
+                if (S <= 0.00000000001) {
+                    indices.push_back(static_cast<int>(polygonIndex));
+                }
+            } else {
+                if (S >= -0.00000000001) {
+                    indices.push_back(static_cast<int>(polygonIndex));
+                }
             }
         }
     }
