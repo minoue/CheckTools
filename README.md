@@ -17,8 +17,6 @@ UV overlap checker based on the Bentley–Ottmann algorithm
 
 [ModelCheckerForMaya](https://github.com/minoue/ModelCheckerForMaya)
 
-![img](https://github.com/minoue/ModelCheckerForMaya/blob/master/images/ui.png)
-
 ## Build
 
 ### Build requirements
