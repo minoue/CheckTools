@@ -1,4 +1,3 @@
-
 #pragma once
 
 
@@ -18,6 +17,7 @@ enum class MeshCheckType {
     CREASE_EDGE,
     ZERO_LENGTH_EDGES,
     UNFROZEN_VERTICES,
+    EMPTY_GEOMETRY,
     TEST
 };
 
@@ -46,6 +46,7 @@ public:
     static IndexArray findCreaseEdges(const MFnMesh&);
     static IndexArray findZeroLengthEdges(const MFnMesh&, double minEdgeLength);
     static bool hasVertexPntsAttr(const MFnMesh&, bool fix);
+    static bool isEmpty(const MFnMesh&);
 
 private:
     MeshChecker();

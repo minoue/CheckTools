@@ -295,6 +295,16 @@ bool MeshChecker::hasVertexPntsAttr(const MFnMesh& mesh, bool fix)
     return false;
 }
 
+bool MeshChecker::isEmpty(const MFnMesh& mesh)
+{
+    int numVerts = mesh.numVertices();
+    if (numVerts == 0) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 MStatus MeshChecker::doIt(const MArgList& args)
 {
 
@@ -386,9 +396,11 @@ MStatus MeshChecker::doIt(const MArgList& args)
         bool fix = false;
         if (argData.isFlagSet("-fix"))
             argData.getFlagArgument("-fix", 0, fix);
-
         setResult(hasVertexPntsAttr(mesh, fix));
+    } else if (check_type == MeshCheckType::EMPTY_GEOMETRY) {
+        setResult(isEmpty(mesh));
     } else if (check_type == MeshCheckType::TEST) {
+        ;
     } else {
         MGlobal::displayError("Invalid check number");
         return MS::kFailure;
