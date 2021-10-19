@@ -24,6 +24,9 @@ plug-ins/
 cmake-build-debug/
 cmake-build-release/
 cmake-build-maya/
+cmake-build-maya_debug
+cmake-build-maya_release
 !CMakeLists.txt
 .clang
 sublimeBuild.bat
+*ccls*
