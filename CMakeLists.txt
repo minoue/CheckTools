@@ -19,7 +19,7 @@ target_compile_definitions(Maya INTERFACE
         _BOOL
         )
 target_compile_options(Maya INTERFACE
-        $<$<CXX_COMPILER_ID:GNU>:-Wall -Wextra -Wconversion -Wsign-conversion -pedantic>
+        $<$<CXX_COMPILER_ID:GNU>:pthread -Wall -Wextra -Wconversion -Wsign-conversion -pedantic>
         $<$<CXX_COMPILER_ID:MSVC>:/W4>
         )
 # OS specific
