@@ -1,10 +1,13 @@
 #pragma once
 
 
-#include <maya/MApiNamespace.h>
+// #include <maya/MApiNamespace.h>
 #include <maya/MPxCommand.h>
 
 #include <vector>
+#include <string>
+#include <mutex>
+
 
 enum class MeshCheckType {
     TRIANGLES = 0,
@@ -20,6 +23,18 @@ enum class MeshCheckType {
     EMPTY_GEOMETRY,
     TEST
 };
+
+
+class ResultStringArray {
+    std::mutex mtx;
+public:
+    std::vector<std::string> data;
+    void push_back(std::string x) {
+        std::lock_guard<std::mutex> lock(mtx);
+        data.push_back(x);
+    }
+};
+
 
 class MeshChecker final : public MPxCommand {
 public:
@@ -48,6 +63,9 @@ public:
     static bool hasVertexPntsAttr(const MFnMesh&, bool fix);
     static bool isEmpty(const MFnMesh&);
 
+    void checkMT(const MDagPath&, MeshCheckType ct);
+
 private:
     MeshChecker();
+    bool isMultiThreaded = false;
 };

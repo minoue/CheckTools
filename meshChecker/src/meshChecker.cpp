@@ -8,15 +8,19 @@
 #include <maya/MFnDagNode.h>
 #include <maya/MFnMesh.h>
 #include <maya/MGlobal.h>
+#include <maya/MItDag.h>
 #include <maya/MItMeshEdge.h>
 #include <maya/MItMeshPolygon.h>
 #include <maya/MItMeshVertex.h>
 #include <maya/MPlug.h>
 #include <maya/MSelectionList.h>
+#include <maya/MString.h>
 #include <maya/MSyntax.h>
 #include <maya/MUintArray.h>
 
 #include <cmath>
+#include <string>
+#include <thread>
 
 using IndexArray = MeshChecker::IndexArray;
 
@@ -59,6 +63,376 @@ MStringArray create_result_string(const MDagPath& path, const IndexArray& indice
     return { &result[0], static_cast<unsigned int>(indices.size()) };
 }
 
+std::string createResultString(const MDagPath& dagPath, ResultType type, int index)
+{
+
+    MString tempPath = dagPath.fullPathName();
+    std::string pathString = std::string(tempPath.asChar());
+
+    switch (type) {
+    case ResultType::Face: {
+        pathString += ".f[" + std::to_string(index) + "]";
+        break;
+    }
+    case ResultType::Vertex: {
+        pathString += ".vtx[" + std::to_string(index) + "]";
+        break;
+    }
+
+    case ResultType::Edge: {
+        pathString += ".e[" + std::to_string(index) + "]";
+        break;
+    }
+    case ResultType::UV: {
+        pathString += ".map[" + std::to_string(index) + "]";
+        break;
+    }
+    }
+
+    return pathString;
+}
+
+void buildHierarchy(const MDagPath& path, std::vector<std::string>& result)
+{
+
+    MString name;
+
+    MItDag dagIter;
+    for (dagIter.reset(path, MItDag::kDepthFirst); !dagIter.isDone(); dagIter.next()) {
+        MObject obj = dagIter.currentItem();
+
+        if (obj.apiType() == MFn::kMesh) {
+            name = dagIter.fullPathName();
+            result.push_back(name.asChar());
+        }
+    }
+}
+
+void findTrianglesMT(std::vector<std::string>* paths, ResultStringArray* result)
+{
+    MSelectionList list;
+
+    for (auto& p : *paths) {
+        MString mPath(p.c_str());
+        list.add(mPath);
+    }
+
+    unsigned int length = list.length();
+
+    MDagPath dagPath;
+
+    for (unsigned int i = 0; i < length; i++) {
+        list.getDagPath(i, dagPath);
+        MFnMesh mesh(dagPath);
+        int numPoly = mesh.numPolygons();
+
+        for (int j = 0; j < numPoly; j++) {
+            if (mesh.polygonVertexCount(j) == 3) {
+                result->push_back(createResultString(dagPath, ResultType::Face, j));
+            }
+        }
+    }
+}
+
+void findNgonsMT(std::vector<std::string>* paths, ResultStringArray* result)
+{
+
+    MSelectionList list;
+
+    for (auto& p : *paths) {
+        MString mPath(p.c_str());
+        list.add(mPath);
+    }
+
+    unsigned int length = list.length();
+
+    MDagPath dagPath;
+
+    for (unsigned int i = 0; i < length; i++) {
+        list.getDagPath(i, dagPath);
+        MFnMesh mesh(dagPath);
+        int numPoly = mesh.numPolygons();
+
+        for (int i = 0; i < numPoly; i++) {
+            if (mesh.polygonVertexCount(i) >= 5) {
+                result->push_back(createResultString(dagPath, ResultType::Face, i));
+            }
+        }
+    }
+}
+
+void findNonManifoldEdgesMT(std::vector<std::string>* paths, ResultStringArray* result)
+{
+    MSelectionList list;
+
+    for (auto& p : *paths) {
+        MString mPath(p.c_str());
+        list.add(mPath);
+    }
+
+    unsigned int length = list.length();
+
+    MDagPath dagPath;
+
+    for (unsigned int i = 0; i < length; i++) {
+        list.getDagPath(i, dagPath);
+
+        for (MItMeshEdge edgeIter(dagPath); !edgeIter.isDone(); edgeIter.next()) {
+            int face_count;
+            edgeIter.numConnectedFaces(face_count);
+            if (face_count > 2) {
+                result->push_back(createResultString(dagPath, ResultType::Edge, edgeIter.index()));
+            }
+        }
+    }
+}
+
+void findLaminaFacesMT(std::vector<std::string>* paths, ResultStringArray* result)
+{
+    MSelectionList list;
+
+    for (auto& p : *paths) {
+        MString mPath(p.c_str());
+        list.add(mPath);
+    }
+
+    unsigned int length = list.length();
+
+    MDagPath dagPath;
+
+    for (unsigned int i = 0; i < length; i++) {
+        list.getDagPath(i, dagPath);
+
+        for (MItMeshPolygon polyIter(dagPath); !polyIter.isDone(); polyIter.next()) {
+            if (polyIter.isLamina()) {
+                result->push_back(
+                    createResultString(
+                        dagPath,
+                        ResultType::Face,
+                        static_cast<int>(polyIter.index())));
+            }
+        }
+    }
+}
+
+void findBiValentFacesMT(std::vector<std::string>* paths, ResultStringArray* result)
+{
+    MSelectionList list;
+
+    for (auto& p : *paths) {
+        MString mPath(p.c_str());
+        list.add(mPath);
+    }
+
+    unsigned int length = list.length();
+
+    MDagPath dagPath;
+
+    MIntArray connectedFaces;
+    MIntArray connectedEdges;
+
+    for (unsigned int i = 0; i < length; i++) {
+        list.getDagPath(i, dagPath);
+
+        for (MItMeshVertex vtxIter(dagPath); !vtxIter.isDone(); vtxIter.next()) {
+            vtxIter.getConnectedFaces(connectedFaces);
+            vtxIter.getConnectedEdges(connectedEdges);
+
+            if (connectedFaces.length() == 2 && connectedEdges.length() == 2) {
+                result->push_back(createResultString(dagPath, ResultType::Vertex, vtxIter.index()));
+            }
+        }
+    }
+}
+
+void findZeroAreaFacesMT(std::vector<std::string>* paths, ResultStringArray* result, double maxFaceArea)
+{
+    MSelectionList list;
+
+    for (auto& p : *paths) {
+        MString mPath(p.c_str());
+        list.add(mPath);
+    }
+
+    unsigned int length = list.length();
+
+    MDagPath dagPath;
+
+    for (unsigned int i = 0; i < length; i++) {
+        list.getDagPath(i, dagPath);
+
+        for (MItMeshPolygon polyIter(dagPath); !polyIter.isDone(); polyIter.next()) {
+            double area;
+            polyIter.getArea(area);
+            if (area < maxFaceArea) {
+                result->push_back(
+                    createResultString(
+                        dagPath,
+                        ResultType::Face,
+                        static_cast<int>(polyIter.index())));
+            }
+        }
+    }
+}
+
+void findMeshBorderEdgesMT(std::vector<std::string>* paths, ResultStringArray* result)
+{
+    MSelectionList list;
+
+    for (auto& p : *paths) {
+        MString mPath(p.c_str());
+        list.add(mPath);
+    }
+
+    unsigned int length = list.length();
+
+    MDagPath dagPath;
+
+    for (unsigned int i = 0; i < length; i++) {
+        list.getDagPath(i, dagPath);
+
+        for (MItMeshEdge edgeIter(dagPath); !edgeIter.isDone(); edgeIter.next()) {
+            if (edgeIter.onBoundary()) {
+                result->push_back(createResultString(dagPath, ResultType::Edge, edgeIter.index()));
+            }
+        }
+    }
+}
+
+void findCreaseEdgesMT(std::vector<std::string>* paths, ResultStringArray* result)
+{
+    MSelectionList list;
+
+    for (auto& p : *paths) {
+        MString mPath(p.c_str());
+        list.add(mPath);
+    }
+
+    unsigned int length = list.length();
+
+    MDagPath dagPath;
+
+    for (unsigned int i = 0; i < length; i++) {
+        list.getDagPath(i, dagPath);
+        MFnMesh mesh(dagPath);
+
+        MUintArray edgeIds;
+        MDoubleArray creaseData;
+        mesh.getCreaseEdges(edgeIds, creaseData);
+
+        unsigned int edgeIdLength = edgeIds.length();
+
+        for (unsigned int j = 0; j < edgeIdLength; j++) {
+            result->push_back(
+                createResultString(dagPath, ResultType::Edge, static_cast<int>(edgeIds[j])));
+        }
+    }
+}
+
+void findZeroLengthEdgesMT(std::vector<std::string>* paths, ResultStringArray* result, double minEdgeLength)
+{
+    MSelectionList list;
+
+    for (auto& p : *paths) {
+        MString mPath(p.c_str());
+        list.add(mPath);
+    }
+
+    unsigned int length = list.length();
+
+    MDagPath dagPath;
+
+    for (unsigned int i = 0; i < length; i++) {
+        list.getDagPath(i, dagPath);
+        for (MItMeshEdge edgeIter(dagPath); !edgeIter.isDone(); edgeIter.next()) {
+            double length;
+            edgeIter.getLength(length);
+            if (length < minEdgeLength) {
+                result->push_back(
+                    createResultString(
+                        dagPath,
+                        ResultType::Edge,
+                        static_cast<int>(edgeIter.index())));
+            }
+        }
+    }
+}
+
+void hasVertexPntsAttrMT(std::vector<std::string>* paths, ResultStringArray* result) {
+    MSelectionList list;
+
+    for (auto& p : *paths) {
+        MString mPath(p.c_str());
+        list.add(mPath);
+    }
+
+    unsigned int length = list.length();
+
+    MDagPath dagPath;
+
+    MStatus status;
+
+    for (unsigned int i=0; i < length; i++) {
+        list.getDagPath(i, dagPath);
+        dagPath.extendToShape();
+        MFnDagNode dagNode(dagPath);
+        MFnMesh mesh(dagPath);
+        MPlug pntsArray = mesh.findPlug("pnts", false);
+        MDataHandle dataHandle = pntsArray.asMDataHandle();
+        MArrayDataHandle arrayDataHandle(dataHandle);
+        MDataHandle outputHandle;
+
+        while (true) {
+            outputHandle = arrayDataHandle.outputValue();
+
+            float3& xyz = outputHandle.asFloat3();
+            if (xyz) {
+                if (xyz[0] != 0.0) {
+                    pntsArray.destructHandle(dataHandle);
+                    result->push_back(dagPath.fullPathName().asChar());
+                    break;
+                }
+                if (xyz[1] != 0.0) {
+                    pntsArray.destructHandle(dataHandle);
+                    result->push_back(dagPath.fullPathName().asChar());
+                    break;
+                }
+                if (xyz[2] != 0.0) {
+                    pntsArray.destructHandle(dataHandle);
+                    result->push_back(dagPath.fullPathName().asChar());
+                    break;
+                }
+            }
+            status = arrayDataHandle.next();
+            if (status != MS::kSuccess) {
+                break;
+            }
+        }
+    }
+}
+
+void isEmptyGeometry(std::vector<std::string>* paths, ResultStringArray* result)
+{
+    MSelectionList list;
+
+    for (auto& p : *paths) {
+        MString mPath(p.c_str());
+        list.add(mPath);
+    }
+
+    unsigned int length = list.length();
+    MDagPath dagPath;
+
+    for (unsigned int i=0; i<length; i++) {
+        list.getDagPath(i, dagPath);
+        MFnMesh mesh(dagPath);
+        int numVerts = mesh.numVertices();
+        if (numVerts == 0) {
+            result->push_back(dagPath.fullPathName().asChar());
+        }
+    }
+}
+
 } // namespace
 
 MeshChecker::MeshChecker()
@@ -73,7 +447,7 @@ IndexArray MeshChecker::findTriangles(const MFnMesh& mesh)
     IndexArray indices;
     indices.reserve(static_cast<size_t>(num_polygons));
 
-    for (Index poly_index{}; poly_index < num_polygons; ++poly_index) {
+    for (Index poly_index {}; poly_index < num_polygons; ++poly_index) {
         if (mesh.polygonVertexCount(poly_index) == 3) {
             indices.push_back(poly_index);
         }
@@ -88,7 +462,7 @@ IndexArray MeshChecker::findNgons(const MFnMesh& mesh)
     IndexArray indices;
     indices.reserve(static_cast<size_t>(num_polygons));
 
-    for (Index poly_index{}; poly_index < num_polygons; ++poly_index) {
+    for (Index poly_index {}; poly_index < num_polygons; ++poly_index) {
         if (mesh.polygonVertexCount(poly_index) >= 5) {
             indices.push_back(poly_index);
         }
@@ -195,7 +569,7 @@ IndexArray MeshChecker::findCreaseEdges(const MFnMesh& mesh)
     IndexArray indices;
     indices.reserve(static_cast<size_t>(edgeIds.length()));
 
-    for (unsigned int i{}; i < edgeIds.length(); i++) {
+    for (unsigned int i {}; i < edgeIds.length(); i++) {
         if (creaseData[i] != 0) {
             indices.push_back(static_cast<Index>(edgeIds[i]));
         }
@@ -305,6 +679,102 @@ bool MeshChecker::isEmpty(const MFnMesh& mesh)
     }
 }
 
+void MeshChecker::checkMT(const MDagPath& rootPath, MeshCheckType checkType)
+{
+    std::vector<std::string> hierarchy;
+    buildHierarchy(rootPath, hierarchy);
+
+    // Number of threads to use
+    size_t numTasks = 8;
+
+    // Split sub-vectors to pass to each thread
+    std::vector<std::vector<std::string>> splitGroups;
+    splitGroups.resize(numTasks);
+    size_t n = hierarchy.size() / numTasks + 1;
+    size_t idCounter = 0;
+    for (size_t a = 0; a < numTasks; a++) {
+        if (idCounter == hierarchy.size()) {
+            break;
+        }
+        for (size_t b = 0; b < n; b++) {
+            splitGroups[a].push_back(hierarchy[idCounter]);
+            idCounter++;
+        }
+    }
+
+    // for (size_t c=0; c<temp.size(); c++) {
+    //     for (auto& d : temp[c]) {
+    //         size_t numItems = temp[c].size();
+    //         std::cout << d << " : " << numItems << " : " << " thread " << c << std::endl;
+    //     }
+    // }
+
+    std::vector<std::thread> threads;
+    ResultStringArray result;
+
+    if (checkType == MeshCheckType::TRIANGLES) {
+        for (size_t i = 0; i < numTasks; i++) {
+            threads.push_back(std::thread(findTrianglesMT, &splitGroups[i], &result));
+        }
+    } else if (checkType == MeshCheckType::NGONS) {
+        for (size_t i = 0; i < numTasks; i++) {
+            threads.push_back(std::thread(findNgonsMT, &splitGroups[i], &result));
+        }
+    } else if (checkType == MeshCheckType::NON_MANIFOLD_EDGES) {
+        for (size_t i = 0; i < numTasks; i++) {
+            threads.push_back(std::thread(findNonManifoldEdgesMT, &splitGroups[i], &result));
+        }
+    } else if (checkType == MeshCheckType::LAMINA_FACES) {
+        for (size_t i = 0; i < numTasks; i++) {
+            threads.push_back(std::thread(findLaminaFacesMT, &splitGroups[i], &result));
+        }
+    } else if (checkType == MeshCheckType::BI_VALENT_FACES) {
+        for (size_t i = 0; i < numTasks; i++) {
+            threads.push_back(std::thread(findBiValentFacesMT, &splitGroups[i], &result));
+        }
+    } else if (checkType == MeshCheckType::ZERO_AREA_FACES) {
+        double maxFaceArea { 0.000001 };
+        for (size_t i = 0; i < numTasks; i++) {
+            threads.push_back(std::thread(findZeroAreaFacesMT, &splitGroups[i], &result, maxFaceArea));
+        }
+    } else if (checkType == MeshCheckType::MESH_BORDER) {
+        for (size_t i = 0; i < numTasks; i++) {
+            threads.push_back(std::thread(findMeshBorderEdgesMT, &splitGroups[i], &result));
+        }
+    } else if (checkType == MeshCheckType::CREASE_EDGE) {
+        for (size_t i = 0; i < numTasks; i++) {
+            threads.push_back(std::thread(findCreaseEdgesMT, &splitGroups[i], &result));
+        }
+    } else if (checkType == MeshCheckType::ZERO_LENGTH_EDGES) {
+        double minEdgeLength = 0.000001;
+        for (size_t i = 0; i < numTasks; i++) {
+            threads.push_back(std::thread(findZeroLengthEdgesMT, &splitGroups[i], &result, minEdgeLength));
+        }
+    } else if (checkType == MeshCheckType::UNFROZEN_VERTICES) {
+        for (size_t i = 0; i < numTasks; i++) {
+            threads.push_back(std::thread(hasVertexPntsAttrMT, &splitGroups[i], &result));
+        }
+    } else if (checkType == MeshCheckType::EMPTY_GEOMETRY) {
+        for (size_t i = 0; i < numTasks; i++) {
+            threads.push_back(std::thread(isEmptyGeometry, &splitGroups[i], &result));
+        }
+    } else {
+        std::cout << "not supported yet" << std::endl;
+    }
+
+    for (auto& t : threads) {
+        t.join();
+    }
+
+    MStringArray finalResult;
+
+    for (std::string& resultPath : result.data) {
+        finalResult.append(resultPath.c_str());
+    }
+
+    setResult(finalResult);
+}
+
 MStatus MeshChecker::doIt(const MArgList& args)
 {
 
@@ -323,23 +793,31 @@ MStatus MeshChecker::doIt(const MArgList& args)
         }
     }
 
+    if (argData.isFlagSet("-multiThreaded")) {
+        if (argData.isFlagSet("-multiThreaded"))
+            argData.getFlagArgument("-multiThreaded", 0, isMultiThreaded);
+    } else {
+    }
+
     // mesh construction
     MDagPath path;
     selection.getDagPath(0, path);
 
-    // Check if selected object is geometry
-    status = path.extendToShape();
-    if (status != MS::kSuccess) {
-        MGlobal::displayError("Failed to extend to shape node. Not mesh");
-        return MS::kFailure;
+    if (!isMultiThreaded) {
+        // Check if selected object is geometry
+        status = path.extendToShape();
+        if (status != MS::kSuccess) {
+            MGlobal::displayError("Failed to extend to shape node. Not mesh");
+            return MS::kFailure;
+        }
+
+        if (path.apiType() != MFn::kMesh) {
+            MGlobal::displayError("MeshCheker works on meshes.");
+            return MS::kFailure;
+        }
     }
 
-    if (path.apiType() != MFn::kMesh) {
-        MGlobal::displayError("MeshCheker works on meshes.");
-        return MS::kFailure;
-    }
-
-    MFnMesh mesh{ path };
+    MFnMesh mesh { path };
 
     // argument parsing
     MeshCheckType check_type;
@@ -354,6 +832,11 @@ MStatus MeshChecker::doIt(const MArgList& args)
     } else {
         MGlobal::displayError("Check type required.");
         return MS::kFailure;
+    }
+
+    if (isMultiThreaded) {
+        checkMT(path, check_type);
+        return MS::kSuccess;
     }
 
     // execute operation
@@ -373,7 +856,7 @@ MStatus MeshChecker::doIt(const MArgList& args)
         auto indices = findBiValentFaces(mesh);
         setResult(create_result_string(path, indices, ResultType::Vertex));
     } else if (check_type == MeshCheckType::ZERO_AREA_FACES) {
-        double maxFaceArea{ 0.000001 };
+        double maxFaceArea { 0.000001 };
         if (argData.isFlagSet("-maxFaceArea"))
             argData.getFlagArgument("-maxFaceArea", 0, maxFaceArea);
 
@@ -437,5 +920,6 @@ MSyntax MeshChecker::newSyntax()
     syntax.addFlag("-mfa", "-maxFaceArea", MSyntax::kDouble);
     syntax.addFlag("-mel", "-minEdgeLength", MSyntax::kDouble);
     syntax.addFlag("-fix", "-doFix", MSyntax::kBoolean);
+    syntax.addFlag("-mt", "-multiThreaded", MSyntax::kBoolean);
     return syntax;
 }
