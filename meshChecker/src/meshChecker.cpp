@@ -383,24 +383,26 @@ void hasVertexPntsAttrMT(std::vector<std::string>* paths, ResultStringArray* res
         MArrayDataHandle arrayDataHandle(dataHandle);
         MDataHandle outputHandle;
 
+        std::string tempPath = dagPath.fullPathName().asChar();
+
         while (true) {
             outputHandle = arrayDataHandle.outputValue();
 
             float3& xyz = outputHandle.asFloat3();
             if (xyz) {
                 if (xyz[0] != 0.0) {
+                    result->push_back(tempPath);
                     pntsArray.destructHandle(dataHandle);
-                    result->push_back(dagPath.fullPathName().asChar());
                     break;
                 }
                 if (xyz[1] != 0.0) {
+                    result->push_back(tempPath);
                     pntsArray.destructHandle(dataHandle);
-                    result->push_back(dagPath.fullPathName().asChar());
                     break;
                 }
                 if (xyz[2] != 0.0) {
+                    result->push_back(tempPath);
                     pntsArray.destructHandle(dataHandle);
-                    result->push_back(dagPath.fullPathName().asChar());
                     break;
                 }
             }
