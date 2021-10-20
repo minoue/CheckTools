@@ -18,6 +18,7 @@
 #include <maya/MSyntax.h>
 #include <maya/MUintArray.h>
 
+#include <future>
 #include <cmath>
 #include <string>
 #include <thread>
@@ -689,25 +690,23 @@ void MeshChecker::checkMT(const MDagPath& rootPath, MeshCheckType checkType)
 
     // Split sub-vectors to pass to each thread
     std::vector<std::vector<std::string>> splitGroups;
+
     splitGroups.resize(numTasks);
     size_t n = hierarchy.size() / numTasks + 1;
     size_t idCounter = 0;
+    for (int i=0; i<numTasks; i++) {
+        splitGroups[i].reserve(n);
+    }
+
     for (size_t a = 0; a < numTasks; a++) {
-        if (idCounter == hierarchy.size()) {
-            break;
-        }
         for (size_t b = 0; b < n; b++) {
-            splitGroups[a].push_back(hierarchy[idCounter]);
+            if (idCounter == hierarchy.size()) {
+                break;
+            }
+            splitGroups[a].emplace_back(hierarchy[idCounter]);
             idCounter++;
         }
     }
-
-    // for (size_t c=0; c<temp.size(); c++) {
-    //     for (auto& d : temp[c]) {
-    //         size_t numItems = temp[c].size();
-    //         std::cout << d << " : " << numItems << " : " << " thread " << c << std::endl;
-    //     }
-    // }
 
     std::vector<std::thread> threads;
     ResultStringArray result;
