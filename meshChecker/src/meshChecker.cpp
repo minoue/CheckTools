@@ -352,34 +352,37 @@ void hasVertexPntsAttr(std::vector<std::string>* paths, ResultStringArray* resul
         MArrayDataHandle arrayDataHandle(dataHandle);
         MDataHandle outputHandle;
 
-        std::string tempPath = dagPath.fullPathName().asChar();
+        unsigned int numElements = arrayDataHandle.elementCount();
+
+        if (numElements == 0) {
+            continue;
+        }
 
         while (true) {
             outputHandle = arrayDataHandle.outputValue();
 
-            float3& xyz = outputHandle.asFloat3();
-            if (xyz) {
-                if (xyz[0] != 0.0) {
-                    // result->push_back(tempPath);
-                    pntsArray.destructHandle(dataHandle);
-                    break;
-                }
-                if (xyz[1] != 0.0) {
-                    // result->push_back(tempPath);
-                    pntsArray.destructHandle(dataHandle);
-                    break;
-                }
-                if (xyz[2] != 0.0) {
-                    // result->push_back(tempPath);
-                    pntsArray.destructHandle(dataHandle);
-                    break;
-                }
+            const float3& xyz = outputHandle.asFloat3();
+
+            if (xyz[0] != 0.0) {
+                result->push_back(dagPath.fullPathName().asChar());
+                break;
+            }           
+            if (xyz[1] != 0.0) {
+                result->push_back(dagPath.fullPathName().asChar());
+                break;
             }
+            if (xyz[2] != 0.0) {
+                result->push_back(dagPath.fullPathName().asChar());
+                break;
+            }
+
+            // end of iterator
             status = arrayDataHandle.next();
             if (status != MS::kSuccess) {
                 break;
             }
         }
+        pntsArray.destructHandle(dataHandle);
     }
 }
 
