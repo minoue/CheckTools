@@ -2,10 +2,9 @@
 
 #include <maya/MPxCommand.h>
 
-#include <vector>
-#include <string>
 #include <mutex>
-
+#include <string>
+#include <vector>
 
 enum class MeshCheckType {
     TRIANGLES = 0,
@@ -22,17 +21,17 @@ enum class MeshCheckType {
     TEST
 };
 
-
 class ResultStringArray {
     std::mutex mtx;
+
 public:
     std::vector<std::string> data;
-    void push_back(std::string x) {
+    void push_back(std::string x)
+    {
         std::lock_guard<std::mutex> lock(mtx);
         data.push_back(x);
     }
 };
-
 
 class MeshChecker final : public MPxCommand {
 public:

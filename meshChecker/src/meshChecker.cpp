@@ -328,7 +328,8 @@ void findZeroLengthEdges(std::vector<std::string>* paths, ResultStringArray* res
     }
 }
 
-void hasVertexPntsAttr(std::vector<std::string>* paths, ResultStringArray* result) {
+void hasVertexPntsAttr(std::vector<std::string>* paths, ResultStringArray* result)
+{
     MSelectionList list;
 
     for (auto& p : *paths) {
@@ -342,7 +343,7 @@ void hasVertexPntsAttr(std::vector<std::string>* paths, ResultStringArray* resul
 
     MStatus status;
 
-    for (unsigned int i=0; i < length; i++) {
+    for (unsigned int i = 0; i < length; i++) {
         list.getDagPath(i, dagPath);
         dagPath.extendToShape();
         MFnDagNode dagNode(dagPath);
@@ -366,7 +367,7 @@ void hasVertexPntsAttr(std::vector<std::string>* paths, ResultStringArray* resul
             if (xyz[0] != 0.0) {
                 result->push_back(dagPath.fullPathName().asChar());
                 break;
-            }           
+            }
             if (xyz[1] != 0.0) {
                 result->push_back(dagPath.fullPathName().asChar());
                 break;
@@ -398,7 +399,7 @@ void isEmptyGeometry(std::vector<std::string>* paths, ResultStringArray* result)
     unsigned int length = list.length();
     MDagPath dagPath;
 
-    for (unsigned int i=0; i<length; i++) {
+    for (unsigned int i = 0; i < length; i++) {
         list.getDagPath(i, dagPath);
         MFnMesh mesh(dagPath);
         int numVerts = mesh.numVertices();
@@ -464,7 +465,7 @@ MStatus MeshChecker::doIt(const MArgList& args)
     splitGroups.resize(numTasks);
     size_t n = hierarchy.size() / numTasks + 1;
     size_t idCounter = 0;
-    for (size_t i=0; i<numTasks; i++) {
+    for (size_t i = 0; i < numTasks; i++) {
         splitGroups[i].reserve(n);
     }
 
