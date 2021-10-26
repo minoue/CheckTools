@@ -407,6 +407,7 @@ void isEmptyGeometry(std::vector<std::string>* paths, ResultStringArray* result)
             result->push_back(dagPath.fullPathName().asChar());
         }
     }
+}
 
 void findUnusedVertices(std::vector<std::string>* paths, ResultStringArray* result)
 {
@@ -422,11 +423,12 @@ void findUnusedVertices(std::vector<std::string>* paths, ResultStringArray* resu
 
     for (unsigned int i = 0; i < length; i++) {
         list.getDagPath(i, dagPath);
-
+        int edgeCount;
+        
         for (MItMeshVertex vtxIter(dagPath); !vtxIter.isDone(); vtxIter.next()) {
-            unsigned int numConnectedEdges = vtxIter.numConnectedEdges();
+            vtxIter.numConnectedEdges(edgeCount);
 
-            if (numConnectedEdges == 0) {
+            if (edgeCount == 0) {
                 result->push_back(createResultString(dagPath, ResultType::Vertex, vtxIter.index()));
             }
         }
@@ -489,8 +491,8 @@ MStatus MeshChecker::doIt(const MArgList& args)
     splitGroups.resize(numTasks);
     size_t n = hierarchy.size() / numTasks + 1;
     size_t idCounter = 0;
-    for (size_t i = 0; i < numTasks; i++) {
-        splitGroups[i].reserve(n);
+    for (size_t groupID = 0; groupID < numTasks; groupID++) {
+        splitGroups[groupID].reserve(n);
     }
 
     for (size_t a = 0; a < numTasks; a++) {
