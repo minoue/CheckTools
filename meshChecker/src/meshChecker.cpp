@@ -407,6 +407,30 @@ void isEmptyGeometry(std::vector<std::string>* paths, ResultStringArray* result)
             result->push_back(dagPath.fullPathName().asChar());
         }
     }
+
+void findUnusedVertices(std::vector<std::string>* paths, ResultStringArray* result)
+{
+    MSelectionList list;
+
+    for (auto& p : *paths) {
+        MString mPath(p.c_str());
+        list.add(mPath);
+    }
+
+    unsigned int length = list.length();
+    MDagPath dagPath;
+
+    for (unsigned int i = 0; i < length; i++) {
+        list.getDagPath(i, dagPath);
+
+        for (MItMeshVertex vtxIter(dagPath); !vtxIter.isDone(); vtxIter.next()) {
+            unsigned int numConnectedEdges = vtxIter.numConnectedEdges();
+
+            if (numConnectedEdges == 0) {
+                result->push_back(createResultString(dagPath, ResultType::Vertex, vtxIter.index()));
+            }
+        }
+    }    
 }
 
 } // namespace
@@ -532,7 +556,12 @@ MStatus MeshChecker::doIt(const MArgList& args)
         for (size_t i = 0; i < numTasks; i++) {
             threads.push_back(std::thread(isEmptyGeometry, &splitGroups[i], &result));
         }
+    } else if (check_type == MeshCheckType::UNUSED_VERTICES) {
+        for (size_t i = 0; i < numTasks; i++) {
+            threads.push_back(std::thread(findUnusedVertices, &splitGroups[i], &result));
+        }
     } else {
+        
         std::cout << "not supported yet" << std::endl;
     }
 

@@ -18,6 +18,7 @@ enum class MeshCheckType {
     ZERO_LENGTH_EDGES,
     UNFROZEN_VERTICES,
     EMPTY_GEOMETRY,
+    UNUSED_VERTICES,
     TEST
 };
 
