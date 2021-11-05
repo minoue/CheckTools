@@ -1,14 +1,13 @@
 #pragma once
 
-
 #include <maya/MFnMesh.h>
 #include <maya/MPxCommand.h>
 #include <maya/MString.h>
 #include <maya/MSyntax.h>
 
-#include <vector>
 #include <mutex>
 #include <string>
+#include <vector>
 
 enum class UVCheckType {
     UDIM = 0,

@@ -9,16 +9,14 @@
 #include <maya/MDagPath.h>
 #include <maya/MFloatArray.h>
 #include <maya/MGlobal.h>
-#include <maya/MPointArray.h>
-#include <maya/MItMeshPolygon.h>
-#include <maya/MSelectionList.h>
 #include <maya/MItDag.h>
+#include <maya/MItMeshPolygon.h>
+#include <maya/MPointArray.h>
+#include <maya/MSelectionList.h>
 
 #include <string>
-#include <unordered_set>
 #include <thread>
-
-// using IndexArray = UvChecker::IndexArray;
+#include <unordered_set>
 
 namespace {
 
@@ -29,7 +27,8 @@ enum class ResultType {
     UV
 };
 
-float getTriangleArea(float Ax, float Ay, float Bx, float By, float Cx, float Cy) {
+float getTriangleArea(float Ax, float Ay, float Bx, float By, float Cx, float Cy)
+{
     return ((Ax * (By - Cy)) + (Bx * (Cy - Ay)) + (Cx * (Ay - By))) * 0.5F;
 }
 
@@ -91,11 +90,11 @@ void findUdimIntersections(std::vector<std::string>* paths, ResultStringArray* r
 
     MDagPath dagPath;
 
-    for (unsigned int i=0; i<length; i++) {
+    for (unsigned int i = 0; i < length; i++) {
         list.getDagPath(i, dagPath);
         MFnMesh mesh(dagPath);
         std::vector<int> indices;
-        
+
         for (MItMeshPolygon mItPoly(dagPath); !mItPoly.isDone(); mItPoly.next()) {
             int vCount = static_cast<int>(mItPoly.polygonVertexCount());
             int currentUVindex;
@@ -129,7 +128,7 @@ void findUdimIntersections(std::vector<std::string>* paths, ResultStringArray* r
         std::sort(indices.begin(), indices.end());
         indices.erase(std::unique(indices.begin(), indices.end()), indices.end());
 
-        for (auto& index: indices) {
+        for (auto& index : indices) {
             result->push_back(createResultString(dagPath, ResultType::UV, index));
         }
     }
@@ -150,15 +149,15 @@ void findNoUvFaces(std::vector<std::string>* paths, ResultStringArray* result, c
 
     bool hasUVs;
 
-    for (unsigned int i=0; i<length; i++) {
+    for (unsigned int i = 0; i < length; i++) {
         list.getDagPath(i, dagPath);
         for (MItMeshPolygon itPoly(dagPath); !itPoly.isDone(); itPoly.next()) {
             hasUVs = itPoly.hasUVs(uvSet);
             if (!hasUVs) {
-                    result->push_back(createResultString(
-                        dagPath,
-                        ResultType::Face,
-                        static_cast<int>(itPoly.index())));
+                result->push_back(createResultString(
+                    dagPath,
+                    ResultType::Face,
+                    static_cast<int>(itPoly.index())));
             }
         }
     }
@@ -177,7 +176,7 @@ void findZeroUvFaces(std::vector<std::string>* paths, ResultStringArray* result,
 
     MDagPath dagPath;
 
-    for (unsigned int i=0; i<length; i++) {
+    for (unsigned int i = 0; i < length; i++) {
         list.getDagPath(i, dagPath);
         MFnMesh mesh(dagPath);
         double area;
@@ -211,7 +210,7 @@ void hasUnassignedUVs(std::vector<std::string>* paths, ResultStringArray* result
 
     MDagPath dagPath;
 
-    for (unsigned int i=0; i<length; i++) {
+    for (unsigned int i = 0; i < length; i++) {
         list.getDagPath(i, dagPath);
         MFnMesh mesh(dagPath);
 
@@ -249,9 +248,7 @@ void findNegativeSpaceUVs(std::vector<std::string>* paths, ResultStringArray* re
 
     MFloatArray uArray, vArray;
 
-
-
-    for (unsigned int i=0; i<length; i++) {
+    for (unsigned int i = 0; i < length; i++) {
         list.getDagPath(i, dagPath);
         MFnMesh mesh(dagPath);
         std::vector<int> indices;
@@ -259,7 +256,7 @@ void findNegativeSpaceUVs(std::vector<std::string>* paths, ResultStringArray* re
 
         int numUVs = mesh.numUVs(uvSet);
 
-        for (int j=0; j<numUVs; j++) {
+        for (int j = 0; j < numUVs; j++) {
             float u = uArray[static_cast<unsigned int>(j)];
             if (u < 0.0) {
                 indices.push_back(j);
@@ -275,7 +272,7 @@ void findNegativeSpaceUVs(std::vector<std::string>* paths, ResultStringArray* re
         std::sort(indices.begin(), indices.end());
         indices.erase(std::unique(indices.begin(), indices.end()), indices.end());
 
-        for (auto& index: indices) {
+        for (auto& index : indices) {
             result->push_back(createResultString(dagPath, ResultType::UV, index));
         }
     }
@@ -310,7 +307,7 @@ void findConcaveUVs(std::vector<std::string>* paths, ResultStringArray* result, 
             int p1, p2, p3;
             bool isReversed = itPoly.isUVReversed();
 
-            for (int i=0; i<numVerts; i++) {
+            for (int i = 0; i < numVerts; i++) {
                 p1 = i;
                 p2 = i + 1;
                 p3 = i + 2;
@@ -347,7 +344,7 @@ void findConcaveUVs(std::vector<std::string>* paths, ResultStringArray* result, 
         std::sort(indices.begin(), indices.end());
         indices.erase(std::unique(indices.begin(), indices.end()), indices.end());
 
-        for (auto& index: indices) {
+        for (auto& index : indices) {
             result->push_back(createResultString(dagPath, ResultType::Face, index));
         }
     }
@@ -372,8 +369,8 @@ void findReversedUVs(std::vector<std::string>* paths, ResultStringArray* result,
         for (MItMeshPolygon itPoly(dagPath); !itPoly.isDone(); itPoly.next()) {
             if (itPoly.isUVReversed(&uvSet)) {
                 result->push_back(createResultString(
-                        dagPath, ResultType::Face,
-                        static_cast<int>(itPoly.index())));
+                    dagPath, ResultType::Face,
+                    static_cast<int>(itPoly.index())));
             }
         }
     }
@@ -382,15 +379,16 @@ void findReversedUVs(std::vector<std::string>* paths, ResultStringArray* result,
 } // unnamed namespace
 
 UvChecker::UvChecker()
-    : verbose(false),
+    : verbose(false)
+    ,
     //   uvSet("map1"),
-      minUVArea(0.000001),
-      maxUvBorderDistance(0.0)
+    minUVArea(0.000001)
+    , maxUvBorderDistance(0.0)
 {
 }
 
 UvChecker::~UvChecker()
-= default;
+    = default;
 
 MSyntax UvChecker::newSyntax()
 {
@@ -506,12 +504,11 @@ MStatus UvChecker::doIt(const MArgList& args)
     std::vector<std::thread> threads;
     ResultStringArray result;
 
-
     if (check_type == UVCheckType::UDIM) {
         for (size_t i = 0; i < numTasks; i++) {
             threads.push_back(std::thread(findUdimIntersections, &splitGroups[i], &result, uvSet, maxUvBorderDistance));
         }
-    } else if(check_type == UVCheckType::HAS_UVS) {
+    } else if (check_type == UVCheckType::HAS_UVS) {
         for (size_t i = 0; i < numTasks; i++) {
             threads.push_back(std::thread(findNoUvFaces, &splitGroups[i], &result, uvSet));
         }
@@ -539,7 +536,7 @@ MStatus UvChecker::doIt(const MArgList& args)
         MGlobal::displayError("Invalid check number");
         return MS::kFailure;
     }
-    
+
     for (auto& t : threads) {
         t.join();
     }
