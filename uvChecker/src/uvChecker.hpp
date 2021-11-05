@@ -5,7 +5,10 @@
 #include <maya/MPxCommand.h>
 #include <maya/MString.h>
 #include <maya/MSyntax.h>
+
 #include <vector>
+#include <mutex>
+#include <string>
 
 enum class UVCheckType {
     UDIM = 0,
@@ -15,6 +18,18 @@ enum class UVCheckType {
     NEGATIVE_SPACE_UVS,
     CONCAVE_UVS,
     REVERSED_UVS
+};
+
+class ResultStringArray {
+    std::mutex mtx;
+
+public:
+    std::vector<std::string> data;
+    void push_back(std::string x)
+    {
+        std::lock_guard<std::mutex> lock(mtx);
+        data.push_back(x);
+    }
 };
 
 class UvChecker final : public MPxCommand {
@@ -30,17 +45,6 @@ public:
 
     static void* creator();
     static MSyntax newSyntax();
-
-    using Index = int;
-    using IndexArray = std::vector<Index>;
-
-    IndexArray findUdimIntersections(const MFnMesh&);
-    IndexArray findNoUvFaces(const MFnMesh&);
-    IndexArray findZeroUvFaces(const MFnMesh&);
-    IndexArray findNegativeSpaceUVs(const MFnMesh&);
-    static IndexArray findConcaveUVs(const MFnMesh&);
-    static IndexArray findReversedUVs(const MFnMesh&);
-    bool hasUnassignedUVs(const MFnMesh&);
 
 private:
     bool verbose;
