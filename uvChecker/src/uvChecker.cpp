@@ -175,17 +175,16 @@ void findZeroUvFaces(std::vector<std::string>* paths, ResultStringArray* result,
     unsigned int length = list.length();
 
     MDagPath dagPath;
+    MFnMesh mesh;
 
     for (unsigned int i = 0; i < length; i++) {
         list.getDagPath(i, dagPath);
-        MFnMesh mesh(dagPath);
+        mesh.setObject(dagPath);
         double area;
         bool hasUVs;
         for (MItMeshPolygon itPoly(dagPath); !itPoly.isDone(); itPoly.next()) {
             hasUVs = itPoly.hasUVs(uvSet);
-            if (!hasUVs) {
-                //
-            } else {
+            if (hasUVs) {
                 itPoly.getUVArea(area, &uvSet);
                 if (area < minUVArea) {
                     result->push_back(createResultString(
@@ -251,29 +250,21 @@ void findNegativeSpaceUVs(std::vector<std::string>* paths, ResultStringArray* re
     for (unsigned int i = 0; i < length; i++) {
         list.getDagPath(i, dagPath);
         MFnMesh mesh(dagPath);
-        std::vector<int> indices;
         mesh.getUVs(uArray, vArray, &uvSet);
 
         int numUVs = mesh.numUVs(uvSet);
 
         for (int j = 0; j < numUVs; j++) {
-            float u = uArray[static_cast<unsigned int>(j)];
+            float& u = uArray[static_cast<unsigned int>(j)];
             if (u < 0.0) {
-                indices.push_back(j);
+                result->push_back(createResultString(dagPath, ResultType::UV, j));
                 continue;
             }
-            float v = vArray[static_cast<unsigned int>(j)];
+            float& v = vArray[static_cast<unsigned int>(j)];
             if (v < 0.0) {
-                indices.push_back(j);
+                result->push_back(createResultString(dagPath, ResultType::UV, j));
                 continue;
             }
-        }
-        // Remove duplicate elements
-        std::sort(indices.begin(), indices.end());
-        indices.erase(std::unique(indices.begin(), indices.end()), indices.end());
-
-        for (auto& index : indices) {
-            result->push_back(createResultString(dagPath, ResultType::UV, index));
         }
     }
 }
@@ -292,9 +283,7 @@ void findConcaveUVs(std::vector<std::string>* paths, ResultStringArray* result, 
     MDagPath dagPath;
 
     for (unsigned int i = 0; i < length; i++) {
-        // IndexArray indices;
         list.getDagPath(i, dagPath);
-        MFnMesh mesh(dagPath);
         std::vector<int> indices;
 
         MPointArray points;
@@ -340,9 +329,6 @@ void findConcaveUVs(std::vector<std::string>* paths, ResultStringArray* result, 
                 }
             }
         }
-        // Remove duplicate elements
-        std::sort(indices.begin(), indices.end());
-        indices.erase(std::unique(indices.begin(), indices.end()), indices.end());
 
         for (auto& index : indices) {
             result->push_back(createResultString(dagPath, ResultType::Face, index));
@@ -402,18 +388,6 @@ MSyntax UvChecker::newSyntax()
     return syntax;
 }
 
-// MStringArray create_result_string(const MDagPath& path, const IndexArray& indices)
-// {
-//     MString full_path = path.fullPathName();
-//     std::vector<MString> result;
-//     result.reserve(indices.size());
-
-//     for (auto index : indices) {
-//         result.emplace_back(full_path + ".map[" + index + "]");
-//     }
-//     return { &result[0], static_cast<unsigned int>(indices.size()) };
-// }
-
 MStatus UvChecker::doIt(const MArgList& args)
 {
     MStatus status;
@@ -423,6 +397,7 @@ MStatus UvChecker::doIt(const MArgList& args)
     MArgDatabase argData(syntax(), args);
 
     status = argData.getCommandArgument(0, sel);
+
     if (status != MS::kSuccess) {
         MGlobal::displayError("You have to provide an object path");
         return MStatus::kFailure;
@@ -430,15 +405,6 @@ MStatus UvChecker::doIt(const MArgList& args)
 
     MDagPath path;
     sel.getDagPath(0, path);
-    MFnMesh mesh(path);
-    // status = path.extendToShape();
-    // CHECK_MSTATUS_AND_RETURN_IT(status)
-
-    // Check if mesh or not
-    // if (path.apiType() != MFn::kMesh) {
-    //     MGlobal::displayError("Selected object is not mesh.");
-    //     return MStatus::kFailure;
-    // }
 
     // argument parsing
     UVCheckType check_type;
