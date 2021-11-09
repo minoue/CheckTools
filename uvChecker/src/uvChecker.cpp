@@ -1,9 +1,7 @@
 #include "uvChecker.hpp"
-#include "maya/MApiNamespace.h"
-#include "maya/MFnMesh.h"
-#include "maya/MString.h"
-#include <algorithm>
-#include <cstddef>
+#include "ThreadPool.hpp"
+
+#include <maya/MFnMesh.h>
 #include <maya/MArgDatabase.h>
 #include <maya/MArgList.h>
 #include <maya/MDagPath.h>
@@ -14,6 +12,8 @@
 #include <maya/MPointArray.h>
 #include <maya/MSelectionList.h>
 
+#include <algorithm>
+#include <cstddef>
 #include <string>
 #include <thread>
 #include <unordered_set>
@@ -27,38 +27,33 @@ enum class ResultType {
     UV
 };
 
-float getTriangleArea(float Ax, float Ay, float Bx, float By, float Cx, float Cy)
+inline float getTriangleArea(float Ax, float Ay, float Bx, float By, float Cx, float Cy)
 {
     return ((Ax * (By - Cy)) + (Bx * (Cy - Ay)) + (Cx * (Ay - By))) * 0.5F;
 }
 
-std::string createResultString(const MDagPath& dagPath, ResultType type, int index)
+inline void createResultString(const MDagPath& dagPath, ResultType type, int index, std::string& outPath)
 {
-
-    MString tempPath = dagPath.fullPathName();
-    std::string pathString = std::string(tempPath.asChar());
+    outPath = std::string(dagPath.fullPathName().asChar());
 
     switch (type) {
     case ResultType::Face: {
-        pathString += ".f[" + std::to_string(index) + "]";
+        outPath += ".f[" + std::to_string(index) + "]";
         break;
     }
     case ResultType::Vertex: {
-        pathString += ".vtx[" + std::to_string(index) + "]";
+        outPath += ".vtx[" + std::to_string(index) + "]";
         break;
     }
-
     case ResultType::Edge: {
-        pathString += ".e[" + std::to_string(index) + "]";
+        outPath += ".e[" + std::to_string(index) + "]";
         break;
     }
     case ResultType::UV: {
-        pathString += ".map[" + std::to_string(index) + "]";
+        outPath += ".map[" + std::to_string(index) + "]";
         break;
     }
     }
-
-    return pathString;
 }
 
 void buildHierarchy(const MDagPath& path, std::vector<std::string>& result)
@@ -77,7 +72,7 @@ void buildHierarchy(const MDagPath& path, std::vector<std::string>& result)
     }
 }
 
-void findUdimIntersections(std::vector<std::string>* paths, ResultStringArray* result, const MString uvSet, const double maxUvBorderDistance)
+std::vector<std::string> findUdimIntersections(std::vector<std::string>* paths, const MString uvSet, const double maxUvBorderDistance)
 {
     MSelectionList list;
 
@@ -89,10 +84,14 @@ void findUdimIntersections(std::vector<std::string>* paths, ResultStringArray* r
     unsigned int length = list.length();
 
     MDagPath dagPath;
+    MFnMesh mesh;
+
+    std::vector<std::string> result2;
+    std::string errorPath;
 
     for (unsigned int i = 0; i < length; i++) {
         list.getDagPath(i, dagPath);
-        MFnMesh mesh(dagPath);
+        mesh.setObject(dagPath);
         std::vector<int> indices;
 
         for (MItMeshPolygon mItPoly(dagPath); !mItPoly.isDone(); mItPoly.next()) {
@@ -129,12 +128,15 @@ void findUdimIntersections(std::vector<std::string>* paths, ResultStringArray* r
         indices.erase(std::unique(indices.begin(), indices.end()), indices.end());
 
         for (auto& index : indices) {
-            result->push_back(createResultString(dagPath, ResultType::UV, index));
+            createResultString(dagPath, ResultType::UV, index, errorPath);
+            result2.push_back(errorPath);
         }
     }
+
+    return result2;
 }
 
-void findNoUvFaces(std::vector<std::string>* paths, ResultStringArray* result, const MString uvSet)
+std::vector<std::string> findNoUvFaces(std::vector<std::string>* paths, const MString uvSet)
 {
     MSelectionList list;
 
@@ -144,26 +146,25 @@ void findNoUvFaces(std::vector<std::string>* paths, ResultStringArray* result, c
     }
 
     unsigned int length = list.length();
-
     MDagPath dagPath;
-
     bool hasUVs;
+    std::vector<std::string> result2;
+    std::string errorPath;
 
     for (unsigned int i = 0; i < length; i++) {
         list.getDagPath(i, dagPath);
         for (MItMeshPolygon itPoly(dagPath); !itPoly.isDone(); itPoly.next()) {
             hasUVs = itPoly.hasUVs(uvSet);
             if (!hasUVs) {
-                result->push_back(createResultString(
-                    dagPath,
-                    ResultType::Face,
-                    static_cast<int>(itPoly.index())));
+                createResultString(dagPath, ResultType::Face, static_cast<int>(itPoly.index()), errorPath);
+                result2.push_back(errorPath);
             }
         }
     }
+    return result2;
 }
 
-void findZeroUvFaces(std::vector<std::string>* paths, ResultStringArray* result, const MString uvSet, const double minUVArea)
+std::vector<std::string> findZeroUvFaces(std::vector<std::string>* paths, const MString uvSet, const double minUVArea)
 {
     MSelectionList list;
 
@@ -177,6 +178,9 @@ void findZeroUvFaces(std::vector<std::string>* paths, ResultStringArray* result,
     MDagPath dagPath;
     MFnMesh mesh;
 
+    std::vector<std::string> result2;
+    std::string errorPath;
+
     for (unsigned int i = 0; i < length; i++) {
         list.getDagPath(i, dagPath);
         mesh.setObject(dagPath);
@@ -187,16 +191,16 @@ void findZeroUvFaces(std::vector<std::string>* paths, ResultStringArray* result,
             if (hasUVs) {
                 itPoly.getUVArea(area, &uvSet);
                 if (area < minUVArea) {
-                    result->push_back(createResultString(
-                        dagPath, ResultType::Face,
-                        static_cast<int>(itPoly.index())));
+                    createResultString(dagPath, ResultType::Face, static_cast<int>(itPoly.index()), errorPath);
+                    result2.push_back(errorPath);
                 }
             }
         }
     }
+    return result2;
 }
 
-void hasUnassignedUVs(std::vector<std::string>* paths, ResultStringArray* result, const MString uvSet)
+std::vector<std::string> hasUnassignedUVs(std::vector<std::string>* paths, const MString uvSet)
 {
     MSelectionList list;
 
@@ -208,10 +212,13 @@ void hasUnassignedUVs(std::vector<std::string>* paths, ResultStringArray* result
     unsigned int length = list.length();
 
     MDagPath dagPath;
+    MFnMesh mesh;
+
+    std::vector<std::string> result2;
 
     for (unsigned int i = 0; i < length; i++) {
         list.getDagPath(i, dagPath);
-        MFnMesh mesh(dagPath);
+        mesh.setObject(dagPath);
 
         int numUVs = mesh.numUVs(uvSet);
         MIntArray uvCounts;
@@ -227,12 +234,13 @@ void hasUnassignedUVs(std::vector<std::string>* paths, ResultStringArray* result
         int numAssignedUVs = static_cast<int>(uvIdSet.size());
 
         if (numUVs != numAssignedUVs) {
-            result->push_back(dagPath.fullPathName().asChar());
+            result2.push_back(dagPath.fullPathName().asChar());
         }
     }
+    return result2;
 }
 
-void findNegativeSpaceUVs(std::vector<std::string>* paths, ResultStringArray* result, const MString uvSet)
+std::vector<std::string> findNegativeSpaceUVs(std::vector<std::string>* paths, const MString uvSet)
 {
     MSelectionList list;
 
@@ -244,12 +252,16 @@ void findNegativeSpaceUVs(std::vector<std::string>* paths, ResultStringArray* re
     unsigned int length = list.length();
 
     MDagPath dagPath;
+    MFnMesh mesh;
+
+    std::vector<std::string> result2;
+    std::string errorPath;
 
     MFloatArray uArray, vArray;
 
     for (unsigned int i = 0; i < length; i++) {
         list.getDagPath(i, dagPath);
-        MFnMesh mesh(dagPath);
+        mesh.setObject(dagPath);
         mesh.getUVs(uArray, vArray, &uvSet);
 
         int numUVs = mesh.numUVs(uvSet);
@@ -257,19 +269,22 @@ void findNegativeSpaceUVs(std::vector<std::string>* paths, ResultStringArray* re
         for (int j = 0; j < numUVs; j++) {
             float& u = uArray[static_cast<unsigned int>(j)];
             if (u < 0.0) {
-                result->push_back(createResultString(dagPath, ResultType::UV, j));
+                createResultString(dagPath, ResultType::UV, j, errorPath);
+                result2.push_back(errorPath);
                 continue;
             }
             float& v = vArray[static_cast<unsigned int>(j)];
             if (v < 0.0) {
-                result->push_back(createResultString(dagPath, ResultType::UV, j));
+                createResultString(dagPath, ResultType::UV, j, errorPath);
+                result2.push_back(errorPath);
                 continue;
             }
         }
     }
+    return result2;
 }
 
-void findConcaveUVs(std::vector<std::string>* paths, ResultStringArray* result, const MString uvSet)
+std::vector<std::string> findConcaveUVs(std::vector<std::string>* paths, const MString uvSet)
 {
     MSelectionList list;
 
@@ -281,6 +296,9 @@ void findConcaveUVs(std::vector<std::string>* paths, ResultStringArray* result, 
     unsigned int length = list.length();
 
     MDagPath dagPath;
+
+    std::vector<std::string> result2;
+    std::string errorPath;
 
     for (unsigned int i = 0; i < length; i++) {
         list.getDagPath(i, dagPath);
@@ -331,12 +349,14 @@ void findConcaveUVs(std::vector<std::string>* paths, ResultStringArray* result, 
         }
 
         for (auto& index : indices) {
-            result->push_back(createResultString(dagPath, ResultType::Face, index));
+            createResultString(dagPath, ResultType::Face, index, errorPath);
+            result2.push_back(errorPath);
         }
     }
+    return result2;
 }
 
-void findReversedUVs(std::vector<std::string>* paths, ResultStringArray* result, const MString uvSet)
+std::vector<std::string> findReversedUVs(std::vector<std::string>* paths, const MString uvSet)
 {
     MSelectionList list;
 
@@ -348,18 +368,23 @@ void findReversedUVs(std::vector<std::string>* paths, ResultStringArray* result,
     unsigned int length = list.length();
 
     MDagPath dagPath;
+    MFnMesh mesh;
+
+    std::vector<std::string> result2;
+    std::string errorPath;
 
     for (unsigned int i = 0; i < length; i++) {
         list.getDagPath(i, dagPath);
-        MFnMesh mesh(dagPath);
+        mesh.setObject(dagPath);
+
         for (MItMeshPolygon itPoly(dagPath); !itPoly.isDone(); itPoly.next()) {
             if (itPoly.isUVReversed(&uvSet)) {
-                result->push_back(createResultString(
-                    dagPath, ResultType::Face,
-                    static_cast<int>(itPoly.index())));
+                createResultString(dagPath, ResultType::Face, static_cast<int>(itPoly.index()), errorPath);
+                result2.push_back(errorPath);
             }
         }
     }
+    return result2;
 }
 
 } // unnamed namespace
@@ -467,50 +492,54 @@ MStatus UvChecker::doIt(const MArgList& args)
         }
     }
 
-    std::vector<std::thread> threads;
-    ResultStringArray result;
+    ThreadPool pool(8);
+    std::vector< std::future<std::vector<std::string>> > results;
 
     if (check_type == UVCheckType::UDIM) {
         for (size_t i = 0; i < numTasks; i++) {
-            threads.push_back(std::thread(findUdimIntersections, &splitGroups[i], &result, uvSet, maxUvBorderDistance));
+            results.push_back(pool.enqueue(findUdimIntersections, &splitGroups[i], uvSet, maxUvBorderDistance));
         }
     } else if (check_type == UVCheckType::HAS_UVS) {
         for (size_t i = 0; i < numTasks; i++) {
-            threads.push_back(std::thread(findNoUvFaces, &splitGroups[i], &result, uvSet));
+            results.push_back(pool.enqueue(findNoUvFaces, &splitGroups[i], uvSet));
         }
     } else if (check_type == UVCheckType::ZERO_AREA) {
         for (size_t i = 0; i < numTasks; i++) {
-            threads.push_back(std::thread(findZeroUvFaces, &splitGroups[i], &result, uvSet, minUVArea));
+            results.push_back(pool.enqueue(findZeroUvFaces, &splitGroups[i], uvSet, minUVArea));
         }
     } else if (check_type == UVCheckType::UN_ASSIGNED_UVS) {
         for (size_t i = 0; i < numTasks; i++) {
-            threads.push_back(std::thread(hasUnassignedUVs, &splitGroups[i], &result, uvSet));
+            results.push_back(pool.enqueue(hasUnassignedUVs, &splitGroups[i], uvSet));
         }
     } else if (check_type == UVCheckType::NEGATIVE_SPACE_UVS) {
         for (size_t i = 0; i < numTasks; i++) {
-            threads.push_back(std::thread(findNegativeSpaceUVs, &splitGroups[i], &result, uvSet));
+            results.push_back(pool.enqueue(findNegativeSpaceUVs, &splitGroups[i], uvSet));
         }
     } else if (check_type == UVCheckType::CONCAVE_UVS) {
         for (size_t i = 0; i < numTasks; i++) {
-            threads.push_back(std::thread(findConcaveUVs, &splitGroups[i], &result, uvSet));
+            results.push_back(pool.enqueue(findConcaveUVs, &splitGroups[i], uvSet));
         }
     } else if (check_type == UVCheckType::REVERSED_UVS) {
         for (size_t i = 0; i < numTasks; i++) {
-            threads.push_back(std::thread(findReversedUVs, &splitGroups[i], &result, uvSet));
+            results.push_back(pool.enqueue(findReversedUVs, &splitGroups[i], uvSet));
         }
     } else {
         MGlobal::displayError("Invalid check number");
         return MS::kFailure;
     }
 
-    for (auto& t : threads) {
-        t.join();
+    std::vector<std::string> finalResult2;
+    for(auto && result: results) {
+        std::vector<std::string> temp = result.get();
+        for (auto& r: temp) {
+            finalResult2.push_back(r);
+        }
     }
 
     MStringArray finalResult;
 
-    for (std::string& resultPath : result.data) {
-        finalResult.append(resultPath.c_str());
+    for (std::string& aaa : finalResult2) {
+        finalResult.append(aaa.c_str());
     }
 
     setResult(finalResult);

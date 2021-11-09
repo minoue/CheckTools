@@ -1,13 +1,8 @@
 #pragma once
 
-#include <maya/MFnMesh.h>
 #include <maya/MPxCommand.h>
 #include <maya/MString.h>
 #include <maya/MSyntax.h>
-
-#include <mutex>
-#include <string>
-#include <vector>
 
 enum class UVCheckType {
     UDIM = 0,
@@ -17,18 +12,6 @@ enum class UVCheckType {
     NEGATIVE_SPACE_UVS,
     CONCAVE_UVS,
     REVERSED_UVS
-};
-
-class ResultStringArray {
-    std::mutex mtx;
-
-public:
-    std::vector<std::string> data;
-    void push_back(std::string x)
-    {
-        std::lock_guard<std::mutex> lock(mtx);
-        data.push_back(x);
-    }
 };
 
 class UvChecker final : public MPxCommand {
