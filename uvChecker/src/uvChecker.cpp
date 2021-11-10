@@ -1,5 +1,5 @@
 #include "uvChecker.hpp"
-#include "ThreadPool.hpp"
+#include "../../include/ThreadPool.hpp"
 
 #include <maya/MFnMesh.h>
 #include <maya/MArgDatabase.h>
