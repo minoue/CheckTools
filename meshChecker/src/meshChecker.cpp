@@ -9,6 +9,7 @@
 #include <maya/MDoubleArray.h>
 #include <maya/MFnDagNode.h>
 #include <maya/MFnMesh.h>
+#include <maya/MFnPlugin.h>
 #include <maya/MGlobal.h>
 #include <maya/MItDag.h>
 #include <maya/MItMeshEdge.h>
@@ -23,6 +24,10 @@
 #include <cmath>
 #include <string>
 #include <thread>
+
+static const char* const pluginCommandName = "checkMesh";
+static const char* const pluginVersion = "2.0.8";
+static const char* const pluginAuthor = "Michi Inoue";
 
 namespace {
 
@@ -611,4 +616,39 @@ MSyntax MeshChecker::newSyntax()
     syntax.addFlag("-mel", "-minEdgeLength", MSyntax::kDouble);
     syntax.addFlag("-fix", "-doFix", MSyntax::kBoolean);
     return syntax;
+}
+
+MStatus initializePlugin(MObject mObj)
+{
+    MStatus status;
+
+    std::string version_str(pluginVersion);
+    std::string compile_date_str(__DATE__);
+    std::string compile_time_str(__TIME__);
+    std::string version(version_str + " / " + compile_date_str + " / " + compile_time_str);
+
+    MFnPlugin fnPlugin(mObj, pluginAuthor, version.c_str(), "Any");
+
+    status = fnPlugin.registerCommand(pluginCommandName, MeshChecker::creator, MeshChecker::newSyntax);
+    if (!status) {
+        status.perror("registerCommand");
+        return status;
+    }
+
+    return MS::kSuccess;
+}
+
+MStatus uninitializePlugin(MObject mObj)
+{
+    MStatus status;
+
+    MFnPlugin fnPlugin(mObj);
+
+    status = fnPlugin.deregisterCommand(pluginCommandName);
+    if (!status) {
+        status.perror("deregisterCommand");
+        return status;
+    }
+
+    return MS::kSuccess;
 }

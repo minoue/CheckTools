@@ -11,12 +11,17 @@
 #include <maya/MItMeshPolygon.h>
 #include <maya/MPointArray.h>
 #include <maya/MSelectionList.h>
+#include <maya/MFnPlugin.h>
 
 #include <algorithm>
 #include <cstddef>
 #include <string>
 #include <thread>
 #include <unordered_set>
+
+static const char* const pluginCommandName = "checkUV";
+static const char* const pluginVersion = "2.1.1";
+static const char* const pluginAuthor = "Michi Inoue";
 
 namespace {
 
@@ -565,4 +570,38 @@ bool UvChecker::isUndoable() const
 void* UvChecker::creator()
 {
     return new UvChecker;
+}
+
+MStatus initializePlugin(MObject mObj)
+{
+    MStatus status;
+
+    std::string version_str(pluginVersion);
+    std::string compile_date_str(__DATE__);
+    std::string compile_time_str(__TIME__);
+    std::string version(version_str + " / " + compile_date_str + " / " + compile_time_str);
+
+    MFnPlugin fnPlugin(mObj, pluginAuthor, version.c_str(), "Any");
+
+    status = fnPlugin.registerCommand(pluginCommandName, UvChecker::creator, UvChecker::newSyntax);
+    if (!status) {
+        status.perror("registerCommand");
+        return status;
+    }
+
+    return MS::kSuccess;
+}
+
+MStatus uninitializePlugin(MObject mObj)
+{
+    MStatus status;
+
+    MFnPlugin fnPlugin(mObj);
+    status = fnPlugin.deregisterCommand(pluginCommandName);
+    if (!status) {
+        status.perror("deregisterCommand");
+        return status;
+    }
+
+    return MS::kSuccess;
 }
