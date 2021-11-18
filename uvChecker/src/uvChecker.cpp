@@ -1,4 +1,5 @@
 #include "uvChecker.hpp"
+#include "../../include/utils.hpp"
 #include "../../include/ThreadPool.hpp"
 
 #include <maya/MFnMesh.h>
@@ -20,62 +21,10 @@
 #include <unordered_set>
 
 static const char* const pluginCommandName = "checkUV";
-static const char* const pluginVersion = "2.1.1";
+static const char* const pluginVersion = "2.1.2";
 static const char* const pluginAuthor = "Michi Inoue";
 
 namespace {
-
-enum class ResultType {
-    Face,
-    Vertex,
-    Edge,
-    UV
-};
-
-inline float getTriangleArea(float Ax, float Ay, float Bx, float By, float Cx, float Cy)
-{
-    return ((Ax * (By - Cy)) + (Bx * (Cy - Ay)) + (Cx * (Ay - By))) * 0.5F;
-}
-
-inline void createResultString(const MDagPath& dagPath, ResultType type, int index, std::string& outPath)
-{
-    outPath = std::string(dagPath.fullPathName().asChar());
-
-    switch (type) {
-    case ResultType::Face: {
-        outPath += ".f[" + std::to_string(index) + "]";
-        break;
-    }
-    case ResultType::Vertex: {
-        outPath += ".vtx[" + std::to_string(index) + "]";
-        break;
-    }
-    case ResultType::Edge: {
-        outPath += ".e[" + std::to_string(index) + "]";
-        break;
-    }
-    case ResultType::UV: {
-        outPath += ".map[" + std::to_string(index) + "]";
-        break;
-    }
-    }
-}
-
-void buildHierarchy(const MDagPath& path, std::vector<std::string>& result)
-{
-
-    MString name;
-
-    MItDag dagIter;
-    for (dagIter.reset(path, MItDag::kDepthFirst); !dagIter.isDone(); dagIter.next()) {
-        MObject obj = dagIter.currentItem();
-
-        if (obj.apiType() == MFn::kMesh) {
-            name = dagIter.fullPathName();
-            result.push_back(name.asChar());
-        }
-    }
-}
 
 std::vector<std::string> findUdimIntersections(std::vector<std::string>* paths, const MString uvSet, const double maxUvBorderDistance)
 {
