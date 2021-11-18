@@ -1,4 +1,5 @@
 #include "meshChecker.hpp"
+#include "../../include/ThreadPool.hpp"
 
 #include <cstddef>
 #include <maya/MArgDatabase.h>
@@ -26,7 +27,7 @@
 #include <thread>
 
 static const char* const pluginCommandName = "checkMesh";
-static const char* const pluginVersion = "2.0.8";
+static const char* const pluginVersion = "2.1.0";
 static const char* const pluginAuthor = "Michi Inoue";
 
 namespace {
@@ -83,7 +84,7 @@ void buildHierarchy(const MDagPath& path, std::vector<std::string>& result)
     }
 }
 
-void findTriangles(std::vector<std::string>* paths, ResultStringArray* result)
+std::vector<std::string> findTriangles(std::vector<std::string>* paths)
 {
     MSelectionList list;
 
@@ -91,6 +92,8 @@ void findTriangles(std::vector<std::string>* paths, ResultStringArray* result)
         MString mPath(p.c_str());
         list.add(mPath);
     }
+
+    std::vector<std::string> result;
 
     unsigned int length = list.length();
 
@@ -103,13 +106,14 @@ void findTriangles(std::vector<std::string>* paths, ResultStringArray* result)
 
         for (int j = 0; j < numPoly; j++) {
             if (mesh.polygonVertexCount(j) == 3) {
-                result->push_back(createResultString(dagPath, ResultType::Face, j));
+                result.push_back(createResultString(dagPath, ResultType::Face, j));
             }
         }
     }
+    return result;
 }
 
-void findNgons(std::vector<std::string>* paths, ResultStringArray* result)
+std::vector<std::string> findNgons(std::vector<std::string>* paths)
 {
 
     MSelectionList list;
@@ -118,6 +122,8 @@ void findNgons(std::vector<std::string>* paths, ResultStringArray* result)
         MString mPath(p.c_str());
         list.add(mPath);
     }
+
+    std::vector<std::string> result;
 
     unsigned int length = list.length();
 
@@ -130,13 +136,14 @@ void findNgons(std::vector<std::string>* paths, ResultStringArray* result)
 
         for (int i = 0; i < numPoly; i++) {
             if (mesh.polygonVertexCount(i) >= 5) {
-                result->push_back(createResultString(dagPath, ResultType::Face, i));
+                result.push_back(createResultString(dagPath, ResultType::Face, i));
             }
         }
     }
+    return result;
 }
 
-void findNonManifoldEdges(std::vector<std::string>* paths, ResultStringArray* result)
+std::vector<std::string> findNonManifoldEdges(std::vector<std::string>* paths)
 {
     MSelectionList list;
 
@@ -144,6 +151,8 @@ void findNonManifoldEdges(std::vector<std::string>* paths, ResultStringArray* re
         MString mPath(p.c_str());
         list.add(mPath);
     }
+
+    std::vector<std::string> result;
 
     unsigned int length = list.length();
 
@@ -156,13 +165,14 @@ void findNonManifoldEdges(std::vector<std::string>* paths, ResultStringArray* re
             int face_count;
             edgeIter.numConnectedFaces(face_count);
             if (face_count > 2) {
-                result->push_back(createResultString(dagPath, ResultType::Edge, edgeIter.index()));
+                result.push_back(createResultString(dagPath, ResultType::Edge, edgeIter.index()));
             }
         }
     }
+    return result;
 }
 
-void findLaminaFaces(std::vector<std::string>* paths, ResultStringArray* result)
+std::vector<std::string> findLaminaFaces(std::vector<std::string>* paths)
 {
     MSelectionList list;
 
@@ -170,6 +180,8 @@ void findLaminaFaces(std::vector<std::string>* paths, ResultStringArray* result)
         MString mPath(p.c_str());
         list.add(mPath);
     }
+
+    std::vector<std::string> result;
 
     unsigned int length = list.length();
 
@@ -180,7 +192,7 @@ void findLaminaFaces(std::vector<std::string>* paths, ResultStringArray* result)
 
         for (MItMeshPolygon polyIter(dagPath); !polyIter.isDone(); polyIter.next()) {
             if (polyIter.isLamina()) {
-                result->push_back(
+                result.push_back(
                     createResultString(
                         dagPath,
                         ResultType::Face,
@@ -188,9 +200,10 @@ void findLaminaFaces(std::vector<std::string>* paths, ResultStringArray* result)
             }
         }
     }
+    return result;
 }
 
-void findBiValentFaces(std::vector<std::string>* paths, ResultStringArray* result)
+std::vector<std::string> findBiValentFaces(std::vector<std::string>* paths)
 {
     MSelectionList list;
 
@@ -198,6 +211,8 @@ void findBiValentFaces(std::vector<std::string>* paths, ResultStringArray* resul
         MString mPath(p.c_str());
         list.add(mPath);
     }
+
+    std::vector<std::string> result;
 
     unsigned int length = list.length();
 
@@ -214,13 +229,14 @@ void findBiValentFaces(std::vector<std::string>* paths, ResultStringArray* resul
             vtxIter.getConnectedEdges(connectedEdges);
 
             if (connectedFaces.length() == 2 && connectedEdges.length() == 2) {
-                result->push_back(createResultString(dagPath, ResultType::Vertex, vtxIter.index()));
+                result.push_back(createResultString(dagPath, ResultType::Vertex, vtxIter.index()));
             }
         }
     }
+    return result;
 }
 
-void findZeroAreaFaces(std::vector<std::string>* paths, ResultStringArray* result, double maxFaceArea)
+std::vector<std::string> findZeroAreaFaces(std::vector<std::string>* paths, double maxFaceArea)
 {
     MSelectionList list;
 
@@ -228,6 +244,8 @@ void findZeroAreaFaces(std::vector<std::string>* paths, ResultStringArray* resul
         MString mPath(p.c_str());
         list.add(mPath);
     }
+
+    std::vector<std::string> result;
 
     unsigned int length = list.length();
 
@@ -240,7 +258,7 @@ void findZeroAreaFaces(std::vector<std::string>* paths, ResultStringArray* resul
             double area;
             polyIter.getArea(area);
             if (area < maxFaceArea) {
-                result->push_back(
+                result.push_back(
                     createResultString(
                         dagPath,
                         ResultType::Face,
@@ -248,9 +266,10 @@ void findZeroAreaFaces(std::vector<std::string>* paths, ResultStringArray* resul
             }
         }
     }
+    return result;
 }
 
-void findMeshBorderEdges(std::vector<std::string>* paths, ResultStringArray* result)
+std::vector<std::string> findMeshBorderEdges(std::vector<std::string>* paths)
 {
     MSelectionList list;
 
@@ -258,6 +277,8 @@ void findMeshBorderEdges(std::vector<std::string>* paths, ResultStringArray* res
         MString mPath(p.c_str());
         list.add(mPath);
     }
+
+    std::vector<std::string> result;
 
     unsigned int length = list.length();
 
@@ -268,13 +289,14 @@ void findMeshBorderEdges(std::vector<std::string>* paths, ResultStringArray* res
 
         for (MItMeshEdge edgeIter(dagPath); !edgeIter.isDone(); edgeIter.next()) {
             if (edgeIter.onBoundary()) {
-                result->push_back(createResultString(dagPath, ResultType::Edge, edgeIter.index()));
+                result.push_back(createResultString(dagPath, ResultType::Edge, edgeIter.index()));
             }
         }
     }
+    return result;
 }
 
-void findCreaseEdges(std::vector<std::string>* paths, ResultStringArray* result)
+std::vector<std::string> findCreaseEdges(std::vector<std::string>* paths)
 {
     MSelectionList list;
 
@@ -284,6 +306,8 @@ void findCreaseEdges(std::vector<std::string>* paths, ResultStringArray* result)
     }
 
     unsigned int length = list.length();
+
+    std::vector<std::string> result;
 
     MDagPath dagPath;
 
@@ -298,13 +322,14 @@ void findCreaseEdges(std::vector<std::string>* paths, ResultStringArray* result)
         unsigned int edgeIdLength = edgeIds.length();
 
         for (unsigned int j = 0; j < edgeIdLength; j++) {
-            result->push_back(
+            result.push_back(
                 createResultString(dagPath, ResultType::Edge, static_cast<int>(edgeIds[j])));
         }
     }
+    return result;
 }
 
-void findZeroLengthEdges(std::vector<std::string>* paths, ResultStringArray* result, double minEdgeLength)
+std::vector<std::string> findZeroLengthEdges(std::vector<std::string>* paths, double minEdgeLength)
 {
     MSelectionList list;
 
@@ -312,6 +337,8 @@ void findZeroLengthEdges(std::vector<std::string>* paths, ResultStringArray* res
         MString mPath(p.c_str());
         list.add(mPath);
     }
+
+    std::vector<std::string> result;
 
     unsigned int length = list.length();
 
@@ -323,7 +350,7 @@ void findZeroLengthEdges(std::vector<std::string>* paths, ResultStringArray* res
             double length;
             edgeIter.getLength(length);
             if (length < minEdgeLength) {
-                result->push_back(
+                result.push_back(
                     createResultString(
                         dagPath,
                         ResultType::Edge,
@@ -331,9 +358,10 @@ void findZeroLengthEdges(std::vector<std::string>* paths, ResultStringArray* res
             }
         }
     }
+    return result;
 }
 
-void hasVertexPntsAttr(std::vector<std::string>* paths, ResultStringArray* result)
+std::vector<std::string> hasVertexPntsAttr(std::vector<std::string>* paths)
 {
     MSelectionList list;
 
@@ -341,6 +369,8 @@ void hasVertexPntsAttr(std::vector<std::string>* paths, ResultStringArray* resul
         MString mPath(p.c_str());
         list.add(mPath);
     }
+
+    std::vector<std::string> result;
 
     unsigned int length = list.length();
 
@@ -370,15 +400,15 @@ void hasVertexPntsAttr(std::vector<std::string>* paths, ResultStringArray* resul
             const float3& xyz = outputHandle.asFloat3();
 
             if (xyz[0] != 0.0) {
-                result->push_back(dagPath.fullPathName().asChar());
+                result.push_back(dagPath.fullPathName().asChar());
                 break;
             }
             if (xyz[1] != 0.0) {
-                result->push_back(dagPath.fullPathName().asChar());
+                result.push_back(dagPath.fullPathName().asChar());
                 break;
             }
             if (xyz[2] != 0.0) {
-                result->push_back(dagPath.fullPathName().asChar());
+                result.push_back(dagPath.fullPathName().asChar());
                 break;
             }
 
@@ -390,9 +420,10 @@ void hasVertexPntsAttr(std::vector<std::string>* paths, ResultStringArray* resul
         }
         pntsArray.destructHandle(dataHandle);
     }
+    return result;
 }
 
-void isEmptyGeometry(std::vector<std::string>* paths, ResultStringArray* result)
+std::vector<std::string> isEmptyGeometry(std::vector<std::string>* paths)
 {
     MSelectionList list;
 
@@ -400,6 +431,8 @@ void isEmptyGeometry(std::vector<std::string>* paths, ResultStringArray* result)
         MString mPath(p.c_str());
         list.add(mPath);
     }
+
+    std::vector<std::string> result;
 
     unsigned int length = list.length();
     MDagPath dagPath;
@@ -409,12 +442,13 @@ void isEmptyGeometry(std::vector<std::string>* paths, ResultStringArray* result)
         MFnMesh mesh(dagPath);
         int numVerts = mesh.numVertices();
         if (numVerts == 0) {
-            result->push_back(dagPath.fullPathName().asChar());
+            result.push_back(dagPath.fullPathName().asChar());
         }
     }
+    return result;
 }
 
-void findUnusedVertices(std::vector<std::string>* paths, ResultStringArray* result)
+std::vector<std::string> findUnusedVertices(std::vector<std::string>* paths)
 {
     MSelectionList list;
 
@@ -422,6 +456,8 @@ void findUnusedVertices(std::vector<std::string>* paths, ResultStringArray* resu
         MString mPath(p.c_str());
         list.add(mPath);
     }
+
+    std::vector<std::string> result;
 
     unsigned int length = list.length();
     MDagPath dagPath;
@@ -434,10 +470,11 @@ void findUnusedVertices(std::vector<std::string>* paths, ResultStringArray* resu
             vtxIter.numConnectedEdges(edgeCount);
 
             if (edgeCount == 0) {
-                result->push_back(createResultString(dagPath, ResultType::Vertex, vtxIter.index()));
+                result.push_back(createResultString(dagPath, ResultType::Vertex, vtxIter.index()));
             }
         }
     }    
+    return result;
 }
 
 } // namespace
@@ -510,79 +547,82 @@ MStatus MeshChecker::doIt(const MArgList& args)
         }
     }
 
-    std::vector<std::thread> threads;
-    ResultStringArray result;
+    ThreadPool pool(8);
+    std::vector< std::future<std::vector<std::string>> > results;
 
     if (check_type == MeshCheckType::TRIANGLES) {
         for (size_t i = 0; i < numTasks; i++) {
-            threads.push_back(std::thread(findTriangles, &splitGroups[i], &result));
+            results.push_back(pool.enqueue(findTriangles, &splitGroups[i]));
         }
     } else if (check_type == MeshCheckType::NGONS) {
         for (size_t i = 0; i < numTasks; i++) {
-            threads.push_back(std::thread(findNgons, &splitGroups[i], &result));
+            results.push_back(pool.enqueue(findNgons, &splitGroups[i]));
         }
     } else if (check_type == MeshCheckType::NON_MANIFOLD_EDGES) {
         for (size_t i = 0; i < numTasks; i++) {
-            threads.push_back(std::thread(findNonManifoldEdges, &splitGroups[i], &result));
+            results.push_back(pool.enqueue(findNonManifoldEdges, &splitGroups[i]));
         }
     } else if (check_type == MeshCheckType::LAMINA_FACES) {
         for (size_t i = 0; i < numTasks; i++) {
-            threads.push_back(std::thread(findLaminaFaces, &splitGroups[i], &result));
+            results.push_back(pool.enqueue(findLaminaFaces, &splitGroups[i]));
         }
     } else if (check_type == MeshCheckType::BI_VALENT_FACES) {
         for (size_t i = 0; i < numTasks; i++) {
-            threads.push_back(std::thread(findBiValentFaces, &splitGroups[i], &result));
+            results.push_back(pool.enqueue(findBiValentFaces, &splitGroups[i]));
         }
     } else if (check_type == MeshCheckType::ZERO_AREA_FACES) {
         double maxFaceArea { 0.000001 };
         if (argData.isFlagSet("-maxFaceArea"))
             argData.getFlagArgument("-maxFaceArea", 0, maxFaceArea);
         for (size_t i = 0; i < numTasks; i++) {
-            threads.push_back(std::thread(findZeroAreaFaces, &splitGroups[i], &result, maxFaceArea));
+            results.push_back(pool.enqueue(findZeroAreaFaces, &splitGroups[i], maxFaceArea));
         }
     } else if (check_type == MeshCheckType::MESH_BORDER) {
         for (size_t i = 0; i < numTasks; i++) {
-            threads.push_back(std::thread(findMeshBorderEdges, &splitGroups[i], &result));
+            results.push_back(pool.enqueue(findMeshBorderEdges, &splitGroups[i]));
         }
     } else if (check_type == MeshCheckType::CREASE_EDGE) {
         for (size_t i = 0; i < numTasks; i++) {
-            threads.push_back(std::thread(findCreaseEdges, &splitGroups[i], &result));
+            results.push_back(pool.enqueue(findCreaseEdges, &splitGroups[i]));
         }
     } else if (check_type == MeshCheckType::ZERO_LENGTH_EDGES) {
         double minEdgeLength = 0.000001;
         if (argData.isFlagSet("-minEdgeLength"))
             argData.getFlagArgument("-minEdgeLength", 0, minEdgeLength);
         for (size_t i = 0; i < numTasks; i++) {
-            threads.push_back(std::thread(findZeroLengthEdges, &splitGroups[i], &result, minEdgeLength));
+            results.push_back(pool.enqueue(findZeroLengthEdges, &splitGroups[i], minEdgeLength));
         }
     } else if (check_type == MeshCheckType::UNFROZEN_VERTICES) {
         for (size_t i = 0; i < numTasks; i++) {
-            threads.push_back(std::thread(hasVertexPntsAttr, &splitGroups[i], &result));
+            results.push_back(pool.enqueue(hasVertexPntsAttr, &splitGroups[i]));
         }
     } else if (check_type == MeshCheckType::EMPTY_GEOMETRY) {
         for (size_t i = 0; i < numTasks; i++) {
-            threads.push_back(std::thread(isEmptyGeometry, &splitGroups[i], &result));
+            results.push_back(pool.enqueue(isEmptyGeometry, &splitGroups[i]));
         }
     } else if (check_type == MeshCheckType::UNUSED_VERTICES) {
         for (size_t i = 0; i < numTasks; i++) {
-            threads.push_back(std::thread(findUnusedVertices, &splitGroups[i], &result));
+            results.push_back(pool.enqueue(findUnusedVertices, &splitGroups[i]));
         }
     } else {
-        
         std::cout << "not supported yet" << std::endl;
     }
 
-    for (auto& t : threads) {
-        t.join();
+    std::vector<std::string> intermediateResult;
+    for(auto && result: results) {
+        std::vector<std::string> temp = result.get();
+        for (auto& r: temp) {
+            intermediateResult.push_back(r);
+        }
     }
 
-    MStringArray finalResult;
+    MStringArray outputResult;
 
-    for (std::string& resultPath : result.data) {
-        finalResult.append(resultPath.c_str());
+    for (std::string& path : intermediateResult) {
+        outputResult.append(path.c_str());
     }
 
-    setResult(finalResult);
+    setResult(outputResult);
 
     return redoIt();
 }
