@@ -1,5 +1,6 @@
 #include "meshChecker.hpp"
 #include "../../include/ThreadPool.hpp"
+#include "../../include/utils.hpp"
 
 #include <cstddef>
 #include <maya/MArgDatabase.h>
@@ -27,62 +28,10 @@
 #include <thread>
 
 static const char* const pluginCommandName = "checkMesh";
-static const char* const pluginVersion = "2.1.0";
+static const char* const pluginVersion = "2.1.1";
 static const char* const pluginAuthor = "Michi Inoue";
 
 namespace {
-
-enum class ResultType {
-    Face,
-    Vertex,
-    Edge,
-    UV
-};
-
-std::string createResultString(const MDagPath& dagPath, ResultType type, int index)
-{
-
-    MString tempPath = dagPath.fullPathName();
-    std::string pathString = std::string(tempPath.asChar());
-
-    switch (type) {
-    case ResultType::Face: {
-        pathString += ".f[" + std::to_string(index) + "]";
-        break;
-    }
-    case ResultType::Vertex: {
-        pathString += ".vtx[" + std::to_string(index) + "]";
-        break;
-    }
-
-    case ResultType::Edge: {
-        pathString += ".e[" + std::to_string(index) + "]";
-        break;
-    }
-    case ResultType::UV: {
-        pathString += ".map[" + std::to_string(index) + "]";
-        break;
-    }
-    }
-
-    return pathString;
-}
-
-void buildHierarchy(const MDagPath& path, std::vector<std::string>& result)
-{
-
-    MString name;
-
-    MItDag dagIter;
-    for (dagIter.reset(path, MItDag::kDepthFirst); !dagIter.isDone(); dagIter.next()) {
-        MObject obj = dagIter.currentItem();
-
-        if (obj.apiType() == MFn::kMesh) {
-            name = dagIter.fullPathName();
-            result.push_back(name.asChar());
-        }
-    }
-}
 
 std::vector<std::string> findTriangles(std::vector<std::string>* paths)
 {
@@ -94,6 +43,7 @@ std::vector<std::string> findTriangles(std::vector<std::string>* paths)
     }
 
     std::vector<std::string> result;
+    std::string errorPath;
 
     unsigned int length = list.length();
 
@@ -106,7 +56,8 @@ std::vector<std::string> findTriangles(std::vector<std::string>* paths)
 
         for (int j = 0; j < numPoly; j++) {
             if (mesh.polygonVertexCount(j) == 3) {
-                result.push_back(createResultString(dagPath, ResultType::Face, j));
+                createResultString(dagPath, ResultType::Face, j, errorPath);
+                result.push_back(errorPath);
             }
         }
     }
@@ -124,6 +75,7 @@ std::vector<std::string> findNgons(std::vector<std::string>* paths)
     }
 
     std::vector<std::string> result;
+    std::string errorPath;
 
     unsigned int length = list.length();
 
@@ -136,7 +88,8 @@ std::vector<std::string> findNgons(std::vector<std::string>* paths)
 
         for (int i = 0; i < numPoly; i++) {
             if (mesh.polygonVertexCount(i) >= 5) {
-                result.push_back(createResultString(dagPath, ResultType::Face, i));
+                createResultString(dagPath, ResultType::Face, i, errorPath);
+                result.push_back(errorPath);
             }
         }
     }
@@ -153,6 +106,7 @@ std::vector<std::string> findNonManifoldEdges(std::vector<std::string>* paths)
     }
 
     std::vector<std::string> result;
+    std::string errorPath;
 
     unsigned int length = list.length();
 
@@ -165,7 +119,8 @@ std::vector<std::string> findNonManifoldEdges(std::vector<std::string>* paths)
             int face_count;
             edgeIter.numConnectedFaces(face_count);
             if (face_count > 2) {
-                result.push_back(createResultString(dagPath, ResultType::Edge, edgeIter.index()));
+                createResultString(dagPath, ResultType::Edge, edgeIter.index(), errorPath);
+                result.push_back(errorPath);
             }
         }
     }
@@ -182,6 +137,7 @@ std::vector<std::string> findLaminaFaces(std::vector<std::string>* paths)
     }
 
     std::vector<std::string> result;
+    std::string errorPath;
 
     unsigned int length = list.length();
 
@@ -192,11 +148,8 @@ std::vector<std::string> findLaminaFaces(std::vector<std::string>* paths)
 
         for (MItMeshPolygon polyIter(dagPath); !polyIter.isDone(); polyIter.next()) {
             if (polyIter.isLamina()) {
-                result.push_back(
-                    createResultString(
-                        dagPath,
-                        ResultType::Face,
-                        static_cast<int>(polyIter.index())));
+                createResultString(dagPath, ResultType::Face, static_cast<int>(polyIter.index()), errorPath);
+                result.push_back(errorPath);
             }
         }
     }
@@ -213,6 +166,7 @@ std::vector<std::string> findBiValentFaces(std::vector<std::string>* paths)
     }
 
     std::vector<std::string> result;
+    std::string errorPath;
 
     unsigned int length = list.length();
 
@@ -229,7 +183,8 @@ std::vector<std::string> findBiValentFaces(std::vector<std::string>* paths)
             vtxIter.getConnectedEdges(connectedEdges);
 
             if (connectedFaces.length() == 2 && connectedEdges.length() == 2) {
-                result.push_back(createResultString(dagPath, ResultType::Vertex, vtxIter.index()));
+                createResultString(dagPath, ResultType::Vertex, vtxIter.index(), errorPath);
+                result.push_back(errorPath);
             }
         }
     }
@@ -246,6 +201,7 @@ std::vector<std::string> findZeroAreaFaces(std::vector<std::string>* paths, doub
     }
 
     std::vector<std::string> result;
+    std::string errorPath;
 
     unsigned int length = list.length();
 
@@ -258,11 +214,8 @@ std::vector<std::string> findZeroAreaFaces(std::vector<std::string>* paths, doub
             double area;
             polyIter.getArea(area);
             if (area < maxFaceArea) {
-                result.push_back(
-                    createResultString(
-                        dagPath,
-                        ResultType::Face,
-                        static_cast<int>(polyIter.index())));
+                createResultString(dagPath, ResultType::Face, static_cast<int>(polyIter.index()), errorPath);
+                result.push_back(errorPath);
             }
         }
     }
@@ -279,6 +232,7 @@ std::vector<std::string> findMeshBorderEdges(std::vector<std::string>* paths)
     }
 
     std::vector<std::string> result;
+    std::string errorPath;
 
     unsigned int length = list.length();
 
@@ -289,7 +243,8 @@ std::vector<std::string> findMeshBorderEdges(std::vector<std::string>* paths)
 
         for (MItMeshEdge edgeIter(dagPath); !edgeIter.isDone(); edgeIter.next()) {
             if (edgeIter.onBoundary()) {
-                result.push_back(createResultString(dagPath, ResultType::Edge, edgeIter.index()));
+                createResultString(dagPath, ResultType::Edge, edgeIter.index(), errorPath);
+                result.push_back(errorPath);
             }
         }
     }
@@ -308,6 +263,7 @@ std::vector<std::string> findCreaseEdges(std::vector<std::string>* paths)
     unsigned int length = list.length();
 
     std::vector<std::string> result;
+    std::string errorPath;
 
     MDagPath dagPath;
 
@@ -322,8 +278,8 @@ std::vector<std::string> findCreaseEdges(std::vector<std::string>* paths)
         unsigned int edgeIdLength = edgeIds.length();
 
         for (unsigned int j = 0; j < edgeIdLength; j++) {
-            result.push_back(
-                createResultString(dagPath, ResultType::Edge, static_cast<int>(edgeIds[j])));
+            createResultString(dagPath, ResultType::Edge, static_cast<int>(edgeIds[j]), errorPath);
+            result.push_back(errorPath);
         }
     }
     return result;
@@ -339,6 +295,7 @@ std::vector<std::string> findZeroLengthEdges(std::vector<std::string>* paths, do
     }
 
     std::vector<std::string> result;
+    std::string errorPath;
 
     unsigned int length = list.length();
 
@@ -350,11 +307,8 @@ std::vector<std::string> findZeroLengthEdges(std::vector<std::string>* paths, do
             double length;
             edgeIter.getLength(length);
             if (length < minEdgeLength) {
-                result.push_back(
-                    createResultString(
-                        dagPath,
-                        ResultType::Edge,
-                        static_cast<int>(edgeIter.index())));
+                createResultString(dagPath, ResultType::Edge, static_cast<int>(edgeIter.index()), errorPath);
+                result.push_back(errorPath);
             }
         }
     }
@@ -458,6 +412,7 @@ std::vector<std::string> findUnusedVertices(std::vector<std::string>* paths)
     }
 
     std::vector<std::string> result;
+    std::string errorPath;
 
     unsigned int length = list.length();
     MDagPath dagPath;
@@ -470,7 +425,8 @@ std::vector<std::string> findUnusedVertices(std::vector<std::string>* paths)
             vtxIter.numConnectedEdges(edgeCount);
 
             if (edgeCount == 0) {
-                result.push_back(createResultString(dagPath, ResultType::Vertex, vtxIter.index()));
+                createResultString(dagPath, ResultType::Vertex, vtxIter.index(), errorPath);
+                result.push_back(errorPath);
             }
         }
     }    

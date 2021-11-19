@@ -2,10 +2,6 @@
 
 #include <maya/MPxCommand.h>
 
-#include <mutex>
-#include <string>
-#include <vector>
-
 enum class MeshCheckType {
     TRIANGLES = 0,
     NGONS,
@@ -20,18 +16,6 @@ enum class MeshCheckType {
     EMPTY_GEOMETRY,
     UNUSED_VERTICES,
     TEST
-};
-
-class ResultStringArray {
-    std::mutex mtx;
-
-public:
-    std::vector<std::string> data;
-    void push_back(std::string x)
-    {
-        std::lock_guard<std::mutex> lock(mtx);
-        data.push_back(x);
-    }
 };
 
 class MeshChecker final : public MPxCommand {
