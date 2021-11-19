@@ -420,7 +420,7 @@ std::vector<std::string> findUnusedVertices(std::vector<std::string>* paths)
     for (unsigned int i = 0; i < length; i++) {
         list.getDagPath(i, dagPath);
         int edgeCount;
-        
+
         for (MItMeshVertex vtxIter(dagPath); !vtxIter.isDone(); vtxIter.next()) {
             vtxIter.numConnectedEdges(edgeCount);
 
@@ -429,7 +429,7 @@ std::vector<std::string> findUnusedVertices(std::vector<std::string>* paths)
                 result.push_back(errorPath);
             }
         }
-    }    
+    }
     return result;
 }
 
@@ -504,7 +504,7 @@ MStatus MeshChecker::doIt(const MArgList& args)
     }
 
     ThreadPool pool(8);
-    std::vector< std::future<std::vector<std::string>> > results;
+    std::vector<std::future<std::vector<std::string>>> results;
 
     if (check_type == MeshCheckType::TRIANGLES) {
         for (size_t i = 0; i < numTasks; i++) {
@@ -565,9 +565,9 @@ MStatus MeshChecker::doIt(const MArgList& args)
     }
 
     std::vector<std::string> intermediateResult;
-    for(auto && result: results) {
+    for (auto&& result : results) {
         std::vector<std::string> temp = result.get();
-        for (auto& r: temp) {
+        for (auto& r : temp) {
             intermediateResult.push_back(r);
         }
     }

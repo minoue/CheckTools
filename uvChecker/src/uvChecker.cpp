@@ -1,18 +1,18 @@
 #include "uvChecker.hpp"
-#include "../../include/utils.hpp"
 #include "../../include/ThreadPool.hpp"
+#include "../../include/utils.hpp"
 
-#include <maya/MFnMesh.h>
 #include <maya/MArgDatabase.h>
 #include <maya/MArgList.h>
 #include <maya/MDagPath.h>
 #include <maya/MFloatArray.h>
+#include <maya/MFnMesh.h>
+#include <maya/MFnPlugin.h>
 #include <maya/MGlobal.h>
 #include <maya/MItDag.h>
 #include <maya/MItMeshPolygon.h>
 #include <maya/MPointArray.h>
 #include <maya/MSelectionList.h>
-#include <maya/MFnPlugin.h>
 
 #include <algorithm>
 #include <cstddef>
@@ -447,7 +447,7 @@ MStatus UvChecker::doIt(const MArgList& args)
     }
 
     ThreadPool pool(8);
-    std::vector< std::future<std::vector<std::string>> > results;
+    std::vector<std::future<std::vector<std::string>>> results;
 
     if (check_type == UVCheckType::UDIM) {
         for (size_t i = 0; i < numTasks; i++) {
@@ -483,9 +483,9 @@ MStatus UvChecker::doIt(const MArgList& args)
     }
 
     std::vector<std::string> finalResult2;
-    for(auto && result: results) {
+    for (auto&& result : results) {
         std::vector<std::string> temp = result.get();
-        for (auto& r: temp) {
+        for (auto& r : temp) {
             finalResult2.push_back(r);
         }
     }
