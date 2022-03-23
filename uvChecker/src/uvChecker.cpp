@@ -21,7 +21,7 @@
 #include <unordered_set>
 
 static const char* const pluginCommandName = "checkUV";
-static const char* const pluginVersion = "2.1.2";
+static const char* const pluginVersion = "2.1.3";
 static const char* const pluginAuthor = "Michi Inoue";
 
 namespace {
@@ -449,54 +449,43 @@ MStatus UvChecker::doIt(const MArgList& args)
     ThreadPool pool(8);
     std::vector<std::future<std::vector<std::string>>> results;
 
-    if (check_type == UVCheckType::UDIM) {
-        for (size_t i = 0; i < numTasks; i++) {
+    for (size_t i = 0; i < numTasks; i++) {
+        if (check_type == UVCheckType::UDIM) {
             results.push_back(pool.enqueue(findUdimIntersections, &splitGroups[i], uvSet, maxUvBorderDistance));
-        }
-    } else if (check_type == UVCheckType::HAS_UVS) {
-        for (size_t i = 0; i < numTasks; i++) {
+        } else if (check_type == UVCheckType::HAS_UVS) {
             results.push_back(pool.enqueue(findNoUvFaces, &splitGroups[i], uvSet));
-        }
-    } else if (check_type == UVCheckType::ZERO_AREA) {
-        for (size_t i = 0; i < numTasks; i++) {
+        } else if (check_type == UVCheckType::ZERO_AREA) {
             results.push_back(pool.enqueue(findZeroUvFaces, &splitGroups[i], uvSet, minUVArea));
-        }
-    } else if (check_type == UVCheckType::UN_ASSIGNED_UVS) {
-        for (size_t i = 0; i < numTasks; i++) {
+        } else if (check_type == UVCheckType::UN_ASSIGNED_UVS) {
             results.push_back(pool.enqueue(hasUnassignedUVs, &splitGroups[i], uvSet));
-        }
-    } else if (check_type == UVCheckType::NEGATIVE_SPACE_UVS) {
-        for (size_t i = 0; i < numTasks; i++) {
+        } else if (check_type == UVCheckType::NEGATIVE_SPACE_UVS) {
             results.push_back(pool.enqueue(findNegativeSpaceUVs, &splitGroups[i], uvSet));
-        }
-    } else if (check_type == UVCheckType::CONCAVE_UVS) {
-        for (size_t i = 0; i < numTasks; i++) {
+        } else if (check_type == UVCheckType::CONCAVE_UVS) {
             results.push_back(pool.enqueue(findConcaveUVs, &splitGroups[i], uvSet));
-        }
-    } else if (check_type == UVCheckType::REVERSED_UVS) {
-        for (size_t i = 0; i < numTasks; i++) {
+        } else if (check_type == UVCheckType::REVERSED_UVS) {
             results.push_back(pool.enqueue(findReversedUVs, &splitGroups[i], uvSet));
+        } else {
+            MGlobal::displayError("Invalid check number");
+            return MS::kFailure;
         }
-    } else {
-        MGlobal::displayError("Invalid check number");
-        return MS::kFailure;
     }
 
-    std::vector<std::string> finalResult2;
+    std::vector<std::string> intermediateResult;
+
     for (auto&& result : results) {
         std::vector<std::string> temp = result.get();
         for (auto& r : temp) {
-            finalResult2.push_back(r);
+            intermediateResult.push_back(r);
         }
     }
 
-    MStringArray finalResult;
+    MStringArray outputResult;
 
-    for (std::string& aaa : finalResult2) {
-        finalResult.append(aaa.c_str());
+    for (std::string& path : intermediateResult) {
+        outputResult.append(path.c_str());
     }
 
-    setResult(finalResult);
+    setResult(outputResult);
 
     return redoIt();
 }

@@ -28,7 +28,7 @@
 #include <thread>
 
 static const char* const pluginCommandName = "checkMesh";
-static const char* const pluginVersion = "2.1.1";
+static const char* const pluginVersion = "2.1.2";
 static const char* const pluginAuthor = "Michi Inoue";
 
 namespace {
@@ -506,65 +506,47 @@ MStatus MeshChecker::doIt(const MArgList& args)
     ThreadPool pool(8);
     std::vector<std::future<std::vector<std::string>>> results;
 
-    if (check_type == MeshCheckType::TRIANGLES) {
-        for (size_t i = 0; i < numTasks; i++) {
+    double maxFaceArea { 0.000001 };
+    if (argData.isFlagSet("-maxFaceArea"))
+        argData.getFlagArgument("-maxFaceArea", 0, maxFaceArea);
+
+    double minEdgeLength = 0.000001;
+    if (argData.isFlagSet("-minEdgeLength"))
+        argData.getFlagArgument("-minEdgeLength", 0, minEdgeLength);
+
+    for (size_t i = 0; i < numTasks; i++) {
+        if (check_type == MeshCheckType::TRIANGLES) {
             results.push_back(pool.enqueue(findTriangles, &splitGroups[i]));
-        }
-    } else if (check_type == MeshCheckType::NGONS) {
-        for (size_t i = 0; i < numTasks; i++) {
+        } else if (check_type == MeshCheckType::NGONS) {
             results.push_back(pool.enqueue(findNgons, &splitGroups[i]));
-        }
-    } else if (check_type == MeshCheckType::NON_MANIFOLD_EDGES) {
-        for (size_t i = 0; i < numTasks; i++) {
+        } else if (check_type == MeshCheckType::NON_MANIFOLD_EDGES) {
             results.push_back(pool.enqueue(findNonManifoldEdges, &splitGroups[i]));
-        }
-    } else if (check_type == MeshCheckType::LAMINA_FACES) {
-        for (size_t i = 0; i < numTasks; i++) {
+        } else if (check_type == MeshCheckType::LAMINA_FACES) {
             results.push_back(pool.enqueue(findLaminaFaces, &splitGroups[i]));
-        }
-    } else if (check_type == MeshCheckType::BI_VALENT_FACES) {
-        for (size_t i = 0; i < numTasks; i++) {
+        } else if (check_type == MeshCheckType::BI_VALENT_FACES) {
             results.push_back(pool.enqueue(findBiValentFaces, &splitGroups[i]));
-        }
-    } else if (check_type == MeshCheckType::ZERO_AREA_FACES) {
-        double maxFaceArea { 0.000001 };
-        if (argData.isFlagSet("-maxFaceArea"))
-            argData.getFlagArgument("-maxFaceArea", 0, maxFaceArea);
-        for (size_t i = 0; i < numTasks; i++) {
+        } else if (check_type == MeshCheckType::ZERO_AREA_FACES) {
             results.push_back(pool.enqueue(findZeroAreaFaces, &splitGroups[i], maxFaceArea));
-        }
-    } else if (check_type == MeshCheckType::MESH_BORDER) {
-        for (size_t i = 0; i < numTasks; i++) {
+        } else if (check_type == MeshCheckType::MESH_BORDER) {
             results.push_back(pool.enqueue(findMeshBorderEdges, &splitGroups[i]));
-        }
-    } else if (check_type == MeshCheckType::CREASE_EDGE) {
-        for (size_t i = 0; i < numTasks; i++) {
+        } else if (check_type == MeshCheckType::CREASE_EDGE) {
             results.push_back(pool.enqueue(findCreaseEdges, &splitGroups[i]));
-        }
-    } else if (check_type == MeshCheckType::ZERO_LENGTH_EDGES) {
-        double minEdgeLength = 0.000001;
-        if (argData.isFlagSet("-minEdgeLength"))
-            argData.getFlagArgument("-minEdgeLength", 0, minEdgeLength);
-        for (size_t i = 0; i < numTasks; i++) {
+        } else if (check_type == MeshCheckType::ZERO_LENGTH_EDGES) {
             results.push_back(pool.enqueue(findZeroLengthEdges, &splitGroups[i], minEdgeLength));
-        }
-    } else if (check_type == MeshCheckType::UNFROZEN_VERTICES) {
-        for (size_t i = 0; i < numTasks; i++) {
+        } else if (check_type == MeshCheckType::UNFROZEN_VERTICES) {
             results.push_back(pool.enqueue(hasVertexPntsAttr, &splitGroups[i]));
-        }
-    } else if (check_type == MeshCheckType::EMPTY_GEOMETRY) {
-        for (size_t i = 0; i < numTasks; i++) {
+        } else if (check_type == MeshCheckType::EMPTY_GEOMETRY) {
             results.push_back(pool.enqueue(isEmptyGeometry, &splitGroups[i]));
-        }
-    } else if (check_type == MeshCheckType::UNUSED_VERTICES) {
-        for (size_t i = 0; i < numTasks; i++) {
+        } else if (check_type == MeshCheckType::UNUSED_VERTICES) {
             results.push_back(pool.enqueue(findUnusedVertices, &splitGroups[i]));
+        } else {
+            MGlobal::displayError("Invalid check number");
+            return MS::kFailure;
         }
-    } else {
-        std::cout << "not supported yet" << std::endl;
     }
 
     std::vector<std::string> intermediateResult;
+
     for (auto&& result : results) {
         std::vector<std::string> temp = result.get();
         for (auto& r : temp) {
