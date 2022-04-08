@@ -3,6 +3,7 @@
 #include "../../include/utils.hpp"
 
 #include <cstddef>
+#include <maya/MObject.h>
 #include <maya/MArgDatabase.h>
 #include <maya/MArgList.h>
 #include <maya/MArrayDataHandle.h>
@@ -28,7 +29,7 @@
 #include <thread>
 
 static const char* const pluginCommandName = "checkMesh";
-static const char* const pluginVersion = "2.1.2";
+static const char* const pluginVersion = "2.1.3";
 static const char* const pluginAuthor = "Michi Inoue";
 
 namespace {
@@ -433,6 +434,40 @@ std::vector<std::string> findUnusedVertices(std::vector<std::string>* paths)
     return result;
 }
 
+std::vector<std::string> findInstances(std::vector<std::string>* paths)
+{
+    MSelectionList list;
+
+    for (auto& p : *paths) {
+        MString mPath(p.c_str());
+        list.add(mPath);
+    }
+
+    std::vector<std::string> result;
+    std::string errorPath;
+
+    unsigned int length = list.length();
+    MDagPath dagPath;
+    MFnDagNode fnDag;
+
+    for (unsigned int i=0; i < length; i++) {
+        list.getDagPath(i, dagPath);
+        fnDag.setObject(dagPath);
+        if (fnDag.isInstanced()) {
+            MObject mObj = fnDag.parent(0);
+            MFnDagNode dataParent(mObj);
+            MString instanceSource = dataParent.fullPathName();
+            dagPath.pop(1);
+            MString hierarchyParent = dagPath.fullPathName();
+            if (hierarchyParent != instanceSource) {
+                result.push_back(dagPath.fullPathName().asChar());
+            }
+        }
+    }
+
+    return result;
+}
+
 } // namespace
 
 MeshChecker::MeshChecker()
@@ -539,6 +574,8 @@ MStatus MeshChecker::doIt(const MArgList& args)
             results.push_back(pool.enqueue(isEmptyGeometry, &splitGroups[i]));
         } else if (check_type == MeshCheckType::UNUSED_VERTICES) {
             results.push_back(pool.enqueue(findUnusedVertices, &splitGroups[i]));
+        } else if (check_type == MeshCheckType::INSTANCE) {
+            results.push_back(pool.enqueue(findInstances, &splitGroups[i]));
         } else {
             MGlobal::displayError("Invalid check number");
             return MS::kFailure;
