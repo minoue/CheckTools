@@ -16,6 +16,7 @@ enum class MeshCheckType {
     EMPTY_GEOMETRY,
     UNUSED_VERTICES,
     INSTANCE,
+    CONNECTIONS,
     TEST
 };
 

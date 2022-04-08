@@ -1,6 +1,7 @@
 #include "meshChecker.hpp"
 #include "../../include/ThreadPool.hpp"
 #include "../../include/utils.hpp"
+#include "maya/MApiNamespace.h"
 
 #include <cstddef>
 #include <maya/MObject.h>
@@ -23,13 +24,15 @@
 #include <maya/MString.h>
 #include <maya/MSyntax.h>
 #include <maya/MUintArray.h>
+#include <maya/MPlugArray.h>
 
 #include <cmath>
 #include <string>
 #include <thread>
+#include <algorithm>
 
 static const char* const pluginCommandName = "checkMesh";
-static const char* const pluginVersion = "2.1.3";
+static const char* const pluginVersion = "2.1.4";
 static const char* const pluginAuthor = "Michi Inoue";
 
 namespace {
@@ -468,6 +471,55 @@ std::vector<std::string> findInstances(std::vector<std::string>* paths)
     return result;
 }
 
+std::vector<std::string> findConnections(std::vector<std::string>* paths)
+{
+    MSelectionList list;
+
+    for (auto& p : *paths) {
+        MString mPath(p.c_str());
+        list.add(mPath);
+    }
+    std::vector<std::string> CON_LIST = {
+        "translateX",
+        "translateY",
+        "translateZ",
+        "rotateX",
+        "rotateY",
+        "rotateZ",
+        "rotateOrder",
+        "parentInverseMatrix",
+        "rotatePivot",
+        "rotatePivotTranslate"
+    };
+
+    std::vector<std::string> result;
+
+    unsigned int length = list.length();
+
+    MDagPath dagPath;
+
+    for (unsigned int i=0; i < length; i++) {
+
+        MPlugArray plugs;
+
+        list.getDagPath(i, dagPath);
+        dagPath.pop(1);
+        MObject mObj = dagPath.node();
+        MFnDependencyNode fnDep(mObj);
+        fnDep.getConnections(plugs);
+        unsigned int numPlugs = plugs.length();
+        for (unsigned int j=0; j<numPlugs; j++) {
+            MPlug p = plugs[j];
+            MString cn = p.partialName(false, false, false, false, false, true);
+            if (std::find(CON_LIST.begin(), CON_LIST.end(), cn.asChar()) != CON_LIST.end()) {
+                result.push_back(dagPath.fullPathName().asChar());
+                break;
+            }
+        }
+    }
+    return result;
+}
+
 } // namespace
 
 MeshChecker::MeshChecker()
@@ -576,6 +628,8 @@ MStatus MeshChecker::doIt(const MArgList& args)
             results.push_back(pool.enqueue(findUnusedVertices, &splitGroups[i]));
         } else if (check_type == MeshCheckType::INSTANCE) {
             results.push_back(pool.enqueue(findInstances, &splitGroups[i]));
+        } else if (check_type == MeshCheckType::CONNECTIONS) {
+            results.push_back(pool.enqueue(findConnections, &splitGroups[i]));
         } else {
             MGlobal::displayError("Invalid check number");
             return MS::kFailure;
