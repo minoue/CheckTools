@@ -5,14 +5,16 @@ Mesh/Topology checker for my own
 0. Triangles
 1. Ngons
 2. Non-manifold edges
-3. lamina faces
-4. bi-valent faces
-5. zero area faces
-6. mesh border edges
-7. crease edges
-8. zero length edges
-9. vertex pnts attributes
-10. empty geometry (geo with 0 vertices)
+3. Lamina faces
+4. Bi-valent faces
+5. Zero area faces
+6. Mesh border edges
+7. Crease edges
+8. Zero length edges
+9. Vertex pnts attributes
+10. Empty geometry (geo with 0 vertices)
+11. Instance shpaes
+12. Channel connections
 
 ## Flags
 | Longname | Shortname | Argument types | Default | Properties |
