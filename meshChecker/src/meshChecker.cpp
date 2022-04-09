@@ -32,7 +32,7 @@
 #include <algorithm>
 
 static const char* const pluginCommandName = "checkMesh";
-static const char* const pluginVersion = "2.1.4";
+static const char* const pluginVersion = "2.3.0";
 static const char* const pluginAuthor = "Michi Inoue";
 
 namespace {
